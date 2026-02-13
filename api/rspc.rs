@@ -58,10 +58,23 @@ async fn handler(req: Request) -> Result<Response<Value>, Error> {
         Ok(v) => Ok(Response::builder()
             .status(200)
             .header("Content-Type", "application/json")
-            .body(v)?),
+            .body(json!({
+                "result": {
+                    "type": "response",
+                    "data": v
+                }
+            }))?),
         Err(e) => Ok(Response::builder()
-            .status(500)
+            .status(200)
             .header("Content-Type", "application/json")
-            .body(json!({ "error": e.to_string() }))?),
+            .body(json!({
+                "result": {
+                    "type": "error",
+                    "data": {
+                        "code": 500,
+                        "message": e.to_string()
+                    }
+                }
+            }))?),
     }
 }
