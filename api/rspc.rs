@@ -1,7 +1,8 @@
-use rspc::{Router, Config};
+use rspc::{Router, Config, ExecKind};
 use std::path::PathBuf;
 use vercel_runtime::{run, service_fn, Error, Request, Response};
-use serde_json::json;
+use serde_json::{json, Value};
+use url::Url;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -29,11 +30,38 @@ pub fn mount() -> Router<()> {
         .build()
 }
 
-async fn handler(_req: Request) -> Result<Response<serde_json::Value>, Error> {
-    let _router = mount();
+async fn handler(req: Request) -> Result<Response<Value>, Error> {
+    let router = mount();
+    let url = Url::parse(&format!("http://localhost{}", req.uri()))?;
     
-    Ok(Response::builder()
-        .status(200)
-        .header("Content-Type", "application/json")
-        .body(json!({ "message": "rspc handler active. Use it with rspc-client." }))?)
+    // rspc FetchTransport использует формат /api/rspc/procedureName?input=...
+    let path = url.path();
+    let procedure_name = path.strip_prefix("/api/rspc/").unwrap_or("");
+
+    if procedure_name.is_empty() {
+        return Ok(Response::builder()
+            .status(200)
+            .header("Content-Type", "application/json")
+            .body(json!({ "message": "rspc handler active. Use it with rspc-client." }))?);
+    }
+
+    let params = url.query_pairs()
+        .find(|(key, _)| key == "input")
+        .map(|(_, value)| serde_json::from_str::<Value>(&value))
+        .transpose()?
+        .unwrap_or(Value::Null);
+
+    // В rspc v0.1.4 используется exec
+    let result = router.exec((), ExecKind::Query, procedure_name.to_string(), Some(params)).await;
+
+    match result {
+        Ok(v) => Ok(Response::builder()
+            .status(200)
+            .header("Content-Type", "application/json")
+            .body(v)?),
+        Err(e) => Ok(Response::builder()
+            .status(500)
+            .header("Content-Type", "application/json")
+            .body(json!({ "error": e.to_string() }))?),
+    }
 }

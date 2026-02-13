@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/rspc/:path*",
+      "destination": "/api/rspc"
+    }
+  ]
+}
