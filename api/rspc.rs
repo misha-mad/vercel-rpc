@@ -34,7 +34,6 @@ async fn handler(req: Request) -> Result<Response<Value>, Error> {
     let router = mount();
     let url = Url::parse(&format!("http://localhost{}", req.uri()))?;
     
-    // rspc FetchTransport использует формат /api/rspc/procedureName?input=...
     let path = url.path();
     let procedure_name = path.strip_prefix("/api/rspc/").unwrap_or("");
 
@@ -51,7 +50,6 @@ async fn handler(req: Request) -> Result<Response<Value>, Error> {
         .transpose()?
         .unwrap_or(Value::Null);
 
-    // В rspc v0.1.4 используется exec
     let result = router.exec((), ExecKind::Query, procedure_name.to_string(), Some(params)).await;
 
     match result {
