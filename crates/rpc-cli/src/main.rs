@@ -87,9 +87,10 @@ fn cmd_scan(dir: &PathBuf) -> Result<()> {
     let manifest = parser::scan_directory(dir)?;
 
     println!(
-        "Discovered {} procedure(s) and {} struct(s):\n",
+        "Discovered {} procedure(s), {} struct(s), {} enum(s):\n",
         manifest.procedures.len(),
         manifest.structs.len(),
+        manifest.enums.len(),
     );
 
     for proc in &manifest.procedures {
@@ -122,6 +123,11 @@ fn cmd_scan(dir: &PathBuf) -> Result<()> {
         println!("  }}");
     }
 
+    for e in &manifest.enums {
+        let variants: Vec<&str> = e.variants.iter().map(|v| v.name.as_str()).collect();
+        println!("\n  enum {} {{ {} }}", e.name, variants.join(", "));
+    }
+
     // Also output raw JSON for tooling consumption
     println!("\n--- JSON manifest ---");
     println!("{}", serde_json::to_string_pretty(&manifest)?);
@@ -136,10 +142,11 @@ fn cmd_generate(dir: &PathBuf, output: &PathBuf, client_output: &PathBuf, types_
     let types_content = codegen::typescript::generate_types_file(&manifest);
     write_file(output, &types_content)?;
     println!(
-        "Generated {} ({} procedure(s), {} struct(s)) -> {}",
+        "Generated {} ({} procedure(s), {} struct(s), {} enum(s)) -> {}",
         output.display(),
         manifest.procedures.len(),
         manifest.structs.len(),
+        manifest.enums.len(),
         bytecount(&types_content),
     );
 

@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use syn::{Attribute, File, FnArg, Item, ItemFn, ReturnType};
 use walkdir::WalkDir;
 
-use crate::model::{Manifest, Procedure, ProcedureKind, StructDef};
+use crate::model::{EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, StructDef, VariantKind};
 use super::types::{extract_rust_type, extract_struct_fields};
 
 /// RPC attribute names recognized by the parser.
@@ -41,11 +41,13 @@ pub fn scan_directory(api_dir: &Path) -> Result<Manifest> {
 
         manifest.procedures.extend(file_manifest.procedures);
         manifest.structs.extend(file_manifest.structs);
+        manifest.enums.extend(file_manifest.enums);
     }
 
     // Sort for deterministic output
     manifest.procedures.sort_by(|a, b| a.name.cmp(&b.name));
     manifest.structs.sort_by(|a, b| a.name.cmp(&b.name));
+    manifest.enums.sort_by(|a, b| a.name.cmp(&b.name));
 
     Ok(manifest)
 }
@@ -73,6 +75,16 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
                     manifest.structs.push(StructDef {
                         name: item_struct.ident.to_string(),
                         fields,
+                        source_file: path.to_path_buf(),
+                    });
+                }
+            }
+            Item::Enum(item_enum) => {
+                if has_serde_derive(&item_enum.attrs) {
+                    let variants = extract_enum_variants(item_enum);
+                    manifest.enums.push(EnumDef {
+                        name: item_enum.ident.to_string(),
+                        variants,
                         source_file: path.to_path_buf(),
                     });
                 }
@@ -132,6 +144,41 @@ fn detect_rpc_kind(attrs: &[Attribute]) -> Option<ProcedureKind> {
         }
     }
     None
+}
+
+/// Extracts variants from a Rust enum into `EnumVariant` representations.
+fn extract_enum_variants(item_enum: &syn::ItemEnum) -> Vec<EnumVariant> {
+    item_enum
+        .variants
+        .iter()
+        .map(|v| {
+            let name = v.ident.to_string();
+            let kind = match &v.fields {
+                syn::Fields::Unit => VariantKind::Unit,
+                syn::Fields::Unnamed(fields) => {
+                    let types = fields
+                        .unnamed
+                        .iter()
+                        .map(|f| extract_rust_type(&f.ty))
+                        .collect();
+                    VariantKind::Tuple(types)
+                }
+                syn::Fields::Named(fields) => {
+                    let named = fields
+                        .named
+                        .iter()
+                        .filter_map(|f| {
+                            let field_name = f.ident.as_ref()?.to_string();
+                            let ty = extract_rust_type(&f.ty);
+                            Some((field_name, ty))
+                        })
+                        .collect();
+                    VariantKind::Struct(named)
+                }
+            };
+            EnumVariant { name, kind }
+        })
+        .collect()
 }
 
 /// Checks if a struct has `#[derive(Serialize)]` or `#[derive(serde::Serialize)]`.
@@ -263,5 +310,114 @@ mod tests {
         );
         assert_eq!(manifest.procedures.len(), 1);
         assert_eq!(manifest.procedures[0].name, "actual_rpc");
+    }
+
+    #[test]
+    fn extracts_unit_enum() {
+        let manifest = parse_source(
+            r#"
+            #[derive(Serialize)]
+            enum Status {
+                Active,
+                Inactive,
+                Banned,
+            }
+            "#,
+        );
+        assert_eq!(manifest.enums.len(), 1);
+        let e = &manifest.enums[0];
+        assert_eq!(e.name, "Status");
+        assert_eq!(e.variants.len(), 3);
+        assert_eq!(e.variants[0].name, "Active");
+        assert!(matches!(e.variants[0].kind, VariantKind::Unit));
+    }
+
+    #[test]
+    fn extracts_tuple_enum() {
+        let manifest = parse_source(
+            r#"
+            #[derive(Serialize)]
+            enum ApiResponse {
+                Ok(String),
+                Error(u32, String),
+            }
+            "#,
+        );
+        assert_eq!(manifest.enums.len(), 1);
+        let e = &manifest.enums[0];
+        assert_eq!(e.variants.len(), 2);
+        match &e.variants[0].kind {
+            VariantKind::Tuple(types) => {
+                assert_eq!(types.len(), 1);
+                assert_eq!(types[0].name, "String");
+            }
+            _ => panic!("expected Tuple variant"),
+        }
+        match &e.variants[1].kind {
+            VariantKind::Tuple(types) => assert_eq!(types.len(), 2),
+            _ => panic!("expected Tuple variant"),
+        }
+    }
+
+    #[test]
+    fn extracts_struct_enum() {
+        let manifest = parse_source(
+            r#"
+            #[derive(Serialize)]
+            enum Event {
+                Click { x: i32, y: i32 },
+                Message { text: String },
+            }
+            "#,
+        );
+        assert_eq!(manifest.enums.len(), 1);
+        let e = &manifest.enums[0];
+        match &e.variants[0].kind {
+            VariantKind::Struct(fields) => {
+                assert_eq!(fields.len(), 2);
+                assert_eq!(fields[0].0, "x");
+                assert_eq!(fields[1].0, "y");
+            }
+            _ => panic!("expected Struct variant"),
+        }
+    }
+
+    #[test]
+    fn extracts_mixed_enum() {
+        let manifest = parse_source(
+            r#"
+            #[derive(Serialize)]
+            enum Shape {
+                Circle(f64),
+                Rectangle { width: f64, height: f64 },
+                Unknown,
+            }
+            "#,
+        );
+        let e = &manifest.enums[0];
+        assert_eq!(e.variants.len(), 3);
+        assert!(matches!(e.variants[0].kind, VariantKind::Tuple(_)));
+        assert!(matches!(e.variants[1].kind, VariantKind::Struct(_)));
+        assert!(matches!(e.variants[2].kind, VariantKind::Unit));
+    }
+
+    #[test]
+    fn ignores_non_serde_enum() {
+        let manifest = parse_source(
+            r#"
+            enum NotSerde {
+                A,
+                B,
+            }
+
+            #[derive(Serialize)]
+            enum IsSerde {
+                X,
+                Y,
+            }
+            "#,
+        );
+        assert_eq!(manifest.enums.len(), 1);
+        assert_eq!(manifest.enums[0].name, "IsSerde");
     }
 }

@@ -74,9 +74,42 @@ pub struct StructDef {
     pub source_file: PathBuf,
 }
 
+/// A single variant of a Rust enum.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnumVariant {
+    /// Variant name (e.g. `Active`, `Error`)
+    pub name: String,
+    /// Variant kind determines TypeScript representation
+    pub kind: VariantKind,
+}
+
+/// The shape of an enum variant's data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum VariantKind {
+    /// Unit variant: `Active` → string literal `"Active"`
+    Unit,
+    /// Tuple variant with a single unnamed field: `Error(String)` → `{ Error: string }`
+    Tuple(Vec<RustType>),
+    /// Struct variant with named fields: `User { name: String }` → `{ User: { name: string } }`
+    Struct(Vec<(String, RustType)>),
+}
+
+/// All user-defined enum types found in the scanned source files.
+/// Needed for generating corresponding TypeScript union types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnumDef {
+    /// Enum name
+    pub name: String,
+    /// Variants of the enum
+    pub variants: Vec<EnumVariant>,
+    /// Source file this enum was defined in
+    pub source_file: PathBuf,
+}
+
 /// Complete manifest of all discovered RPC metadata from a scan.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Manifest {
     pub procedures: Vec<Procedure>,
     pub structs: Vec<StructDef>,
+    pub enums: Vec<EnumDef>,
 }

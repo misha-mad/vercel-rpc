@@ -4,7 +4,7 @@
 
 **End-to-end typesafe RPC between Rust lambdas on Vercel and SvelteKit**
 
-[![Rust Tests](https://img.shields.io/badge/rust_tests-49_passed-brightgreen?logo=rust)](./crates)
+[![Rust Tests](https://img.shields.io/badge/rust_tests-60_passed-brightgreen?logo=rust)](./crates)
 [![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./tests/integration)
 [![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./tests/e2e)
 [![TypeScript](https://img.shields.io/badge/types-auto--generated-blue?logo=typescript)](./src/lib/rpc-types.ts)
@@ -145,7 +145,7 @@ This runs the RPC watcher and Vite dev server in parallel. Every time you save a
   types:   src/lib/rpc-types.ts
   client:  src/lib/rpc-client.ts
 
-  ✓ Generated 2 procedure(s), 1 struct(s) in 3ms
+  ✓ Generated 2 procedure(s), 1 struct(s), 0 enum(s) in 3ms
     → src/lib/rpc-types.ts
     → src/lib/rpc-client.ts
   Watching for changes in api
@@ -167,7 +167,7 @@ svelte-rust/
 │   └── rpc-cli/                  # CLI crate (binary: `rpc`)
 │       └── src/
 │           ├── main.rs           #   CLI entry (scan / generate / watch)
-│           ├── model.rs          #   Manifest, Procedure, RustType, StructDef
+│           ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef
 │           ├── parser/           #   Rust source → Manifest (via syn)
 │           │   ├── extract.rs    #     File scanning & procedure extraction
 │           │   └── types.rs      #     syn::Type → RustType conversion
@@ -200,7 +200,7 @@ cargo run -p vercel-rpc-cli -- scan --dir api
 ```
 
 ```
-Discovered 2 procedure(s) and 1 struct(s):
+Discovered 2 procedure(s), 1 struct(s), 0 enum(s):
 
   Query hello (String) -> String  [api/hello.rs]
   Query time (()) -> TimeResponse  [api/time.rs]
@@ -282,6 +282,45 @@ async fn create_item(input: CreateInput) -> Item {
 }
 ```
 
+### Enum & Struct support
+
+Structs and enums with `#[derive(Serialize)]` are automatically picked up and converted to TypeScript:
+
+```rust
+#[derive(Serialize)]
+struct UserProfile {
+    name: String,
+    age: u32,
+}
+
+#[derive(Serialize)]
+enum Status {
+    Active,
+    Inactive,
+    Banned,
+}
+
+#[derive(Serialize)]
+enum ApiResult {
+    Ok(String),                          // tuple variant
+    NotFound,                            // unit variant
+    Error { code: u32, message: String } // struct variant
+}
+```
+
+Generated TypeScript:
+
+```typescript
+export interface UserProfile {
+  name: string;
+  age: number;
+}
+
+export type Status = "Active" | "Inactive" | "Banned";
+
+export type ApiResult = { Ok: string } | "NotFound" | { Error: { code: number; message: string } };
+```
+
 ### Generated handler features
 
 Every macro-annotated function automatically gets:
@@ -309,6 +348,10 @@ Every macro-annotated function automatically gets:
 | `(A, B, C)` | `[A, B, C]` |
 | `Result<T, E>` | `T` (error handled at runtime) |
 | Custom structs | `interface` with same fields |
+| Enums (unit variants) | `"A" \| "B" \| "C"` (string union) |
+| Enums (tuple variants) | `{ A: string } \| { B: number }` (tagged union) |
+| Enums (struct variants) | `{ A: { x: number; y: number } }` (tagged union) |
+| Enums (mixed) | Combination of all above |
 
 ## npm Scripts
 
@@ -324,7 +367,7 @@ Every macro-annotated function automatically gets:
 
 ## Testing
 
-The project has **69 tests** across three layers:
+The project has **80 tests** across three layers:
 
 ```bash
 # Run everything
@@ -333,7 +376,7 @@ npm run test:all
 
 | Layer | Count | What's tested |
 |-------|-------|---------------|
-| **Rust unit** | 49 | Type parsing, extraction, TS codegen, client codegen |
+| **Rust unit** | 60 | Type parsing, struct/enum extraction, TS codegen, client codegen |
 | **Vitest integration** | 12 | Full codegen pipeline, TypeScript compilation, idempotency |
 | **Playwright e2e** | 8 | UI rendering, typed queries, API response format |
 

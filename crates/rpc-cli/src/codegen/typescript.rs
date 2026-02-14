@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use crate::model::{Manifest, Procedure, ProcedureKind, RustType, StructDef};
+use crate::model::{EnumDef, Manifest, Procedure, ProcedureKind, RustType, StructDef, VariantKind};
 
 // Header comment included at the top of every generated file.
 const GENERATED_HEADER: &str = "\
@@ -96,6 +96,58 @@ fn generate_interface(s: &StructDef, out: &mut String) {
     let _ = writeln!(out, "}}");
 }
 
+/// Generates a TypeScript type from an enum definition.
+///
+/// Supports three variant shapes following serde's default (externally tagged) representation:
+/// - Unit variants → string literal union: `"Active" | "Inactive"`
+/// - Tuple variants → `{ VariantName: T }` (single field) or `{ VariantName: [A, B] }` (multiple)
+/// - Struct variants → `{ VariantName: { field: type } }`
+///
+/// If all variants are unit, emits a simple string union.
+/// Otherwise, emits a discriminated union of object types.
+fn generate_enum_type(e: &EnumDef, out: &mut String) {
+    let all_unit = e.variants.iter().all(|v| matches!(v.kind, VariantKind::Unit));
+
+    if all_unit {
+        // Simple string literal union
+        let variants: Vec<String> = e.variants.iter().map(|v| format!("\"{}\"" , v.name)).collect();
+        if variants.is_empty() {
+            let _ = writeln!(out, "export type {} = never;", e.name);
+        } else {
+            let _ = writeln!(out, "export type {} = {};", e.name, variants.join(" | "));
+        }
+    } else {
+        // Tagged union (serde externally tagged default)
+        let mut variant_types: Vec<String> = Vec::new();
+
+        for v in &e.variants {
+            match &v.kind {
+                VariantKind::Unit => {
+                    variant_types.push(format!("\"{}\"" , v.name));
+                }
+                VariantKind::Tuple(types) => {
+                    let inner = if types.len() == 1 {
+                        rust_type_to_ts(&types[0])
+                    } else {
+                        let elems: Vec<String> = types.iter().map(rust_type_to_ts).collect();
+                        format!("[{}]", elems.join(", "))
+                    };
+                    variant_types.push(format!("{{ {}: {} }}", v.name, inner));
+                }
+                VariantKind::Struct(fields) => {
+                    let field_strs: Vec<String> = fields
+                        .iter()
+                        .map(|(name, ty)| format!("{}: {}", name, rust_type_to_ts(ty)))
+                        .collect();
+                    variant_types.push(format!("{{ {}: {{ {} }} }}", v.name, field_strs.join("; ")));
+                }
+            }
+        }
+
+        let _ = writeln!(out, "export type {} = {};", e.name, variant_types.join(" | "));
+    }
+}
+
 /// Generates the `Procedures` type that maps procedure names to their input/output types,
 /// grouped by kind (queries / mutations).
 fn generate_procedures_type(procedures: &[Procedure], out: &mut String) {
@@ -161,15 +213,15 @@ pub fn generate_types_file(manifest: &Manifest) -> String {
     out.push('\n');
 
     // Emit all structs discovered in the scanned files.
-    // Even if a struct isn't directly referenced by a procedure, it may be
-    // used transitively or by client code, so we include everything.
-    let structs_to_emit: Vec<&StructDef> = manifest.structs.iter().collect();
+    for s in &manifest.structs {
+        generate_interface(s, &mut out);
+        out.push('\n');
+    }
 
-    if !structs_to_emit.is_empty() {
-        for s in &structs_to_emit {
-            generate_interface(s, &mut out);
-            out.push('\n');
-        }
+    // Emit all enums discovered in the scanned files.
+    for e in &manifest.enums {
+        generate_enum_type(e, &mut out);
+        out.push('\n');
     }
 
     // Generate the Procedures type
@@ -325,6 +377,7 @@ mod tests {
                     source_file: PathBuf::from("api/create_item.rs"),
                 },
             ],
+            enums: vec![],
         }
     }
 
@@ -380,6 +433,7 @@ mod tests {
                 source_file: PathBuf::from("api/ping.rs"),
             }],
             structs: vec![],
+            enums: vec![],
         };
         let output = generate_types_file(&manifest);
 
@@ -404,8 +458,143 @@ mod tests {
                 source_file: PathBuf::from("api/search.rs"),
             }],
             structs: vec![],
+            enums: vec![],
         };
         let output = generate_types_file(&manifest);
         assert!(output.contains("    search: { input: string; output: (Item | null)[] };"));
+    }
+
+    // --- enum codegen ---
+
+    #[test]
+    fn generates_unit_enum_as_string_union() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Status".to_string(),
+                variants: vec![
+                    EnumVariant { name: "Active".to_string(), kind: VariantKind::Unit },
+                    EnumVariant { name: "Inactive".to_string(), kind: VariantKind::Unit },
+                    EnumVariant { name: "Banned".to_string(), kind: VariantKind::Unit },
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+            }],
+        };
+        let output = generate_types_file(&manifest);
+        assert!(output.contains("export type Status = \"Active\" | \"Inactive\" | \"Banned\";"));
+    }
+
+    #[test]
+    fn generates_tuple_enum_as_tagged_union() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Response".to_string(),
+                variants: vec![
+                    EnumVariant {
+                        name: "Ok".to_string(),
+                        kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    },
+                    EnumVariant {
+                        name: "Error".to_string(),
+                        kind: VariantKind::Tuple(vec![RustType::simple("i32")]),
+                    },
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+            }],
+        };
+        let output = generate_types_file(&manifest);
+        assert!(output.contains("export type Response = { Ok: string } | { Error: number };"));
+    }
+
+    #[test]
+    fn generates_struct_enum_as_tagged_union() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Event".to_string(),
+                variants: vec![
+                    EnumVariant {
+                        name: "Click".to_string(),
+                        kind: VariantKind::Struct(vec![
+                            ("x".to_string(), RustType::simple("i32")),
+                            ("y".to_string(), RustType::simple("i32")),
+                        ]),
+                    },
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+            }],
+        };
+        let output = generate_types_file(&manifest);
+        assert!(output.contains("export type Event = { Click: { x: number; y: number } };"));
+    }
+
+    #[test]
+    fn generates_mixed_enum() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Shape".to_string(),
+                variants: vec![
+                    EnumVariant {
+                        name: "Circle".to_string(),
+                        kind: VariantKind::Tuple(vec![RustType::simple("f64")]),
+                    },
+                    EnumVariant {
+                        name: "Rect".to_string(),
+                        kind: VariantKind::Struct(vec![
+                            ("w".to_string(), RustType::simple("f64")),
+                            ("h".to_string(), RustType::simple("f64")),
+                        ]),
+                    },
+                    EnumVariant { name: "Unknown".to_string(), kind: VariantKind::Unit },
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+            }],
+        };
+        let output = generate_types_file(&manifest);
+        assert!(output.contains("export type Shape = { Circle: number } | { Rect: { w: number; h: number } } | \"Unknown\";"));
+    }
+
+    #[test]
+    fn generates_empty_enum_as_never() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Empty".to_string(),
+                variants: vec![],
+                source_file: PathBuf::from("api/test.rs"),
+            }],
+        };
+        let output = generate_types_file(&manifest);
+        assert!(output.contains("export type Empty = never;"));
+    }
+
+    #[test]
+    fn generates_multi_field_tuple_variant() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Pair".to_string(),
+                variants: vec![
+                    EnumVariant {
+                        name: "Both".to_string(),
+                        kind: VariantKind::Tuple(vec![
+                            RustType::simple("String"),
+                            RustType::simple("i32"),
+                        ]),
+                    },
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+            }],
+        };
+        let output = generate_types_file(&manifest);
+        assert!(output.contains("export type Pair = { Both: [string, number] };"));
     }
 }

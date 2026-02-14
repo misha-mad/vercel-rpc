@@ -74,21 +74,22 @@ pub fn generate_client_file(manifest: &Manifest, types_import_path: &str) -> Str
     out.push_str(GENERATED_HEADER);
     out.push('\n');
 
-    // Collect all struct names referenced by procedures for import
-    let struct_names: Vec<&str> = manifest
+    // Collect all user-defined type names (structs + enums) for import
+    let type_names: Vec<&str> = manifest
         .structs
         .iter()
         .map(|s| s.name.as_str())
+        .chain(manifest.enums.iter().map(|e| e.name.as_str()))
         .collect();
 
-    // Import Procedures type (and any referenced structs) from the types file
-    if struct_names.is_empty() {
+    // Import Procedures type (and any referenced types) from the types file
+    if type_names.is_empty() {
         let _ = writeln!(out, "import type {{ Procedures }} from \"{types_import_path}\";\n");
         let _ = writeln!(out, "export type {{ Procedures }};\n");
     } else {
-        let structs_csv = struct_names.join(", ");
-        let _ = writeln!(out, "import type {{ Procedures, {structs_csv} }} from \"{types_import_path}\";\n");
-        let _ = writeln!(out, "export type {{ Procedures, {structs_csv} }};\n");
+        let types_csv = type_names.join(", ");
+        let _ = writeln!(out, "import type {{ Procedures, {types_csv} }} from \"{types_import_path}\";\n");
+        let _ = writeln!(out, "export type {{ Procedures, {types_csv} }};\n");
     }
 
     // Error class
@@ -263,6 +264,7 @@ mod tests {
         Manifest {
             procedures,
             structs: vec![],
+            enums: vec![],
         }
     }
 
@@ -443,6 +445,7 @@ mod tests {
                 fields: vec![("timestamp".to_string(), RustType::simple("u64"))],
                 source_file: PathBuf::from("api/time.rs"),
             }],
+            enums: vec![],
         };
         let output = generate_client_file(&manifest, "./rpc-types");
         assert!(output.contains("import type { Procedures, TimeResponse } from \"./rpc-types\""));
