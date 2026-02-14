@@ -1,42 +1,370 @@
-# sv
+<div align="center">
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+# ⚡ vercel-rpc
 
-## Creating a project
+**End-to-end typesafe RPC between Rust lambdas on Vercel and SvelteKit**
 
-If you're seeing this, you've probably already done this step. Congrats!
+[![Rust Tests](https://img.shields.io/badge/rust_tests-49_passed-brightgreen?logo=rust)](./crates)
+[![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./tests/integration)
+[![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./tests/e2e)
+[![TypeScript](https://img.shields.io/badge/types-auto--generated-blue?logo=typescript)](./src/lib/rpc-types.ts)
+[![Vercel](https://img.shields.io/badge/deploy-vercel-black?logo=vercel)](https://vercel.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](#license)
 
-```sh
-# create a new project
-npx sv create my-app
+Write Rust functions → get a fully typed TypeScript client. Zero config, zero boilerplate.
+
+</div>
+
+---
+
+## Why?
+
+Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript types in sync is painful. **vercel-rpc** solves this:
+
+- 🦀 **Write plain Rust functions** with `#[rpc_query]` / `#[rpc_mutation]`
+- 🔄 **Auto-generate TypeScript types & client** from Rust source code
+- 👀 **Watch mode** — types regenerate on every save
+- 🚀 **Deploy to Vercel** — each function becomes a serverless lambda
+- 🛡️ **End-to-end type safety** — Rust types → TypeScript types, no manual sync
+
+## How It Works
+
+```
+┌─────────────┐     scan      ┌─────────────┐    codegen    ┌──────────────────┐
+│  api/*.rs    │ ──────────▶  │   Manifest   │ ──────────▶  │  rpc-types.ts    │
+│  #[rpc_query]│   (syn)      │  procedures  │   (rust→ts)  │  rpc-client.ts   │
+│  #[rpc_mut.] │              │  structs     │              │  Typed RpcClient │
+└─────────────┘              └─────────────┘              └──────────────────┘
+       │                                                           │
+       │  deploy (vercel)                          import (svelte) │
+       ▼                                                           ▼
+┌─────────────┐              HTTP (GET/POST)       ┌──────────────────┐
+│ Vercel Lambda│ ◀──────────────────────────────── │   SvelteKit App  │
+│  /api/hello  │                                   │  rpc.query(...)  │
+│  /api/time   │ ──────────────────────────────▶  │  fully typed! ✨  │
+└─────────────┘              JSON response         └──────────────────┘
 ```
 
-To recreate this project with the same configuration:
+## Quick Start
 
-```sh
-# recreate this project
-bun x sv create --template demo --types ts --add prettier eslint sveltekit-adapter="adapter:vercel" --install bun ./
+### 1. Define a Rust lambda
+
+```rust
+// api/hello.rs
+use vercel_rpc_macro::rpc_query;
+
+#[rpc_query]
+async fn hello(name: String) -> String {
+    format!("Hello, {} from Rust on Vercel!", name)
+}
 ```
 
-## Developing
+That's it. The macro generates the full Vercel-compatible handler with:
+- Input parsing (query params for queries, JSON body for mutations)
+- JSON serialization of the response
+- CORS headers & OPTIONS preflight
+- HTTP method validation (GET for queries, POST for mutations)
+- Structured error responses for `Result<T, E>` return types
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### 2. Generate TypeScript bindings
 
-```sh
+```bash
+# One-time generation
+cargo run -p vercel-rpc-cli -- generate --dir api
+
+# Or use npm script
+npm run generate
+```
+
+This produces two files:
+
+**`src/lib/rpc-types.ts`** — type definitions:
+```typescript
+export interface TimeResponse {
+  timestamp: number;
+  message: string;
+}
+
+export type Procedures = {
+  queries: {
+    hello: { input: string; output: string };
+    time: { input: void; output: TimeResponse };
+  };
+  mutations: {
+  };
+};
+```
+
+**`src/lib/rpc-client.ts`** — typed client with overloads:
+```typescript
+export interface RpcClient {
+  query(key: "time"): Promise<TimeResponse>;
+  query(key: "hello", input: string): Promise<string>;
+}
+
+export function createRpcClient(baseUrl: string): RpcClient;
+```
+
+### 3. Use in SvelteKit
+
+```typescript
+// src/lib/client.ts
+import { createRpcClient } from "./rpc-client";
+export const rpc = createRpcClient("/api");
+```
+
+```svelte
+<!-- src/routes/+page.svelte -->
+<script lang="ts">
+  import { rpc } from "$lib/client";
+
+  let greeting = $state("");
+
+  async function sayHello() {
+    greeting = await rpc.query("hello", "World");
+    //                  ^ autocomplete ✨
+    //                         ^ typed as string ✨
+  }
+</script>
+
+<button onclick={sayHello}>Say Hello</button>
+<p>{greeting}</p>
+```
+
+### 4. Watch mode (development)
+
+```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+This runs the RPC watcher and Vite dev server in parallel. Every time you save a `.rs` file in `api/`, the TypeScript types and client are regenerated automatically:
 
-To create a production version of your app:
+```
+  vercel-rpc watch mode
+  api dir: api
+  types:   src/lib/rpc-types.ts
+  client:  src/lib/rpc-client.ts
 
-```sh
-npm run build
+  ✓ Generated 2 procedure(s), 1 struct(s) in 3ms
+    → src/lib/rpc-types.ts
+    → src/lib/rpc-client.ts
+  Watching for changes in api
+
+  [12:34:56] Changed: api/hello.rs
+  ✓ Regenerated in 2ms
 ```
 
-You can preview the production build with `npm run preview`.
+## Project Structure
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```
+svelte-rust/
+├── api/                          # Rust lambdas (each file = one endpoint)
+│   ├── hello.rs                  #   GET /api/hello?input="name"
+│   └── time.rs                   #   GET /api/time
+├── crates/
+│   ├── rpc-macro/                # Proc-macro crate
+│   │   └── src/lib.rs            #   #[rpc_query] / #[rpc_mutation]
+│   └── rpc-cli/                  # CLI crate (binary: `rpc`)
+│       └── src/
+│           ├── main.rs           #   CLI entry (scan / generate / watch)
+│           ├── model.rs          #   Manifest, Procedure, RustType, StructDef
+│           ├── parser/           #   Rust source → Manifest (via syn)
+│           │   ├── extract.rs    #     File scanning & procedure extraction
+│           │   └── types.rs      #     syn::Type → RustType conversion
+│           ├── codegen/          #   Manifest → TypeScript
+│           │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
+│           │   └── client.rs     #     RpcClient interface + rpc-client.ts
+│           └── watch.rs          #   File watcher with debounce
+├── src/
+│   ├── lib/
+│   │   ├── rpc-types.ts          # ← auto-generated types
+│   │   ├── rpc-client.ts         # ← auto-generated client
+│   │   └── client.ts             #   RPC client instance (manual)
+│   └── routes/                   # SvelteKit pages
+├── tests/
+│   ├── integration/              # Vitest: codegen pipeline tests
+│   └── e2e/                      # Playwright: UI + API tests
+├── Cargo.toml                    # Rust workspace
+├── package.json                  # Node scripts
+└── vercel.json                   # Vercel config
+```
+
+## CLI Reference
+
+### `rpc scan`
+
+Scan Rust source files and print discovered procedures:
+
+```bash
+cargo run -p vercel-rpc-cli -- scan --dir api
+```
+
+```
+Discovered 2 procedure(s) and 1 struct(s):
+
+  Query hello (String) -> String  [api/hello.rs]
+  Query time (()) -> TimeResponse  [api/time.rs]
+
+  struct TimeResponse {
+    timestamp: u64,
+    message: String,
+  }
+```
+
+### `rpc generate`
+
+Generate TypeScript types and client:
+
+```bash
+cargo run -p vercel-rpc-cli -- generate \
+  --dir api \
+  --output src/lib/rpc-types.ts \
+  --client-output src/lib/rpc-client.ts \
+  --types-import ./rpc-types
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--dir`, `-d` | `api` | Rust source directory |
+| `--output`, `-o` | `src/lib/rpc-types.ts` | Types output path |
+| `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path |
+| `--types-import` | `./rpc-types` | Import path for types in client |
+
+### `rpc watch`
+
+Watch for changes and regenerate on save (same flags as `generate`):
+
+```bash
+cargo run -p vercel-rpc-cli -- watch --dir api
+```
+
+## Rust Macros
+
+### `#[rpc_query]` — GET endpoint
+
+```rust
+use vercel_rpc_macro::rpc_query;
+
+// No input
+#[rpc_query]
+async fn version() -> String {
+    "1.0.0".to_string()
+}
+
+// With input (parsed from ?input= query param)
+#[rpc_query]
+async fn hello(name: String) -> String {
+    format!("Hello, {}!", name)
+}
+
+// With custom struct output
+#[rpc_query]
+async fn time() -> TimeResponse {
+    TimeResponse { timestamp: 123, message: "now".into() }
+}
+
+// With Result return type (Err → 400 JSON error)
+#[rpc_query]
+async fn risky(id: u32) -> Result<Item, String> {
+    if id == 0 { Err("invalid id".into()) } else { Ok(Item { id }) }
+}
+```
+
+### `#[rpc_mutation]` — POST endpoint
+
+```rust
+use vercel_rpc_macro::rpc_mutation;
+
+#[rpc_mutation]
+async fn create_item(input: CreateInput) -> Item {
+    // input is parsed from JSON request body
+    Item { id: 1, name: input.name }
+}
+```
+
+### Generated handler features
+
+Every macro-annotated function automatically gets:
+
+| Feature | Description |
+|---------|-------------|
+| **CORS** | `Access-Control-Allow-Origin: *` on all responses |
+| **Preflight** | `OPTIONS` → `204 No Content` with CORS headers |
+| **Method check** | `405 Method Not Allowed` for wrong HTTP method |
+| **Input parsing** | Query param (GET) or JSON body (POST) |
+| **Error handling** | `Result<T, E>` → `Ok` = 200, `Err` = 400 with JSON error |
+| **Response format** | `{ "result": { "type": "response", "data": ... } }` |
+
+## Type Mapping
+
+| Rust | TypeScript |
+|------|-----------|
+| `String`, `&str`, `char` | `string` |
+| `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number` |
+| `bool` | `boolean` |
+| `()` | `void` |
+| `Vec<T>` | `T[]` |
+| `Option<T>` | `T \| null` |
+| `HashMap<K, V>`, `BTreeMap<K, V>` | `Record<K, V>` |
+| `(A, B, C)` | `[A, B, C]` |
+| `Result<T, E>` | `T` (error handled at runtime) |
+| Custom structs | `interface` with same fields |
+
+## npm Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Watch mode + Vite dev server |
+| `npm run build` | Generate types + Vite build |
+| `npm run generate` | One-time TypeScript generation |
+| `npm run test` | Rust unit tests + Vitest integration |
+| `npm run test:e2e` | Playwright browser tests |
+| `npm run test:rust` | Rust tests only |
+| `npm run test:all` | Full test suite (Rust + Vitest + Playwright) |
+
+## Testing
+
+The project has **69 tests** across three layers:
+
+```bash
+# Run everything
+npm run test:all
+```
+
+| Layer | Count | What's tested |
+|-------|-------|---------------|
+| **Rust unit** | 49 | Type parsing, extraction, TS codegen, client codegen |
+| **Vitest integration** | 12 | Full codegen pipeline, TypeScript compilation, idempotency |
+| **Playwright e2e** | 8 | UI rendering, typed queries, API response format |
+
+## Deploy to Vercel
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel
+```
+
+Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`. No additional configuration needed.
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| **Frontend** | SvelteKit 2, TypeScript 5 |
+| **Backend** | Rust, Vercel Runtime |
+| **Macros** | `syn`, `quote`, `proc-macro2` |
+| **CLI parser** | `syn` (AST), `clap` (args) |
+| **File watching** | `notify` + `notify-debouncer-mini` |
+| **Testing** | `cargo test`, Vitest, Playwright |
+| **Deploy** | Vercel (serverless Rust) |
+
+## License
+
+MIT
+
+---
+
+<sub>This project is not affiliated with or endorsed by Vercel Inc. "Vercel" is a trademark of Vercel Inc.</sub>

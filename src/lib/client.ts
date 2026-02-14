@@ -1,6 +1,3 @@
-import { createClient, FetchTransport } from "@rspc/client";
-import type { Procedures } from "./rspc";
+import { createRpcClient } from "./rpc-client";
 
-export const client = createClient<Procedures>({
-    transport: new FetchTransport("/api/rspc"),
-});
+export const rpc = createRpcClient("/api");

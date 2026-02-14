@@ -1,24 +1,26 @@
 <script lang="ts">
-    import { client } from "$lib/client";
+    import { rpc } from "$lib/client";
     import { onMount } from "svelte";
 
-    let version = $state("loading...");
     let name = $state("SvelteKit");
     let greeting = $state("");
+    let time = $state("loading...");
     let loading = $state(false);
 
-    async function fetchVersion() {
+    async function fetchTime() {
         try {
-            version = await client.query(["version"]);
+            const res = await rpc.query("time");
+            const date = new Date(res.timestamp * 1000);
+            time = date.toLocaleString();
         } catch (e) {
-            version = "Error: " + e;
+            time = "Error: " + e;
         }
     }
 
     async function sayHello() {
         loading = true;
         try {
-            greeting = await client.query(["hello", name]);
+            greeting = await rpc.query("hello", name);
         } catch (e) {
             greeting = "Error: " + e;
         } finally {
@@ -27,13 +29,13 @@
     }
 
     onMount(() => {
-        fetchVersion();
+        fetchTime();
     });
 </script>
 
 <div class="container">
-    <h1>RSPC + SvelteKit + Rust</h1>
-    <p>Backend version: <strong>{version}</strong></p>
+    <h1>RPC + SvelteKit + Rust</h1>
+    <p>Server time: <strong>{time}</strong></p>
 
     <div class="card">
         <h2>Type-safe Query</h2>
@@ -41,7 +43,7 @@
         <button onclick={sayHello} disabled={loading}>
             {loading ? 'Sending...' : 'Say Hello'}
         </button>
-        
+
         {#if greeting}
             <div class="result">
                 {greeting}

@@ -1,21 +1,22 @@
-use serde_json::{Value, json};
-use vercel_runtime::{Error, Request, run, service_fn};
+use serde::Serialize;
 use std::time::SystemTime;
+use vercel_rpc_macro::rpc_query;
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    let service = service_fn(handler);
-    run(service).await
+#[derive(Serialize)]
+pub struct TimeResponse {
+    pub timestamp: u64,
+    pub message: String,
 }
 
-async fn handler(_req: Request) -> Result<Value, Error> {
+#[rpc_query]
+async fn time() -> TimeResponse {
     let now = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap()
         .as_secs();
 
-    Ok(json!({
-        "timestamp": now,
-        "message": "Current server time in seconds since epoch",
-    }))
+    TimeResponse {
+        timestamp: now,
+        message: "Current server time in seconds since epoch".to_string(),
+    }
 }

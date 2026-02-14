@@ -1,14 +1,6 @@
-use serde_json::{Value, json};
-use vercel_runtime::{Error, Request, run, service_fn};
+use vercel_rpc_macro::rpc_query;
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    let service = service_fn(handler);
-    run(service).await
-}
-
-async fn handler(_req: Request) -> Result<Value, Error> {
-    Ok(json!({
-        "message": "Hello from Rust on Vercel!",
-    }))
+#[rpc_query]
+async fn hello(name: String) -> String {
+    format!("Hello, {} from Rust on Vercel!", name)
 }
