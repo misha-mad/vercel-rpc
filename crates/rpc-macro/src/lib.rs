@@ -116,9 +116,12 @@ fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<TokenStream, syn:
     let parse_input = match kind {
         HandlerKind::Query => quote! {
             let __input: #input_type = {
-                let __url = ::url::Url::parse(
+                let __url = match ::url::Url::parse(
                     &format!("http://localhost{}", __req.uri())
-                ).map_err(|e| ::vercel_runtime::Error::from(e.to_string()))?;
+                ) {
+                    Ok(u) => u,
+                    Err(e) => return __rpc_error_response(400, &format!("Invalid URL: {}", e)),
+                };
 
                 let __raw = __url
                     .query_pairs()
@@ -126,14 +129,16 @@ fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<TokenStream, syn:
                     .map(|(_, v)| v.into_owned());
 
                 match __raw {
-                    Some(ref __s) => ::serde_json::from_str(__s)
-                        .map_err(|e| ::vercel_runtime::Error::from(
-                            format!("Failed to deserialize input: {}", e)
-                        ))?,
-                    None => ::serde_json::from_value(::serde_json::Value::Null)
-                        .map_err(|e| ::vercel_runtime::Error::from(
-                            format!("Missing required input parameter: {}", e)
-                        ))?,
+                    Some(ref __s) => match ::serde_json::from_str(__s) {
+                        Ok(v) => v,
+                        Err(e) => return __rpc_error_response(400,
+                            &format!("Failed to deserialize input: {}", e)),
+                    },
+                    None => match ::serde_json::from_value(::serde_json::Value::Null) {
+                        Ok(v) => v,
+                        Err(e) => return __rpc_error_response(400,
+                            &format!("Missing required input parameter: {}", e)),
+                    },
                 }
             };
         },
@@ -143,15 +148,17 @@ fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<TokenStream, syn:
                 let __bytes: &[u8] = __body.as_ref();
 
                 if __bytes.is_empty() {
-                    ::serde_json::from_value(::serde_json::Value::Null)
-                        .map_err(|e| ::vercel_runtime::Error::from(
-                            format!("Missing required request body: {}", e)
-                        ))?
+                    match ::serde_json::from_value(::serde_json::Value::Null) {
+                        Ok(v) => v,
+                        Err(e) => return __rpc_error_response(400,
+                            &format!("Missing required request body: {}", e)),
+                    }
                 } else {
-                    ::serde_json::from_slice(__bytes)
-                        .map_err(|e| ::vercel_runtime::Error::from(
-                            format!("Failed to deserialize request body: {}", e)
-                        ))?
+                    match ::serde_json::from_slice(__bytes) {
+                        Ok(v) => v,
+                        Err(e) => return __rpc_error_response(400,
+                            &format!("Failed to deserialize request body: {}", e)),
+                    }
                 }
             };
         },
