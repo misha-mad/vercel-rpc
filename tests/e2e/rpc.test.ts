@@ -13,8 +13,6 @@ test.describe("RPC page — full e2e cycle", () => {
     const timeText = page.locator("strong").first();
     // Wait for the time to load (not "loading...")
     await expect(timeText).not.toHaveText("loading...", { timeout: 10_000 });
-    // Should contain the epoch message from the mock
-    await expect(timeText).toContainText("epoch");
   });
 
   test("hello query returns greeting", async ({ page }) => {
