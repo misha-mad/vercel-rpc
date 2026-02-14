@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/rpc-cli/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/rpc-macro/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.svelte-kit" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
