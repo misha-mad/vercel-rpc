@@ -1,240 +1,272 @@
 <script lang="ts">
-    import { rpc } from "$lib/client";
-    import { RpcError } from "$lib/rpc-client";
-    import type { MathResult, Stats, ServiceStatus, EchoOutput } from "$lib/rpc-client";
-    import { onMount } from "svelte";
+	import { rpc } from '$lib/client';
+	import { RpcError } from '$lib/rpc-client';
+	import type { MathResult, Stats, ServiceStatus, EchoOutput } from '$lib/rpc-client';
+	import { onMount } from 'svelte';
 
-    // --- Hello (simple query with string input) ---
-    let name = $state("World");
-    let greeting = $state("");
-    let helloLoading = $state(false);
+	// --- Hello (simple query with string input) ---
+	let name = $state('World');
+	let greeting = $state('');
+	let helloLoading = $state(false);
 
-    async function sayHello() {
-        helloLoading = true;
-        try {
-            greeting = await rpc.query("hello", name);
-        } catch (e) {
-            greeting = `Error: ${e}`;
-        } finally {
-            helloLoading = false;
-        }
-    }
+	async function sayHello() {
+		helloLoading = true;
+		try {
+			greeting = await rpc.query('hello', name);
+		} catch (e) {
+			greeting = `Error: ${e}`;
+		} finally {
+			helloLoading = false;
+		}
+	}
 
-    // --- Time (void-input query with struct output) ---
-    let time = $state("loading...");
+	// --- Time (void-input query with struct output) ---
+	let time = $state('loading...');
 
-    async function fetchTime() {
-        try {
-            const res = await rpc.query("time");
-            time = new Date(res.timestamp * 1000).toLocaleString();
-        } catch (e) {
-            time = `Error: ${e}`;
-        }
-    }
+	async function fetchTime() {
+		try {
+			const res = await rpc.query('time');
+			time = new Date(res.timestamp * 1000).toLocaleString();
+		} catch (e) {
+			time = `Error: ${e}`;
+		}
+	}
 
-    // --- Status (void-input query with enum in struct) ---
-    let status = $state<ServiceStatus | null>(null);
-    let statusError = $state("");
+	// --- Status (void-input query with enum in struct) ---
+	let status = $state<ServiceStatus | null>(null);
+	let statusError = $state('');
 
-    async function fetchStatus() {
-        statusError = "";
-        try {
-            status = await rpc.query("status");
-        } catch (e) {
-            statusError = `${e}`;
-        }
-    }
+	async function fetchStatus() {
+		statusError = '';
+		try {
+			status = await rpc.query('status');
+		} catch (e) {
+			statusError = `${e}`;
+		}
+	}
 
-    // --- Math (query with struct input, Result<T, E>, enum) ---
-    let mathA = $state(10);
-    let mathB = $state(3);
-    let mathOp = $state<"Add" | "Subtract" | "Multiply" | "Divide">("Add");
-    let mathResult = $state<MathResult | null>(null);
-    let mathError = $state("");
-    let mathLoading = $state(false);
+	// --- Math (query with struct input, Result<T, E>, enum) ---
+	let mathA = $state(10);
+	let mathB = $state(3);
+	let mathOp = $state<'Add' | 'Subtract' | 'Multiply' | 'Divide'>('Add');
+	let mathResult = $state<MathResult | null>(null);
+	let mathError = $state('');
+	let mathLoading = $state(false);
 
-    async function calculate() {
-        mathLoading = true;
-        mathError = "";
-        mathResult = null;
-        try {
-            mathResult = await rpc.query("math", { a: mathA, b: mathB, op: mathOp });
-        } catch (e) {
-            if (e instanceof RpcError) {
-                const data = e.data as { error?: { message?: string } } | undefined;
-                mathError = data?.error?.message ?? e.message;
-            } else {
-                mathError = `${e}`;
-            }
-        } finally {
-            mathLoading = false;
-        }
-    }
+	async function calculate() {
+		mathLoading = true;
+		mathError = '';
+		mathResult = null;
+		try {
+			mathResult = await rpc.query('math', { a: mathA, b: mathB, op: mathOp });
+		} catch (e) {
+			if (e instanceof RpcError) {
+				const data = e.data as { error?: { message?: string } } | undefined;
+				mathError = data?.error?.message ?? e.message;
+			} else {
+				mathError = `${e}`;
+			}
+		} finally {
+			mathLoading = false;
+		}
+	}
 
-    // --- Stats (query with Vec<f64> input, HashMap output) ---
-    let numbersInput = $state("1, 2, 3, 4, 5, 3, 2");
-    let statsResult = $state<Stats | null>(null);
-    let statsError = $state("");
-    let statsLoading = $state(false);
+	// --- Stats (query with Vec<f64> input, HashMap output) ---
+	let numbersInput = $state('1, 2, 3, 4, 5, 3, 2');
+	let statsResult = $state<Stats | null>(null);
+	let statsError = $state('');
+	let statsLoading = $state(false);
 
-    async function computeStats() {
-        statsLoading = true;
-        statsError = "";
-        statsResult = null;
-        try {
-            const numbers = numbersInput.split(",").map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-            statsResult = await rpc.query("stats", numbers);
-        } catch (e) {
-            if (e instanceof RpcError) {
-                const data = e.data as { error?: { message?: string } } | undefined;
-                statsError = data?.error?.message ?? e.message;
-            } else {
-                statsError = `${e}`;
-            }
-        } finally {
-            statsLoading = false;
-        }
-    }
+	async function computeStats() {
+		statsLoading = true;
+		statsError = '';
+		statsResult = null;
+		try {
+			const numbers = numbersInput
+				.split(',')
+				.map((s) => parseFloat(s.trim()))
+				.filter((n) => !isNaN(n));
+			statsResult = await rpc.query('stats', numbers);
+		} catch (e) {
+			if (e instanceof RpcError) {
+				const data = e.data as { error?: { message?: string } } | undefined;
+				statsError = data?.error?.message ?? e.message;
+			} else {
+				statsError = `${e}`;
+			}
+		} finally {
+			statsLoading = false;
+		}
+	}
 
-    // --- Echo (mutation with struct input/output) ---
-    let echoMessage = $state("Hello from vercel-rpc!");
-    let echoUppercase = $state(false);
-    let echoResult = $state<EchoOutput | null>(null);
-    let echoLoading = $state(false);
+	// --- Echo (mutation with struct input/output) ---
+	let echoMessage = $state('Hello from vercel-rpc!');
+	let echoUppercase = $state(false);
+	let echoResult = $state<EchoOutput | null>(null);
+	let echoLoading = $state(false);
 
-    async function sendEcho() {
-        echoLoading = true;
-        try {
-            echoResult = await rpc.mutate("echo", { message: echoMessage, uppercase: echoUppercase });
-        } catch (e) {
-            echoResult = null;
-        } finally {
-            echoLoading = false;
-        }
-    }
+	async function sendEcho() {
+		echoLoading = true;
+		try {
+			echoResult = await rpc.mutate('echo', { message: echoMessage, uppercase: echoUppercase });
+		} catch (e) {
+			echoResult = null;
+		} finally {
+			echoLoading = false;
+		}
+	}
 
-    // --- Raw JSON viewer ---
-    let rawEndpoint = $state("/api/time");
-    let rawResponse = $state("");
-    let rawLoading = $state(false);
+	// --- Raw JSON viewer ---
+	let rawEndpoint = $state('/api/time');
+	let rawResponse = $state('');
+	let rawLoading = $state(false);
 
-    async function fetchRaw() {
-        rawLoading = true;
-        try {
-            const res = await fetch(rawEndpoint);
-            const json = await res.json();
-            rawResponse = JSON.stringify(json, null, 2);
-        } catch (e) {
-            rawResponse = `Error: ${e}`;
-        } finally {
-            rawLoading = false;
-        }
-    }
+	async function fetchRaw() {
+		rawLoading = true;
+		try {
+			const res = await fetch(rawEndpoint);
+			const json = await res.json();
+			rawResponse = JSON.stringify(json, null, 2);
+		} catch (e) {
+			rawResponse = `Error: ${e}`;
+		} finally {
+			rawLoading = false;
+		}
+	}
 
-    // --- Code tabs ---
-    let openCode: Record<string, boolean> = $state({});
+	// --- Code tabs ---
+	let openCode: Record<string, boolean> = $state({});
 
-    function toggleCode(id: string) {
-        openCode[id] = !openCode[id];
-    }
+	function toggleCode(id: string) {
+		openCode[id] = !openCode[id];
+	}
 
-    onMount(() => {
-        fetchTime();
-        fetchStatus();
-    });
+	onMount(() => {
+		fetchTime();
+		fetchStatus();
+	});
 </script>
 
 <div class="container">
-    <h1>⚡ vercel-rpc Examples</h1>
-    <p class="subtitle">End-to-end typesafe RPC between Rust lambdas and your frontend</p>
+	<h1>⚡ vercel-rpc Examples</h1>
+	<p class="subtitle">End-to-end typesafe RPC between Rust lambdas and your frontend</p>
 
-    <!-- Type Mapping Reference -->
-    <section class="card highlight">
-        <h2>📖 Type Mapping Reference</h2>
-        <p class="desc">Every Rust type is automatically mapped to its TypeScript equivalent during code generation.</p>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr><th>Rust</th><th>TypeScript</th><th>Example</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td><code>String</code>, <code>&amp;str</code></td><td><code>string</code></td><td>hello endpoint</td></tr>
-                    <tr><td><code>i32</code>, <code>u64</code>, <code>f64</code></td><td><code>number</code></td><td>math, time</td></tr>
-                    <tr><td><code>bool</code></td><td><code>boolean</code></td><td>echo (uppercase)</td></tr>
-                    <tr><td><code>()</code> (no input)</td><td><code>void</code></td><td>time, status</td></tr>
-                    <tr><td><code>Vec&lt;T&gt;</code></td><td><code>T[]</code></td><td>stats (number[])</td></tr>
-                    <tr><td><code>Option&lt;T&gt;</code></td><td><code>T | null</code></td><td>—</td></tr>
-                    <tr><td><code>HashMap&lt;K, V&gt;</code></td><td><code>Record&lt;K, V&gt;</code></td><td>stats (frequencies)</td></tr>
-                    <tr><td><code>Result&lt;T, E&gt;</code></td><td><code>T</code> (error at runtime)</td><td>math, stats</td></tr>
-                    <tr><td><code>struct</code></td><td><code>interface</code></td><td>TimeResponse, Stats</td></tr>
-                    <tr><td><code>enum</code> (unit)</td><td><code>"A" | "B"</code></td><td>HealthStatus, Operation</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
+	<!-- Type Mapping Reference -->
+	<section class="card highlight">
+		<h2>📖 Type Mapping Reference</h2>
+		<p class="desc">
+			Every Rust type is automatically mapped to its TypeScript equivalent during code generation.
+		</p>
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr><th>Rust</th><th>TypeScript</th><th>Example</th></tr>
+				</thead>
+				<tbody>
+					<tr
+						><td><code>String</code>, <code>&amp;str</code></td><td><code>string</code></td><td
+							>hello endpoint</td
+						></tr
+					>
+					<tr
+						><td><code>i32</code>, <code>u64</code>, <code>f64</code></td><td
+							><code>number</code></td
+						><td>math, time</td></tr
+					>
+					<tr><td><code>bool</code></td><td><code>boolean</code></td><td>echo (uppercase)</td></tr>
+					<tr><td><code>()</code> (no input)</td><td><code>void</code></td><td>time, status</td></tr
+					>
+					<tr
+						><td><code>Vec&lt;T&gt;</code></td><td><code>T[]</code></td><td>stats (number[])</td
+						></tr
+					>
+					<tr><td><code>Option&lt;T&gt;</code></td><td><code>T | null</code></td><td>—</td></tr>
+					<tr
+						><td><code>HashMap&lt;K, V&gt;</code></td><td><code>Record&lt;K, V&gt;</code></td><td
+							>stats (frequencies)</td
+						></tr
+					>
+					<tr
+						><td><code>Result&lt;T, E&gt;</code></td><td><code>T</code> (error at runtime)</td><td
+							>math, stats</td
+						></tr
+					>
+					<tr
+						><td><code>struct</code></td><td><code>interface</code></td><td>TimeResponse, Stats</td
+						></tr
+					>
+					<tr
+						><td><code>enum</code> (unit)</td><td><code>"A" | "B"</code></td><td
+							>HealthStatus, Operation</td
+						></tr
+					>
+				</tbody>
+			</table>
+		</div>
+	</section>
 
-    <!-- Hello: Simple string query -->
-    <section class="card">
-        <h2>🔤 Hello — Simple Query</h2>
-        <p class="desc">
-            <code>#[rpc_query]</code> with <code>String</code> input → <code>String</code> output.
-            Sent as <code>GET /api/hello?input="name"</code>.
-        </p>
-        <div class="row">
-            <input type="text" bind:value={name} placeholder="Enter your name" />
-            <button onclick={sayHello} disabled={helloLoading}>
-                {helloLoading ? 'Sending...' : 'Say Hello'}
-            </button>
-        </div>
-        {#if greeting}
-            <div class="result success">{greeting}</div>
-        {/if}
-        <pre class="code">rpc.query("hello", "{name}")</pre>
-        <button class="toggle-code" onclick={() => toggleCode('hello')}>
-            {openCode['hello'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
-        </button>
-        {#if openCode['hello']}
-            <div class="code-panels">
-                <div class="code-panel">
-                    <span class="code-label">🦀 Rust — api/hello.rs</span>
-                    <pre class="code rust">{`#[rpc_query]
+	<!-- Hello: Simple string query -->
+	<section class="card">
+		<h2>🔤 Hello — Simple Query</h2>
+		<p class="desc">
+			<code>#[rpc_query]</code> with <code>String</code> input → <code>String</code> output. Sent as
+			<code>GET /api/hello?input="name"</code>.
+		</p>
+		<div class="row">
+			<input type="text" bind:value={name} placeholder="Enter your name" />
+			<button onclick={sayHello} disabled={helloLoading}>
+				{helloLoading ? 'Sending...' : 'Say Hello'}
+			</button>
+		</div>
+		{#if greeting}
+			<div class="result success">{greeting}</div>
+		{/if}
+		<pre class="code">rpc.query("hello", "{name}")</pre>
+		<button class="toggle-code" onclick={() => toggleCode('hello')}>
+			{openCode['hello'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['hello']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/hello.rs</span>
+					<pre class="code rust">{`#[rpc_query]
 async fn hello(name: String) -> String {
     format!("Hello, {} from Rust on Vercel!", name)
 }`}</pre>
-                </div>
-                <div class="code-panel">
-                    <span class="code-label">🟦 Generated TypeScript</span>
-                    <pre class="code ts">{`// rpc-types.ts
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`// rpc-types.ts
 hello: { input: string; output: string };
 
 // Usage
 const greeting = await rpc.query("hello", "World");
 //    ^ string — fully typed!`}</pre>
-                </div>
-            </div>
-        {/if}
-    </section>
+				</div>
+			</div>
+		{/if}
+	</section>
 
-    <!-- Time: Void-input query with struct -->
-    <section class="card">
-        <h2>🕐 Time — Void Input, Struct Output</h2>
-        <p class="desc">
-            <code>#[rpc_query]</code> with no input → <code>TimeResponse</code> struct.
-            Auto-generated as <code>interface TimeResponse</code> with typed fields.
-        </p>
-        <div class="row">
-            <span>Server time: <strong>{time}</strong></span>
-            <button onclick={fetchTime}>Refresh</button>
-        </div>
-        <pre class="code">rpc.query("time") → TimeResponse</pre>
-        <button class="toggle-code" onclick={() => toggleCode('time')}>
-            {openCode['time'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
-        </button>
-        {#if openCode['time']}
-            <div class="code-panels">
-                <div class="code-panel">
-                    <span class="code-label">🦀 Rust — api/time.rs</span>
-                    <pre class="code rust">{`#[derive(Serialize)]
+	<!-- Time: Void-input query with struct -->
+	<section class="card">
+		<h2>🕐 Time — Void Input, Struct Output</h2>
+		<p class="desc">
+			<code>#[rpc_query]</code> with no input → <code>TimeResponse</code> struct. Auto-generated as
+			<code>interface TimeResponse</code> with typed fields.
+		</p>
+		<div class="row">
+			<span>Server time: <strong>{time}</strong></span>
+			<button onclick={fetchTime}>Refresh</button>
+		</div>
+		<pre class="code">rpc.query("time") → TimeResponse</pre>
+		<button class="toggle-code" onclick={() => toggleCode('time')}>
+			{openCode['time'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['time']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/time.rs</span>
+					<pre class="code rust">{`#[derive(Serialize)]
 pub struct TimeResponse {
     pub timestamp: u64,
     pub message: String,
@@ -244,10 +276,10 @@ pub struct TimeResponse {
 async fn time() -> TimeResponse {
     TimeResponse { timestamp: now, message: "..." }
 }`}</pre>
-                </div>
-                <div class="code-panel">
-                    <span class="code-label">🟦 Generated TypeScript</span>
-                    <pre class="code ts">{`// rpc-types.ts
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`// rpc-types.ts
 export interface TimeResponse {
   timestamp: number;  // u64 → number
   message: string;    // String → string
@@ -256,42 +288,45 @@ export interface TimeResponse {
 // Usage — no input argument needed
 const res = await rpc.query("time");
 //    ^ TimeResponse — .timestamp, .message`}</pre>
-                </div>
-            </div>
-        {/if}
-    </section>
+				</div>
+			</div>
+		{/if}
+	</section>
 
-    <!-- Status: Enum in struct -->
-    <section class="card">
-        <h2>🩺 Status — Enum in Struct</h2>
-        <p class="desc">
-            Returns <code>ServiceStatus</code> with a <code>HealthStatus</code> enum field.
-            Enum maps to <code>type HealthStatus = "Healthy" | "Degraded" | "Down"</code>.
-        </p>
-        {#if status}
-            <div class="result success">
-                <div class="grid">
-                    <span class="label">Service:</span><span>{status.name}</span>
-                    <span class="label">Status:</span><span class="badge" class:healthy={status.status === "Healthy"}>{status.status}</span>
-                    <span class="label">Version:</span><span>{status.version}</span>
-                </div>
-            </div>
-        {/if}
-        {#if statusError}
-            <div class="result error">{statusError}</div>
-        {/if}
-        <div class="row">
-            <button onclick={fetchStatus}>Refresh Status</button>
-        </div>
-        <pre class="code">rpc.query("status") → ServiceStatus</pre>
-        <button class="toggle-code" onclick={() => toggleCode('status')}>
-            {openCode['status'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
-        </button>
-        {#if openCode['status']}
-            <div class="code-panels">
-                <div class="code-panel">
-                    <span class="code-label">🦀 Rust — api/status.rs</span>
-                    <pre class="code rust">{`#[derive(Serialize)]
+	<!-- Status: Enum in struct -->
+	<section class="card">
+		<h2>🩺 Status — Enum in Struct</h2>
+		<p class="desc">
+			Returns <code>ServiceStatus</code> with a <code>HealthStatus</code> enum field. Enum maps to
+			<code>type HealthStatus = "Healthy" | "Degraded" | "Down"</code>.
+		</p>
+		{#if status}
+			<div class="result success">
+				<div class="grid">
+					<span class="label">Service:</span><span>{status.name}</span>
+					<span class="label">Status:</span><span
+						class="badge"
+						class:healthy={status.status === 'Healthy'}>{status.status}</span
+					>
+					<span class="label">Version:</span><span>{status.version}</span>
+				</div>
+			</div>
+		{/if}
+		{#if statusError}
+			<div class="result error">{statusError}</div>
+		{/if}
+		<div class="row">
+			<button onclick={fetchStatus}>Refresh Status</button>
+		</div>
+		<pre class="code">rpc.query("status") → ServiceStatus</pre>
+		<button class="toggle-code" onclick={() => toggleCode('status')}>
+			{openCode['status'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['status']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/status.rs</span>
+					<pre class="code rust">{`#[derive(Serialize)]
 pub enum HealthStatus {
     Healthy,
     Degraded,
@@ -308,10 +343,10 @@ pub struct ServiceStatus {
 
 #[rpc_query]
 async fn status() -> ServiceStatus { ... }`}</pre>
-                </div>
-                <div class="code-panel">
-                    <span class="code-label">🟦 Generated TypeScript</span>
-                    <pre class="code ts">{`// Unit enum → string literal union
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`// Unit enum → string literal union
 export type HealthStatus = "Healthy" | "Degraded" | "Down";
 
 export interface ServiceStatus {
@@ -324,46 +359,46 @@ export interface ServiceStatus {
 // Usage
 const s = await rpc.query("status");
 if (s.status === "Healthy") { ... } // ← autocomplete`}</pre>
-                </div>
-            </div>
-        {/if}
-    </section>
+				</div>
+			</div>
+		{/if}
+	</section>
 
-    <!-- Math: Struct input with enum, Result<T, E> -->
-    <section class="card">
-        <h2>🧮 Math — Enum Input, Result&lt;T, E&gt;</h2>
-        <p class="desc">
-            <code>MathInput</code> struct with <code>Operation</code> enum.
-            Returns <code>Result&lt;MathResult, String&gt;</code> — try dividing by zero!
-        </p>
-        <div class="row">
-            <input type="number" bind:value={mathA} class="num" />
-            <select bind:value={mathOp}>
-                <option value="Add">+</option>
-                <option value="Subtract">−</option>
-                <option value="Multiply">×</option>
-                <option value="Divide">÷</option>
-            </select>
-            <input type="number" bind:value={mathB} class="num" />
-            <button onclick={calculate} disabled={mathLoading}>
-                {mathLoading ? '...' : '= Calculate'}
-            </button>
-        </div>
-        {#if mathResult}
-            <div class="result success">{mathResult.expression}</div>
-        {/if}
-        {#if mathError}
-            <div class="result error">⚠️ {mathError}</div>
-        {/if}
-        <pre class="code">rpc.query("math", {`{ a: ${mathA}, b: ${mathB}, op: "${mathOp}" }`})</pre>
-        <button class="toggle-code" onclick={() => toggleCode('math')}>
-            {openCode['math'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
-        </button>
-        {#if openCode['math']}
-            <div class="code-panels">
-                <div class="code-panel">
-                    <span class="code-label">🦀 Rust — api/math.rs</span>
-                    <pre class="code rust">{`#[derive(Deserialize, Serialize)]
+	<!-- Math: Struct input with enum, Result<T, E> -->
+	<section class="card">
+		<h2>🧮 Math — Enum Input, Result&lt;T, E&gt;</h2>
+		<p class="desc">
+			<code>MathInput</code> struct with <code>Operation</code> enum. Returns
+			<code>Result&lt;MathResult, String&gt;</code> — try dividing by zero!
+		</p>
+		<div class="row">
+			<input type="number" bind:value={mathA} class="num" />
+			<select bind:value={mathOp}>
+				<option value="Add">+</option>
+				<option value="Subtract">−</option>
+				<option value="Multiply">×</option>
+				<option value="Divide">÷</option>
+			</select>
+			<input type="number" bind:value={mathB} class="num" />
+			<button onclick={calculate} disabled={mathLoading}>
+				{mathLoading ? '...' : '= Calculate'}
+			</button>
+		</div>
+		{#if mathResult}
+			<div class="result success">{mathResult.expression}</div>
+		{/if}
+		{#if mathError}
+			<div class="result error">⚠️ {mathError}</div>
+		{/if}
+		<pre class="code">rpc.query("math", {`{ a: ${mathA}, b: ${mathB}, op: "${mathOp}" }`})</pre>
+		<button class="toggle-code" onclick={() => toggleCode('math')}>
+			{openCode['math'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['math']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/math.rs</span>
+					<pre class="code rust">{`#[derive(Deserialize, Serialize)]
 pub enum Operation {
     Add, Subtract, Multiply, Divide,
 }
@@ -386,10 +421,10 @@ async fn math(input: MathInput) -> Result<MathResult, String> {
         _ => Ok(MathResult { ... })
     }
 }`}</pre>
-                </div>
-                <div class="code-panel">
-                    <span class="code-label">🟦 Generated TypeScript</span>
-                    <pre class="code ts">{`export type Operation = "Add" | "Subtract" | "Multiply" | "Divide";
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`export type Operation = "Add" | "Subtract" | "Multiply" | "Divide";
 
 export interface MathInput {
   a: number;       // f64 → number
@@ -408,49 +443,54 @@ try {
 } catch (e) {
   if (e instanceof RpcError) { ... } // 400 + JSON error
 }`}</pre>
-                </div>
-            </div>
-        {/if}
-    </section>
+				</div>
+			</div>
+		{/if}
+	</section>
 
-    <!-- Stats: Vec input, HashMap output -->
-    <section class="card">
-        <h2>📊 Stats — Vec&lt;f64&gt; Input, HashMap Output</h2>
-        <p class="desc">
-            Accepts <code>Vec&lt;f64&gt;</code> (mapped to <code>number[]</code>).
-            Returns <code>Stats</code> with <code>frequencies: Record&lt;string, number&gt;</code>.
-        </p>
-        <div class="row">
-            <input type="text" bind:value={numbersInput} placeholder="1, 2, 3, 4, 5" class="wide" />
-            <button onclick={computeStats} disabled={statsLoading}>
-                {statsLoading ? '...' : 'Compute'}
-            </button>
-        </div>
-        {#if statsResult}
-            <div class="result success">
-                <div class="grid">
-                    <span class="label">Count:</span><span>{statsResult.count}</span>
-                    <span class="label">Sum:</span><span>{statsResult.sum}</span>
-                    <span class="label">Mean:</span><span>{statsResult.mean.toFixed(2)}</span>
-                    <span class="label">Min:</span><span>{statsResult.min}</span>
-                    <span class="label">Max:</span><span>{statsResult.max}</span>
-                    <span class="label">Frequencies:</span>
-                    <span>{Object.entries(statsResult.frequencies).map(([k, v]) => `${k}×${v}`).join(', ')}</span>
-                </div>
-            </div>
-        {/if}
-        {#if statsError}
-            <div class="result error">⚠️ {statsError}</div>
-        {/if}
-        <pre class="code">rpc.query("stats", [{numbersInput}])</pre>
-        <button class="toggle-code" onclick={() => toggleCode('stats')}>
-            {openCode['stats'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
-        </button>
-        {#if openCode['stats']}
-            <div class="code-panels">
-                <div class="code-panel">
-                    <span class="code-label">🦀 Rust — api/stats.rs</span>
-                    <pre class="code rust">{`#[derive(Serialize)]
+	<!-- Stats: Vec input, HashMap output -->
+	<section class="card">
+		<h2>📊 Stats — Vec&lt;f64&gt; Input, HashMap Output</h2>
+		<p class="desc">
+			Accepts <code>Vec&lt;f64&gt;</code> (mapped to <code>number[]</code>). Returns
+			<code>Stats</code>
+			with <code>frequencies: Record&lt;string, number&gt;</code>.
+		</p>
+		<div class="row">
+			<input type="text" bind:value={numbersInput} placeholder="1, 2, 3, 4, 5" class="wide" />
+			<button onclick={computeStats} disabled={statsLoading}>
+				{statsLoading ? '...' : 'Compute'}
+			</button>
+		</div>
+		{#if statsResult}
+			<div class="result success">
+				<div class="grid">
+					<span class="label">Count:</span><span>{statsResult.count}</span>
+					<span class="label">Sum:</span><span>{statsResult.sum}</span>
+					<span class="label">Mean:</span><span>{statsResult.mean.toFixed(2)}</span>
+					<span class="label">Min:</span><span>{statsResult.min}</span>
+					<span class="label">Max:</span><span>{statsResult.max}</span>
+					<span class="label">Frequencies:</span>
+					<span
+						>{Object.entries(statsResult.frequencies)
+							.map(([k, v]) => `${k}×${v}`)
+							.join(', ')}</span
+					>
+				</div>
+			</div>
+		{/if}
+		{#if statsError}
+			<div class="result error">⚠️ {statsError}</div>
+		{/if}
+		<pre class="code">rpc.query("stats", [{numbersInput}])</pre>
+		<button class="toggle-code" onclick={() => toggleCode('stats')}>
+			{openCode['stats'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['stats']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/stats.rs</span>
+					<pre class="code rust">{`#[derive(Serialize)]
 pub struct Stats {
     pub count: u32,
     pub sum: f64,
@@ -468,10 +508,10 @@ async fn stats(numbers: Vec<f64>) -> Result<Stats, String> {
     // ... compute stats
     Ok(Stats { count, sum, mean, min, max, frequencies })
 }`}</pre>
-                </div>
-                <div class="code-panel">
-                    <span class="code-label">🟦 Generated TypeScript</span>
-                    <pre class="code ts">{`export interface Stats {
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`export interface Stats {
   count: number;
   sum: number;
   mean: number;
@@ -484,46 +524,49 @@ async fn stats(numbers: Vec<f64>) -> Result<Stats, String> {
 const stats = await rpc.query("stats", [1, 2, 3, 4, 5]);
 //    ^ Stats — all fields typed
 console.log(stats.frequencies); // Record<string, number>`}</pre>
-                </div>
-            </div>
-        {/if}
-    </section>
+				</div>
+			</div>
+		{/if}
+	</section>
 
-    <!-- Echo: Mutation -->
-    <section class="card">
-        <h2>📤 Echo — Mutation (POST)</h2>
-        <p class="desc">
-            <code>#[rpc_mutation]</code> — sent as <code>POST /api/echo</code> with JSON body.
-            Accepts <code>EchoInput</code> (message + uppercase), returns <code>EchoOutput</code>.
-        </p>
-        <div class="row">
-            <input type="text" bind:value={echoMessage} placeholder="Type a message" class="wide" />
-            <label class="checkbox">
-                <input type="checkbox" bind:checked={echoUppercase} />
-                Uppercase
-            </label>
-            <button onclick={sendEcho} disabled={echoLoading}>
-                {echoLoading ? '...' : 'Send'}
-            </button>
-        </div>
-        {#if echoResult}
-            <div class="result success">
-                <div class="grid">
-                    <span class="label">Original:</span><span>{echoResult.original}</span>
-                    <span class="label">Transformed:</span><span><strong>{echoResult.transformed}</strong></span>
-                    <span class="label">Length:</span><span>{echoResult.length}</span>
-                </div>
-            </div>
-        {/if}
-        <pre class="code">rpc.mutate("echo", {`{ message: "...", uppercase: ${echoUppercase} }`})</pre>
-        <button class="toggle-code" onclick={() => toggleCode('echo')}>
-            {openCode['echo'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
-        </button>
-        {#if openCode['echo']}
-            <div class="code-panels">
-                <div class="code-panel">
-                    <span class="code-label">🦀 Rust — api/echo.rs</span>
-                    <pre class="code rust">{`#[derive(Deserialize, Serialize)]
+	<!-- Echo: Mutation -->
+	<section class="card">
+		<h2>📤 Echo — Mutation (POST)</h2>
+		<p class="desc">
+			<code>#[rpc_mutation]</code> — sent as <code>POST /api/echo</code> with JSON body. Accepts
+			<code>EchoInput</code>
+			(message + uppercase), returns <code>EchoOutput</code>.
+		</p>
+		<div class="row">
+			<input type="text" bind:value={echoMessage} placeholder="Type a message" class="wide" />
+			<label class="checkbox">
+				<input type="checkbox" bind:checked={echoUppercase} />
+				Uppercase
+			</label>
+			<button onclick={sendEcho} disabled={echoLoading}>
+				{echoLoading ? '...' : 'Send'}
+			</button>
+		</div>
+		{#if echoResult}
+			<div class="result success">
+				<div class="grid">
+					<span class="label">Original:</span><span>{echoResult.original}</span>
+					<span class="label">Transformed:</span><span
+						><strong>{echoResult.transformed}</strong></span
+					>
+					<span class="label">Length:</span><span>{echoResult.length}</span>
+				</div>
+			</div>
+		{/if}
+		<pre class="code">rpc.mutate("echo", {`{ message: "...", uppercase: ${echoUppercase} }`})</pre>
+		<button class="toggle-code" onclick={() => toggleCode('echo')}>
+			{openCode['echo'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['echo']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/echo.rs</span>
+					<pre class="code rust">{`#[derive(Deserialize, Serialize)]
 pub struct EchoInput {
     pub message: String,
     pub uppercase: bool,
@@ -543,10 +586,10 @@ async fn echo(input: EchoInput) -> EchoOutput {
     } else { input.message.clone() };
     EchoOutput { original: input.message, transformed, length: ... }
 }`}</pre>
-                </div>
-                <div class="code-panel">
-                    <span class="code-label">🟦 Generated TypeScript</span>
-                    <pre class="code ts">{`export interface EchoInput {
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`export interface EchoInput {
   message: string;
   uppercase: boolean;  // bool → boolean
 }
@@ -562,48 +605,55 @@ const result = await rpc.mutate("echo", {
   message: "Hello!", uppercase: true
 });
 //    ^ EchoOutput — fully typed`}</pre>
-                </div>
-            </div>
-        {/if}
-    </section>
+				</div>
+			</div>
+		{/if}
+	</section>
 
-    <!-- Raw JSON viewer -->
-    <section class="card">
-        <h2>🔍 Raw Response Viewer</h2>
-        <p class="desc">
-            Inspect the raw JSON response from any endpoint.
-            All responses follow the format <code>{`{ result: { type: "response", data: ... } }`}</code>.
-        </p>
-        <div class="row">
-            <select bind:value={rawEndpoint}>
-                <option value="/api/time">GET /api/time</option>
-                <option value="/api/status">GET /api/status</option>
-                <option value="/api/hello?input=%22World%22">GET /api/hello?input="World"</option>
-                <option value="/api/math?input=%7B%22a%22:10,%22b%22:3,%22op%22:%22Add%22%7D">GET /api/math (10+3)</option>
-                <option value="/api/math?input=%7B%22a%22:10,%22b%22:0,%22op%22:%22Divide%22%7D">GET /api/math (10÷0) — error!</option>
-                <option value="/api/stats?input=%5B1,2,3,4,5%5D">GET /api/stats ([1,2,3,4,5])</option>
-            </select>
-            <button onclick={fetchRaw} disabled={rawLoading}>
-                {rawLoading ? '...' : 'Fetch'}
-            </button>
-        </div>
-        {#if rawResponse}
-            <pre class="json">{rawResponse}</pre>
-        {/if}
-    </section>
+	<!-- Raw JSON viewer -->
+	<section class="card">
+		<h2>🔍 Raw Response Viewer</h2>
+		<p class="desc">
+			Inspect the raw JSON response from any endpoint. All responses follow the format <code
+				>{`{ result: { type: "response", data: ... } }`}</code
+			>.
+		</p>
+		<div class="row">
+			<select bind:value={rawEndpoint}>
+				<option value="/api/time">GET /api/time</option>
+				<option value="/api/status">GET /api/status</option>
+				<option value="/api/hello?input=%22World%22">GET /api/hello?input="World"</option>
+				<option value="/api/math?input=%7B%22a%22:10,%22b%22:3,%22op%22:%22Add%22%7D"
+					>GET /api/math (10+3)</option
+				>
+				<option value="/api/math?input=%7B%22a%22:10,%22b%22:0,%22op%22:%22Divide%22%7D"
+					>GET /api/math (10÷0) — error!</option
+				>
+				<option value="/api/stats?input=%5B1,2,3,4,5%5D">GET /api/stats ([1,2,3,4,5])</option>
+			</select>
+			<button onclick={fetchRaw} disabled={rawLoading}>
+				{rawLoading ? '...' : 'Fetch'}
+			</button>
+		</div>
+		{#if rawResponse}
+			<pre class="json">{rawResponse}</pre>
+		{/if}
+	</section>
 
-    <!-- Generated Files Overview -->
-    <section class="card highlight">
-        <h2>📁 Generated Files</h2>
-        <p class="desc">These files are auto-generated from the Rust source code in <code>api/</code>.</p>
-        <button class="toggle-code" onclick={() => toggleCode('generated')}>
-            {openCode['generated'] ? '▾ Hide' : '▸ Show'} rpc-types.ts & rpc-client.ts
-        </button>
-        {#if openCode['generated']}
-            <div class="code-panels">
-                <div class="code-panel">
-                    <span class="code-label">rpc-types.ts</span>
-                    <pre class="code ts">{`export interface EchoInput {
+	<!-- Generated Files Overview -->
+	<section class="card highlight">
+		<h2>📁 Generated Files</h2>
+		<p class="desc">
+			These files are auto-generated from the Rust source code in <code>api/</code>.
+		</p>
+		<button class="toggle-code" onclick={() => toggleCode('generated')}>
+			{openCode['generated'] ? '▾ Hide' : '▸ Show'} rpc-types.ts & rpc-client.ts
+		</button>
+		{#if openCode['generated']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">rpc-types.ts</span>
+					<pre class="code ts">{`export interface EchoInput {
   message: string;
   uppercase: boolean;
 }
@@ -654,10 +704,10 @@ export type Procedures = {
     echo: { input: EchoInput; output: EchoOutput };
   };
 };`}</pre>
-                </div>
-                <div class="code-panel">
-                    <span class="code-label">rpc-client.ts (interface)</span>
-                    <pre class="code ts">{`export interface RpcClient {
+				</div>
+				<div class="code-panel">
+					<span class="code-label">rpc-client.ts (interface)</span>
+					<pre class="code ts">{`export interface RpcClient {
   // Void-input queries (no argument)
   query(key: "status"): Promise<ServiceStatus>;
   query(key: "time"): Promise<TimeResponse>;
@@ -672,261 +722,262 @@ export type Procedures = {
 }
 
 export function createRpcClient(baseUrl: string): RpcClient;`}</pre>
-                </div>
-            </div>
-        {/if}
-    </section>
+				</div>
+			</div>
+		{/if}
+	</section>
 </div>
 
 <style>
-    .container {
-        max-width: 720px;
-        margin: 2rem auto;
-        padding: 0 1rem;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+	.container {
+		max-width: 720px;
+		margin: 2rem auto;
+		padding: 0 1rem;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	}
 
-    h1 {
-        margin-bottom: 0.25rem;
-    }
+	h1 {
+		margin-bottom: 0.25rem;
+	}
 
-    .subtitle {
-        color: #666;
-        margin-top: 0;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
+	.subtitle {
+		color: #666;
+		margin-top: 0;
+		margin-bottom: 2rem;
+		text-align: center;
+	}
 
-    .card {
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
-        background: #fafafa;
-    }
+	.card {
+		border: 1px solid #e0e0e0;
+		border-radius: 12px;
+		padding: 1.25rem;
+		margin-bottom: 1.5rem;
+		background: #fafafa;
+	}
 
-    .card.highlight {
-        border-color: #90caf9;
-        background: #f5f9ff;
-    }
+	.card.highlight {
+		border-color: #90caf9;
+		background: #f5f9ff;
+	}
 
-    .card h2 {
-        margin-top: 0;
-        margin-bottom: 0.5rem;
-        font-size: 1.15rem;
-    }
+	.card h2 {
+		margin-top: 0;
+		margin-bottom: 0.5rem;
+		font-size: 1.15rem;
+	}
 
-    .desc {
-        color: #555;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-        line-height: 1.5;
-    }
+	.desc {
+		color: #555;
+		font-size: 0.9rem;
+		margin-bottom: 1rem;
+		line-height: 1.5;
+	}
 
-    .desc code {
-        background: #eee;
-        padding: 0.15em 0.4em;
-        border-radius: 4px;
-        font-size: 0.85em;
-    }
+	.desc code {
+		background: #eee;
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		font-size: 0.85em;
+	}
 
-    .row {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        flex-wrap: wrap;
-    }
+	.row {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+		flex-wrap: wrap;
+	}
 
-    input[type="text"],
-    input[type="number"] {
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 0.95rem;
-    }
+	input[type='text'],
+	input[type='number'] {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 0.95rem;
+	}
 
-    input.num {
-        width: 80px;
-    }
+	input.num {
+		width: 80px;
+	}
 
-    input.wide {
-        flex: 1;
-        min-width: 150px;
-    }
+	input.wide {
+		flex: 1;
+		min-width: 150px;
+	}
 
-    select {
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        font-size: 0.95rem;
-        background: white;
-    }
+	select {
+		padding: 0.5rem;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 0.95rem;
+		background: white;
+	}
 
-    button {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 6px;
-        background: #333;
-        color: white;
-        cursor: pointer;
-        font-size: 0.9rem;
-        white-space: nowrap;
-    }
+	button {
+		padding: 0.5rem 1rem;
+		border: none;
+		border-radius: 6px;
+		background: #333;
+		color: white;
+		cursor: pointer;
+		font-size: 0.9rem;
+		white-space: nowrap;
+	}
 
-    button:hover:not(:disabled) {
-        background: #555;
-    }
+	button:hover:not(:disabled) {
+		background: #555;
+	}
 
-    button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
+	button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
 
-    .toggle-code {
-        margin-top: 0.75rem;
-        background: transparent;
-        color: #1976d2;
-        border: 1px solid #90caf9;
-        font-size: 0.8rem;
-        padding: 0.35rem 0.75rem;
-    }
+	.toggle-code {
+		margin-top: 0.75rem;
+		background: transparent;
+		color: #1976d2;
+		border: 1px solid #90caf9;
+		font-size: 0.8rem;
+		padding: 0.35rem 0.75rem;
+	}
 
-    .toggle-code:hover {
-        background: #e3f2fd;
-        color: #1565c0;
-    }
+	.toggle-code:hover {
+		background: #e3f2fd;
+		color: #1565c0;
+	}
 
-    .checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        font-size: 0.9rem;
-        white-space: nowrap;
-    }
+	.checkbox {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-size: 0.9rem;
+		white-space: nowrap;
+	}
 
-    .result {
-        margin-top: 0.75rem;
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        font-size: 0.95rem;
-    }
+	.result {
+		margin-top: 0.75rem;
+		padding: 0.75rem 1rem;
+		border-radius: 8px;
+		font-size: 0.95rem;
+	}
 
-    .result.success {
-        background: #e8f5e9;
-        border-left: 4px solid #4caf50;
-    }
+	.result.success {
+		background: #e8f5e9;
+		border-left: 4px solid #4caf50;
+	}
 
-    .result.error {
-        background: #fce4ec;
-        border-left: 4px solid #e53935;
-        color: #c62828;
-    }
+	.result.error {
+		background: #fce4ec;
+		border-left: 4px solid #e53935;
+		color: #c62828;
+	}
 
-    .grid {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0.25rem 0.75rem;
-    }
+	.grid {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.25rem 0.75rem;
+	}
 
-    .label {
-        font-weight: 600;
-        color: #555;
-    }
+	.label {
+		font-weight: 600;
+		color: #555;
+	}
 
-    .badge {
-        display: inline-block;
-        padding: 0.1em 0.5em;
-        border-radius: 4px;
-        font-size: 0.85em;
-        font-weight: 600;
-        background: #eee;
-    }
+	.badge {
+		display: inline-block;
+		padding: 0.1em 0.5em;
+		border-radius: 4px;
+		font-size: 0.85em;
+		font-weight: 600;
+		background: #eee;
+	}
 
-    .badge.healthy {
-        background: #c8e6c9;
-        color: #2e7d32;
-    }
+	.badge.healthy {
+		background: #c8e6c9;
+		color: #2e7d32;
+	}
 
-    .code {
-        margin-top: 0.75rem;
-        padding: 0.5rem 0.75rem;
-        background: #263238;
-        color: #80cbc4;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        overflow-x: auto;
-        white-space: pre;
-    }
+	.code {
+		margin-top: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		background: #263238;
+		color: #80cbc4;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		overflow-x: auto;
+		white-space: pre;
+	}
 
-    .code.rust {
-        color: #ffcc80;
-    }
+	.code.rust {
+		color: #ffcc80;
+	}
 
-    .code.ts {
-        color: #90caf9;
-    }
+	.code.ts {
+		color: #90caf9;
+	}
 
-    .code-panels {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
+	.code-panels {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+	}
 
-    .code-panel {
-        display: flex;
-        flex-direction: column;
-    }
+	.code-panel {
+		display: flex;
+		flex-direction: column;
+	}
 
-    .code-label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #888;
-        margin-bottom: 0;
-    }
+	.code-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: #888;
+		margin-bottom: 0;
+	}
 
-    .code-panel .code {
-        margin-top: 0.25rem;
-        flex: 1;
-    }
+	.code-panel .code {
+		margin-top: 0.25rem;
+		flex: 1;
+	}
 
-    .json {
-        margin-top: 0.75rem;
-        padding: 0.75rem;
-        background: #263238;
-        color: #a5d6a7;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        overflow-x: auto;
-        max-height: 300px;
-        overflow-y: auto;
-    }
+	.json {
+		margin-top: 0.75rem;
+		padding: 0.75rem;
+		background: #263238;
+		color: #a5d6a7;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		overflow-x: auto;
+		max-height: 300px;
+		overflow-y: auto;
+	}
 
-    .table-wrap {
-        overflow-x: auto;
-    }
+	.table-wrap {
+		overflow-x: auto;
+	}
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
-    }
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.85rem;
+	}
 
-    th, td {
-        padding: 0.4rem 0.6rem;
-        text-align: left;
-        border-bottom: 1px solid #e0e0e0;
-    }
+	th,
+	td {
+		padding: 0.4rem 0.6rem;
+		text-align: left;
+		border-bottom: 1px solid #e0e0e0;
+	}
 
-    th {
-        background: #e8eaf6;
-        font-weight: 600;
-    }
+	th {
+		background: #e8eaf6;
+		font-weight: 600;
+	}
 
-    td code {
-        background: #eee;
-        padding: 0.1em 0.3em;
-        border-radius: 3px;
-        font-size: 0.9em;
-    }
+	td code {
+		background: #eee;
+		padding: 0.1em 0.3em;
+		border-radius: 3px;
+		font-size: 0.9em;
+	}
 </style>

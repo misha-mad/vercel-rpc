@@ -1,6 +1,9 @@
 <svelte:head>
 	<title>vercel-rpc</title>
-	<meta name="description" content="End-to-end typesafe RPC between Rust lambdas on Vercel and any frontend" />
+	<meta
+		name="description"
+		content="End-to-end typesafe RPC between Rust lambdas on Vercel and any frontend"
+	/>
 </svelte:head>
 
 <section>
@@ -17,7 +20,10 @@
 	</p>
 
 	<div class="features">
-		<div class="feature">🦀 <strong>Rust functions</strong> with <code>#[rpc_query]</code> / <code>#[rpc_mutation]</code></div>
+		<div class="feature">
+			🦀 <strong>Rust functions</strong> with <code>#[rpc_query]</code> /
+			<code>#[rpc_mutation]</code>
+		</div>
 		<div class="feature">🔄 <strong>Auto-generated</strong> TypeScript types &amp; client</div>
 		<div class="feature">👀 <strong>Watch mode</strong> — types regenerate on every save</div>
 		<div class="feature">🚀 <strong>Deploy to Vercel</strong> — each function becomes a lambda</div>

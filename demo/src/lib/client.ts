@@ -1,3 +1,3 @@
-import { createRpcClient } from "./rpc-client";
+import { createRpcClient } from './rpc-client';
 
-export const rpc = createRpcClient("/api");
+export const rpc = createRpcClient('/api');
