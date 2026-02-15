@@ -37,10 +37,39 @@ pub struct ImportsConfig {
     pub extension: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum FieldNaming {
+    #[serde(rename = "preserve")]
+    Preserve,
+    #[serde(rename = "camelCase")]
+    CamelCase,
+}
+
+impl Default for FieldNaming {
+    fn default() -> Self {
+        Self::Preserve
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(default)]
+pub struct NamingConfig {
+    pub fields: FieldNaming,
+}
+
+impl Default for NamingConfig {
+    fn default() -> Self {
+        Self {
+            fields: FieldNaming::default(),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub struct CodegenConfig {
     pub preserve_docs: bool,
+    pub naming: NamingConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -100,6 +129,7 @@ impl Default for CodegenConfig {
     fn default() -> Self {
         Self {
             preserve_docs: false,
+            naming: NamingConfig::default(),
         }
     }
 }
@@ -190,6 +220,7 @@ mod tests {
         assert_eq!(config.output.imports.extension, "");
         assert_eq!(config.output.imports.types_specifier(), "./rpc-types");
         assert!(!config.codegen.preserve_docs);
+        assert_eq!(config.codegen.naming.fields, FieldNaming::Preserve);
         assert_eq!(config.watch.debounce_ms, 200);
     }
 
@@ -227,6 +258,9 @@ extension = ".js"
 [codegen]
 preserve_docs = true
 
+[codegen.naming]
+fields = "camelCase"
+
 [watch]
 debounce_ms = 500
 "#;
@@ -240,6 +274,7 @@ debounce_ms = 500
         assert_eq!(config.output.imports.extension, ".js");
         assert_eq!(config.output.imports.types_specifier(), "./types.js");
         assert!(config.codegen.preserve_docs);
+        assert_eq!(config.codegen.naming.fields, FieldNaming::CamelCase);
         assert_eq!(config.watch.debounce_ms, 500);
     }
 
@@ -270,6 +305,35 @@ preserve_docs = true
         // Other fields should be defaults
         assert_eq!(config.input.dir, PathBuf::from("api"));
         assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
+    }
+
+    #[test]
+    fn test_parse_codegen_naming_fields() {
+        let toml_str = r#"
+[codegen.naming]
+fields = "camelCase"
+"#;
+        let config: RpcConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.codegen.naming.fields, FieldNaming::CamelCase);
+        // Other fields should be defaults
+        assert!(!config.codegen.preserve_docs);
+        assert_eq!(config.input.dir, PathBuf::from("api"));
+
+        // Test preserve value
+        let toml_str2 = r#"
+[codegen.naming]
+fields = "preserve"
+"#;
+        let config2: RpcConfig = toml::from_str(toml_str2).unwrap();
+        assert_eq!(config2.codegen.naming.fields, FieldNaming::Preserve);
+
+        // Test default (no naming section)
+        let toml_str3 = r#"
+[codegen]
+preserve_docs = true
+"#;
+        let config3: RpcConfig = toml::from_str(toml_str3).unwrap();
+        assert_eq!(config3.codegen.naming.fields, FieldNaming::Preserve);
     }
 
     #[test]

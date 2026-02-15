@@ -91,8 +91,11 @@ fn generate(config: &RpcConfig) -> Result<()> {
 
     let manifest = parser::scan_directory(&config.input)?;
 
-    let types_content =
-        codegen::typescript::generate_types_file(&manifest, config.codegen.preserve_docs);
+    let types_content = codegen::typescript::generate_types_file(
+        &manifest,
+        config.codegen.preserve_docs,
+        config.codegen.naming.fields,
+    );
     write_file(&config.output.types, &types_content)?;
 
     let client_content = codegen::client::generate_client_file(

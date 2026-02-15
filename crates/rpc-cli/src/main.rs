@@ -205,8 +205,11 @@ fn cmd_generate(config: &RpcConfig) -> Result<()> {
     let manifest = parser::scan_directory(&config.input)?;
 
     // Generate types file
-    let types_content =
-        codegen::typescript::generate_types_file(&manifest, config.codegen.preserve_docs);
+    let types_content = codegen::typescript::generate_types_file(
+        &manifest,
+        config.codegen.preserve_docs,
+        config.codegen.naming.fields,
+    );
     write_file(&config.output.types, &types_content)?;
     println!(
         "Generated {} ({} procedure(s), {} struct(s), {} enum(s)) -> {}",

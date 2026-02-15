@@ -275,6 +275,9 @@ extension = ""               # suffix appended to import (e.g. ".js" for ESM)
 [codegen]
 preserve_docs = false        # forward Rust `///` doc comments as JSDoc
 
+[codegen.naming]
+fields = "preserve"          # "preserve" (default) or "camelCase"
+
 [watch]
 debounce_ms = 200
 ```
@@ -316,6 +319,43 @@ export type Procedures = {
 ```
 
 Doc comments are preserved on procedures, structs, and enums. Disabled by default (`preserve_docs = false`).
+
+### Field naming
+
+By default, struct field names are emitted as-is (`"preserve"`). Set `fields = "camelCase"` under `[codegen.naming]` to convert snake_case fields to camelCase in the generated TypeScript:
+
+```toml
+[codegen.naming]
+fields = "camelCase"
+```
+
+```rust
+#[derive(Serialize)]
+struct ServiceStatus {
+    uptime_secs: u64,
+    version: String,
+}
+```
+
+With `fields = "preserve"` (default):
+
+```typescript
+export interface ServiceStatus {
+  uptime_secs: number;
+  version: string;
+}
+```
+
+With `fields = "camelCase"`:
+
+```typescript
+export interface ServiceStatus {
+  uptimeSecs: number;
+  version: string;
+}
+```
+
+The transform also applies to struct variant fields in enums. Enum variant *names* and procedure names are not affected.
 
 ## Rust Macros
 

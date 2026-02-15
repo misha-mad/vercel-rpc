@@ -1,0 +1,17 @@
+# Example: camelCase field naming
+#
+# Converts snake_case Rust field names to camelCase in generated TypeScript.
+# e.g. uptime_secs -> uptimeSecs
+
+[input]
+dir = "api"
+
+[output]
+types = "output/rpc-types.ts"
+client = "output/rpc-client.ts"
+
+[codegen]
+preserve_docs = true
+
+[codegen.naming]
+fields = "camelCase"
