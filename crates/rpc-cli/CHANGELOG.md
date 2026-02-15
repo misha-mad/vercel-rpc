@@ -1,0 +1,29 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.1.0](https://github.com/misha-mad/vercel-rpc/releases/tag/vercel-rpc-cli-v0.1.0) - 2026-02-15
+
+### Other
+
+- add release-plz setup, improve metadata in Cargo.toml files
+- Rename project references from "svelte-rust" to "vercel-rpc" across files.
+- Add contributing guidelines and update README to reference them
+- Update README: Fix incorrect div alignment attribute
+- Remove "Tech Stack" section from README.
+- Update README formatting and links for `demo` directory
+- Add dual licensing (MIT OR Apache-2.0) to crates and update README
+- Update README diagram alignment for improved formatting
+- Add live demo link and sponsorship section to README
+- Add CI workflow and badge to README
+- Fix inconsistent box widths in README diagrams
+- Normalize table formatting in README.md
+- Move demo app to `demo` dir
+- Add TypeScript code generation and parsing support for Rust enums
+- Replace `rspc` with `vercel-rpc`, introducing a new TypeScript client, query macro, and CLI framework.
+- Init
