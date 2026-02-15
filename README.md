@@ -366,37 +366,11 @@ Every macro-annotated function automatically gets:
 
 ## npm Scripts
 
-All npm scripts run from the `demo/` directory:
-
-```bash
-cd demo
-npm install
-```
-
-| Script              | Description                                  |
-|---------------------|----------------------------------------------|
-| `npm run dev`       | Watch mode + Vite dev server                 |
-| `npm run build`     | Generate types + Vite build                  |
-| `npm run generate`  | One-time TypeScript generation               |
-| `npm run test`      | Rust unit tests + Vitest integration         |
-| `npm run test:e2e`  | Playwright browser tests                     |
-| `npm run test:rust` | Rust tests only                              |
-| `npm run test:all`  | Full test suite (Rust + Vitest + Playwright) |
+See CONTRIBUTING.md for development scripts and setup instructions.
 
 ## Testing
 
-The project has **80 tests** across three layers:
-
-```bash
-# Run everything
-npm run test:all
-```
-
-| Layer                  | Count | What's tested                                                    |
-|------------------------|-------|------------------------------------------------------------------|
-| **Rust unit**          | 60    | Type parsing, struct/enum extraction, TS codegen, client codegen |
-| **Vitest integration** | 12    | Full codegen pipeline, TypeScript compilation, idempotency       |
-| **Playwright e2e**     | 8     | UI rendering, typed queries, API response format                 |
+Detailed testing strategy and commands are described in CONTRIBUTING.md.
 
 ## Deploy to Vercel
 
@@ -421,9 +395,9 @@ Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 
 ## Sponsors
 
-<p style="text-align: center;">
+<div align="center">
   <em>You could be the first sponsor! ❤️</em>
-</p>
+</div>
 
 If you find this project useful, consider [sponsoring](https://github.com/sponsors/misha-mad) to support its development.
 
