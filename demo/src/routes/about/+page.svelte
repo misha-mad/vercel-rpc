@@ -29,6 +29,6 @@
 
 	<p>
 		Check out the <a href="/rpc">RPC demo</a> to see it in action, or visit the
-		<a href="https://github.com/misha-mad/svelte-rust">GitHub repository</a> for the full source code.
+		<a href="https://github.com/misha-mad/vercel-rpc">GitHub repository</a> for the full source code.
 	</p>
 </div>

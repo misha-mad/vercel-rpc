@@ -6,7 +6,7 @@ body:
       value: |
         ## 💡 Ideas & Feature Requests
 
-        Share your ideas for improving **vercel-rpc / svelte-rust**!
+        Share your ideas for improving **vercel-rpc**!
 
         We'd love to hear about new features, improvements to existing functionality, or integrations you'd like to see.
   - type: textarea

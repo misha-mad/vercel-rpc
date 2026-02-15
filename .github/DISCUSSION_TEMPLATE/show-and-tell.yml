@@ -6,7 +6,7 @@ body:
       value: |
         ## 🙌 Show & Tell
 
-        Built something cool with **vercel-rpc / svelte-rust**? Share it here!
+        Built something cool with **vercel-rpc**? Share it here!
 
         We'd love to see your projects, demos, blog posts, tutorials, or creative uses of the framework.
   - type: textarea

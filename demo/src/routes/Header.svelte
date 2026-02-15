@@ -32,7 +32,7 @@
 	</nav>
 
 	<div class="corner">
-		<a href="https://github.com/misha-mad/svelte-rust">
+		<a href="https://github.com/misha-mad/vercel-rpc">
 			<img src={github} alt="GitHub" />
 		</a>
 	</div>

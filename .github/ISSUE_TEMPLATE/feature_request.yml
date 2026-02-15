@@ -8,9 +8,9 @@ body:
       value: |
         ## ✨ Feature Request
 
-        Suggest a new feature or improvement for **vercel-rpc / svelte-rust**!
+        Suggest a new feature or improvement for **vercel-rpc**!
 
-        For open-ended ideas and brainstorming, consider using [Discussions](https://github.com/misha-mad/svelte-rust/discussions/categories/ideas) instead.
+        For open-ended ideas and brainstorming, consider using [Discussions](https://github.com/misha-mad/vercel-rpc/discussions/categories/ideas) instead.
   - type: textarea
     id: description
     attributes:

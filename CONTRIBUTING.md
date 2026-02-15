@@ -13,8 +13,8 @@ Thank you for your interest in contributing! This guide will help you get starte
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/misha-mad/svelte-rust.git
-cd svelte-rust
+git clone https://github.com/misha-mad/vercel-rpc.git
+cd vercel-rpc
 ```
 
 ### 2. Install dependencies

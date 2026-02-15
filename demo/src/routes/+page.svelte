@@ -26,7 +26,7 @@
 
 	<div class="actions">
 		<a href="/rpc" class="btn primary">Try the Demo →</a>
-		<a href="https://github.com/misha-mad/svelte-rust" class="btn secondary">GitHub</a>
+		<a href="https://github.com/misha-mad/vercel-rpc" class="btn secondary">GitHub</a>
 	</div>
 </section>
 

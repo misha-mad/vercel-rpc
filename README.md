@@ -6,7 +6,7 @@
 
 [**Live Demo →** svelte-rust-beta.vercel.app](https://svelte-rust-beta.vercel.app)
 
-[![CI](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml)
+[![CI](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml)
 [![Rust Tests](https://img.shields.io/badge/rust_tests-60_passed-brightgreen?logo=rust)](./crates)
 [![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./demo/tests/integration)
 [![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./demo/tests/e2e)
@@ -162,7 +162,7 @@ This runs the RPC watcher and Vite dev server in parallel. Every time you save a
 ## Project Structure
 
 ```
-svelte-rust/
+vercel-rpc/
 ├── crates/
 │   ├── rpc-macro/                # Proc-macro crate
 │   │   └── src/lib.rs            #   #[rpc_query] / #[rpc_mutation]

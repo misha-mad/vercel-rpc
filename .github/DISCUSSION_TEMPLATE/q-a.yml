@@ -6,11 +6,11 @@ body:
       value: |
         ## ❓ Questions & Answers
 
-        Ask anything about **vercel-rpc / svelte-rust** — setup, usage, deployment, type generation, macros, or troubleshooting.
+        Ask anything about **vercel-rpc** — setup, usage, deployment, type generation, macros, or troubleshooting.
 
         Before posting, please check:
-        - [README](https://github.com/misha-mad/svelte-rust#readme)
-        - [CONTRIBUTING.md](https://github.com/misha-mad/svelte-rust/blob/main/CONTRIBUTING.md)
+        - [README](https://github.com/misha-mad/vercel-rpc#readme)
+        - [CONTRIBUTING.md](https://github.com/misha-mad/vercel-rpc/blob/main/CONTRIBUTING.md)
         - Existing discussions and issues
   - type: textarea
     id: question

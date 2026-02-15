@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug in vercel-rpc / svelte-rust
+description: Report a bug in vercel-rpc
 title: "[Bug] "
 labels: ["bug"]
 body:
@@ -8,11 +8,11 @@ body:
       value: |
         ## 🐛 Bug Report
 
-        Thank you for reporting a bug in **vercel-rpc / svelte-rust**!
+        Thank you for reporting a bug in **vercel-rpc**!
 
         Before submitting, please check:
-        - [README](https://github.com/misha-mad/svelte-rust#readme)
-        - [Existing issues](https://github.com/misha-mad/svelte-rust/issues)
+        - [README](https://github.com/misha-mad/vercel-rpc#readme)
+        - [Existing issues](https://github.com/misha-mad/vercel-rpc/issues)
   - type: textarea
     id: description
     attributes:

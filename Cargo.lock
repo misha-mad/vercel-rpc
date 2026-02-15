@@ -1028,19 +1028,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
-name = "svelte-rust-demo"
-version = "0.1.0"
-dependencies = [
- "http-body-util",
- "serde",
- "serde_json",
- "tokio",
- "url",
- "vercel-rpc-macro",
- "vercel_runtime",
-]
-
-[[package]]
 name = "syn"
 version = "2.0.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1268,6 +1255,19 @@ dependencies = [
  "syn",
  "tempfile",
  "walkdir",
+]
+
+[[package]]
+name = "vercel-rpc-demo"
+version = "0.1.0"
+dependencies = [
+ "http-body-util",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+ "vercel-rpc-macro",
+ "vercel_runtime",
 ]
 
 [[package]]

@@ -14,7 +14,7 @@
 
 	<footer>
 		<p>
-			visit <a href="https://github.com/misha-mad/svelte-rust">GitHub</a> to learn more about vercel-rpc
+			visit <a href="https://github.com/misha-mad/vercel-rpc">GitHub</a> to learn more about vercel-rpc
 		</p>
 	</footer>
 </div>
