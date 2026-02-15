@@ -33,6 +33,7 @@ pub struct OutputConfig {
 #[serde(default)]
 pub struct ImportsConfig {
     pub types_path: String,
+    pub extension: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -75,7 +76,15 @@ impl Default for ImportsConfig {
     fn default() -> Self {
         Self {
             types_path: "./rpc-types".to_string(),
+            extension: String::new(),
         }
+    }
+}
+
+impl ImportsConfig {
+    /// Returns the full import specifier: `types_path` + `extension`.
+    pub fn types_specifier(&self) -> String {
+        format!("{}{}", self.types_path, self.extension)
     }
 }
 
@@ -162,6 +171,8 @@ mod tests {
         assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
         assert_eq!(config.output.client, PathBuf::from("src/lib/rpc-client.ts"));
         assert_eq!(config.output.imports.types_path, "./rpc-types");
+        assert_eq!(config.output.imports.extension, "");
+        assert_eq!(config.output.imports.types_specifier(), "./rpc-types");
         assert_eq!(config.watch.debounce_ms, 200);
     }
 
@@ -194,6 +205,7 @@ client = "client.ts"
 
 [output.imports]
 types_path = "./types"
+extension = ".js"
 
 [watch]
 debounce_ms = 500
@@ -205,6 +217,8 @@ debounce_ms = 500
         assert_eq!(config.output.types, PathBuf::from("types.ts"));
         assert_eq!(config.output.client, PathBuf::from("client.ts"));
         assert_eq!(config.output.imports.types_path, "./types");
+        assert_eq!(config.output.imports.extension, ".js");
+        assert_eq!(config.output.imports.types_specifier(), "./types.js");
         assert_eq!(config.watch.debounce_ms, 500);
     }
 
@@ -222,6 +236,18 @@ exclude = ["**/test_*.rs"]
             vec!["handlers/**/*.rs".to_string(), "api/**/*.rs".to_string()]
         );
         assert_eq!(config.input.exclude, vec!["**/test_*.rs".to_string()]);
+    }
+
+    #[test]
+    fn test_parse_extension() {
+        let toml_str = r#"
+[output.imports]
+extension = ".js"
+"#;
+        let config: RpcConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.output.imports.types_path, "./rpc-types"); // default
+        assert_eq!(config.output.imports.extension, ".js");
+        assert_eq!(config.output.imports.types_specifier(), "./rpc-types.js");
     }
 
     #[test]
