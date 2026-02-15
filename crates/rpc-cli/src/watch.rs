@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc};
 use std::time::Instant;
@@ -8,21 +8,14 @@ use colored::Colorize;
 use notify::RecursiveMode;
 use notify_debouncer_mini::{new_debouncer, DebouncedEventKind};
 
+use crate::config::RpcConfig;
 use crate::{codegen, parser};
-
-/// Configuration for the watch command.
-pub struct WatchConfig {
-    pub api_dir: PathBuf,
-    pub types_output: PathBuf,
-    pub client_output: PathBuf,
-    pub types_import: String,
-}
 
 /// Runs the watch loop: performs an initial generation, then watches for changes
 /// in the api directory and regenerates TypeScript files on each change.
 ///
 /// Blocks until the process receives SIGINT (Ctrl+C).
-pub fn run(config: &WatchConfig) -> Result<()> {
+pub fn run(config: &RpcConfig) -> Result<()> {
     let running = Arc::new(AtomicBool::new(true));
     let running_clone = running.clone();
 
@@ -41,20 +34,20 @@ pub fn run(config: &WatchConfig) -> Result<()> {
 
     // Set up file watcher with debouncing
     let (tx, rx) = mpsc::channel();
-    let debounce_duration = std::time::Duration::from_millis(200);
+    let debounce_duration = std::time::Duration::from_millis(config.watch.debounce_ms);
 
     let mut debouncer = new_debouncer(debounce_duration, tx)
         .context("Failed to create file watcher")?;
 
     debouncer
         .watcher()
-        .watch(config.api_dir.as_ref(), RecursiveMode::Recursive)
-        .with_context(|| format!("Failed to watch {}", config.api_dir.display()))?;
+        .watch(config.input.dir.as_ref(), RecursiveMode::Recursive)
+        .with_context(|| format!("Failed to watch {}", config.input.dir.display()))?;
 
     println!(
         "  {} for changes in {}\n",
         "Watching".cyan().bold(),
-        config.api_dir.display().to_string().underline(),
+        config.input.dir.display().to_string().underline(),
     );
 
     while running.load(Ordering::SeqCst) {
@@ -93,16 +86,17 @@ pub fn run(config: &WatchConfig) -> Result<()> {
 }
 
 /// Performs a full scan + generation cycle, printing timing info.
-fn generate(config: &WatchConfig) -> Result<()> {
+fn generate(config: &RpcConfig) -> Result<()> {
     let start = Instant::now();
 
-    let manifest = parser::scan_directory(&config.api_dir)?;
+    let manifest = parser::scan_directory(&config.input.dir)?;
 
     let types_content = codegen::typescript::generate_types_file(&manifest);
-    write_file(&config.types_output, &types_content)?;
+    write_file(&config.output.types, &types_content)?;
 
-    let client_content = codegen::client::generate_client_file(&manifest, &config.types_import);
-    write_file(&config.client_output, &client_content)?;
+    let client_content =
+        codegen::client::generate_client_file(&manifest, &config.output.imports.types_path);
+    write_file(&config.output.client, &client_content)?;
 
     let elapsed = start.elapsed();
     let proc_count = manifest.procedures.len();
@@ -118,12 +112,12 @@ fn generate(config: &WatchConfig) -> Result<()> {
     println!(
         "    {} {}",
         "→".dimmed(),
-        config.types_output.display().to_string().dimmed(),
+        config.output.types.display().to_string().dimmed(),
     );
     println!(
         "    {} {}",
         "→".dimmed(),
-        config.client_output.display().to_string().dimmed(),
+        config.output.client.display().to_string().dimmed(),
     );
 
     Ok(())
@@ -140,7 +134,7 @@ fn write_file(path: &Path, content: &str) -> Result<()> {
     Ok(())
 }
 
-fn print_banner(config: &WatchConfig) {
+fn print_banner(config: &RpcConfig) {
     println!();
     println!(
         "  {} {}",
@@ -150,17 +144,17 @@ fn print_banner(config: &WatchConfig) {
     println!(
         "  {} {}",
         "api dir:".dimmed(),
-        config.api_dir.display(),
+        config.input.dir.display(),
     );
     println!(
         "  {} {}",
         "types:".dimmed(),
-        config.types_output.display(),
+        config.output.types.display(),
     );
     println!(
         "  {} {}",
         "client:".dimmed(),
-        config.client_output.display(),
+        config.output.client.display(),
     );
     println!();
 }
