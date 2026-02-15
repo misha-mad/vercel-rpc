@@ -69,11 +69,12 @@ That's it. The macro generates the full Vercel-compatible handler with:
 ### 2. Generate TypeScript bindings
 
 ```bash
-# One-time generation
-cargo run -p vercel-rpc-cli -- generate --dir api
-
-# Or use npm script
+# One-time generation (from demo/)
+cd demo
 npm run generate
+
+# Or directly with cargo (from project root)
+cargo run -p vercel-rpc-cli -- generate --dir api --output demo/src/lib/rpc-types.ts --client-output demo/src/lib/rpc-client.ts
 ```
 
 This produces two files:
@@ -108,13 +109,13 @@ export function createRpcClient(baseUrl: string): RpcClient;
 ### 3. Use in SvelteKit
 
 ```typescript
-// src/lib/client.ts
+// demo/src/lib/client.ts
 import { createRpcClient } from "./rpc-client";
 export const rpc = createRpcClient("/api");
 ```
 
 ```svelte
-<!-- src/routes/+page.svelte -->
+<!-- demo/src/routes/+page.svelte -->
 <script lang="ts">
   import { rpc } from "$lib/client";
 
@@ -134,6 +135,7 @@ export const rpc = createRpcClient("/api");
 ### 4. Watch mode (development)
 
 ```bash
+cd demo
 npm run dev
 ```
 
@@ -158,9 +160,6 @@ This runs the RPC watcher and Vite dev server in parallel. Every time you save a
 
 ```
 svelte-rust/
-├── api/                          # Rust lambdas (each file = one endpoint)
-│   ├── hello.rs                  #   GET /api/hello?input="name"
-│   └── time.rs                   #   GET /api/time
 ├── crates/
 │   ├── rpc-macro/                # Proc-macro crate
 │   │   └── src/lib.rs            #   #[rpc_query] / #[rpc_mutation]
@@ -175,18 +174,27 @@ svelte-rust/
 │           │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
 │           │   └── client.rs     #     RpcClient interface + rpc-client.ts
 │           └── watch.rs          #   File watcher with debounce
-├── src/
-│   ├── lib/
-│   │   ├── rpc-types.ts          # ← auto-generated types
-│   │   ├── rpc-client.ts         # ← auto-generated client
-│   │   └── client.ts             #   RPC client instance (manual)
-│   └── routes/                   # SvelteKit pages
-├── tests/
-│   ├── integration/              # Vitest: codegen pipeline tests
-│   └── e2e/                      # Playwright: UI + API tests
-├── Cargo.toml                    # Rust workspace
-├── package.json                  # Node scripts
-└── vercel.json                   # Vercel config
+├── demo/                         # SvelteKit demo application + Rust lambdas
+│   ├── api/                      # Rust lambdas (each file = one endpoint)
+│   │   ├── hello.rs              #   GET /api/hello?input="name"
+│   │   └── time.rs               #   GET /api/time
+│   ├── Cargo.toml                # Rust package for demo lambdas
+│   ├── src/
+│   │   ├── lib/
+│   │   │   ├── rpc-types.ts      # ← auto-generated types
+│   │   │   ├── rpc-client.ts     # ← auto-generated client
+│   │   │   └── client.ts         #   RPC client instance (manual)
+│   │   └── routes/               # SvelteKit pages
+│   ├── tests/
+│   │   ├── integration/          # Vitest: codegen pipeline tests
+│   │   └── e2e/                  # Playwright: UI + API tests
+│   ├── package.json              # Node scripts
+│   ├── svelte.config.js          # SvelteKit config
+│   ├── vite.config.ts            # Vite config + API mock plugin
+│   └── tsconfig.json             # TypeScript config
+├── Cargo.toml                    # Rust workspace (crates + demo)
+├── vercel.json                   # Vercel config
+└── README.md
 ```
 
 ## CLI Reference
@@ -355,6 +363,13 @@ Every macro-annotated function automatically gets:
 
 ## npm Scripts
 
+All npm scripts run from the `demo/` directory:
+
+```bash
+cd demo
+npm install
+```
+
 | Script | Description |
 |--------|-------------|
 | `npm run dev` | Watch mode + Vite dev server |
@@ -382,15 +397,24 @@ npm run test:all
 
 ## Deploy to Vercel
 
+Since the SvelteKit demo lives in `demo/`, you need to configure Vercel's **Root Directory**:
+
+1. Go to your Vercel project → **Settings** → **General**
+2. Set **Root Directory** to `demo`
+3. Vercel will auto-detect SvelteKit and run `npm run build` from `demo/`
+4. Rust lambdas in `demo/api/` are compiled as serverless functions automatically
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
 
-# Deploy
+# Deploy (set root directory on first deploy)
 vercel
 ```
 
-Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`. No additional configuration needed.
+> **Note:** With Root Directory set to `demo`, Vercel detects `demo/api/` as the serverless functions directory. So `demo/api/hello.rs` → `/api/hello`.
+
+Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 
 ## Tech Stack
 

@@ -1,27 +1,6 @@
 [workspace]
-members = ["crates/rpc-macro", "crates/rpc-cli"]
+members = ["crates/rpc-macro", "crates/rpc-cli", "demo"]
 resolver = "3"
-
-[package]
-name = "svelte-rust-api"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-tokio = { version = "1", features = ["full"] }
-vercel_runtime = { version = "2" }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-url = "2.5"
-vercel-rpc-macro = { path = "crates/rpc-macro" }
-
-[[bin]]
-name = "hello"
-path = "api/hello.rs"
-
-[[bin]]
-name = "time"
-path = "api/time.rs"
 
 [profile.release]
 codegen-units = 1

@@ -4,8 +4,9 @@ import { readFileSync, existsSync, mkdirSync, writeFileSync, rmSync } from "node
 import { join } from "node:path";
 
 const ROOT = process.cwd();
+const PROJECT_ROOT = join(ROOT, "..");
 const API_DIR = join(ROOT, "api");
-const CLI_CMD = `cargo run -p vercel-rpc-cli --`;
+const CLI_CMD = `cargo run --manifest-path ${join(PROJECT_ROOT, "Cargo.toml")} -p vercel-rpc-cli --`;
 const JSON_MARKER = "--- JSON manifest ---";
 
 // Temporary output directory for test artifacts
