@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("RPC page — full e2e cycle", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/rpc");
+    await page.goto("/examples");
   });
 
   test("page loads with correct heading", async ({ page }) => {
@@ -65,9 +65,9 @@ test.describe("RPC page — full e2e cycle", () => {
   });
 
   test("navigation link to RPC exists in header", async ({ page }) => {
-    const rpcLink = page.locator('nav a[href="/rpc"]');
-    await expect(rpcLink).toBeVisible();
-    await expect(rpcLink).toHaveText("RPC");
+    const examplesLink = page.locator('nav a[href="/examples"]');
+    await expect(examplesLink).toBeVisible();
+    await expect(examplesLink).toHaveText("Examples");
   });
 });
 

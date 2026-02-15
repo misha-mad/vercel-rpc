@@ -25,7 +25,7 @@
 	</div>
 
 	<div class="actions">
-		<a href="/rpc" class="btn primary">Try the Demo →</a>
+		<a href="/examples" class="btn primary">Try the Demo →</a>
 		<a href="https://github.com/misha-mad/vercel-rpc" class="btn secondary">GitHub</a>
 	</div>
 </section>

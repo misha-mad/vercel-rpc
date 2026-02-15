@@ -22,8 +22,8 @@
 			<li aria-current={page.url.pathname === '/about' ? 'page' : undefined}>
 				<a href={resolve('/about')}>About</a>
 			</li>
-			<li aria-current={page.url.pathname.startsWith('/rpc') ? 'page' : undefined}>
-				<a href={resolve('/rpc')}>RPC</a>
+			<li aria-current={page.url.pathname.startsWith('/examples') ? 'page' : undefined}>
+				<a href={resolve('/examples')}>Examples</a>
 			</li>
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
