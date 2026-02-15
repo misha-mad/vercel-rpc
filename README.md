@@ -261,6 +261,8 @@ Instead of passing flags every time, you can create an `rpc.config.toml` at the 
 
 [input]
 dir = "api"
+include = ["**/*.rs"]    # glob patterns for files to include
+exclude = []             # glob patterns for files to exclude
 
 [output]
 types = "src/lib/rpc-types.ts"

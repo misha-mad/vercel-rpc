@@ -150,7 +150,7 @@ fn main() -> Result<()> {
 }
 
 fn cmd_scan(config: &RpcConfig) -> Result<()> {
-    let manifest = parser::scan_directory(&config.input.dir)?;
+    let manifest = parser::scan_directory(&config.input)?;
 
     println!(
         "Discovered {} procedure(s), {} struct(s), {} enum(s):\n",
@@ -202,7 +202,7 @@ fn cmd_scan(config: &RpcConfig) -> Result<()> {
 }
 
 fn cmd_generate(config: &RpcConfig) -> Result<()> {
-    let manifest = parser::scan_directory(&config.input.dir)?;
+    let manifest = parser::scan_directory(&config.input)?;
 
     // Generate types file
     let types_content = codegen::typescript::generate_types_file(&manifest);

@@ -89,7 +89,7 @@ pub fn run(config: &RpcConfig) -> Result<()> {
 fn generate(config: &RpcConfig) -> Result<()> {
     let start = Instant::now();
 
-    let manifest = parser::scan_directory(&config.input.dir)?;
+    let manifest = parser::scan_directory(&config.input)?;
 
     let types_content = codegen::typescript::generate_types_file(&manifest);
     write_file(&config.output.types, &types_content)?;

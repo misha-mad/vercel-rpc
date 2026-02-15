@@ -116,6 +116,8 @@ The CLI can be configured with an optional `rpc.config.toml` file. Place it at y
 
 [input]
 dir = "api"                          # Rust source directory to scan
+include = ["**/*.rs"]                # glob patterns for files to include
+exclude = []                         # glob patterns for files to exclude
 
 [output]
 types = "src/lib/rpc-types.ts"       # generated types file path
@@ -127,6 +129,8 @@ types_path = "./rpc-types"           # import specifier used in client file
 [watch]
 debounce_ms = 200                    # file watcher debounce interval (ms)
 ```
+
+`include` and `exclude` accept glob patterns matched against file paths relative to `dir`. A file must match at least one `include` pattern and no `exclude` pattern to be scanned. When both match, `exclude` wins.
 
 ### Config discovery
 

@@ -17,6 +17,8 @@ pub struct RpcConfig {
 #[serde(default)]
 pub struct InputConfig {
     pub dir: PathBuf,
+    pub include: Vec<String>,
+    pub exclude: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -53,6 +55,8 @@ impl Default for InputConfig {
     fn default() -> Self {
         Self {
             dir: PathBuf::from("api"),
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
         }
     }
 }
@@ -153,6 +157,8 @@ mod tests {
     fn test_default_matches_current_behavior() {
         let config = RpcConfig::default();
         assert_eq!(config.input.dir, PathBuf::from("api"));
+        assert_eq!(config.input.include, vec!["**/*.rs".to_string()]);
+        assert!(config.input.exclude.is_empty());
         assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
         assert_eq!(config.output.client, PathBuf::from("src/lib/rpc-client.ts"));
         assert_eq!(config.output.imports.types_path, "./rpc-types");
@@ -179,6 +185,8 @@ dir = "src/api"
         let toml_str = r#"
 [input]
 dir = "lambdas"
+include = ["src/**/*.rs"]
+exclude = ["src/tests/**"]
 
 [output]
 types = "types.ts"
@@ -192,10 +200,28 @@ debounce_ms = 500
 "#;
         let config: RpcConfig = toml::from_str(toml_str).unwrap();
         assert_eq!(config.input.dir, PathBuf::from("lambdas"));
+        assert_eq!(config.input.include, vec!["src/**/*.rs".to_string()]);
+        assert_eq!(config.input.exclude, vec!["src/tests/**".to_string()]);
         assert_eq!(config.output.types, PathBuf::from("types.ts"));
         assert_eq!(config.output.client, PathBuf::from("client.ts"));
         assert_eq!(config.output.imports.types_path, "./types");
         assert_eq!(config.watch.debounce_ms, 500);
+    }
+
+    #[test]
+    fn test_parse_include_exclude() {
+        let toml_str = r#"
+[input]
+include = ["handlers/**/*.rs", "api/**/*.rs"]
+exclude = ["**/test_*.rs"]
+"#;
+        let config: RpcConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.input.dir, PathBuf::from("api")); // default
+        assert_eq!(
+            config.input.include,
+            vec!["handlers/**/*.rs".to_string(), "api/**/*.rs".to_string()]
+        );
+        assert_eq!(config.input.exclude, vec!["**/test_*.rs".to_string()]);
     }
 
     #[test]
