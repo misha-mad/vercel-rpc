@@ -3,6 +3,7 @@ name = "vercel-rpc-macro"
 version = "0.1.0"
 edition = "2024"
 description = "Procedural macros for Vercel RPC framework"
+license = "MIT OR Apache-2.0"
 
 [lib]
 proc-macro = true

@@ -441,7 +441,7 @@ If you find this project useful, consider [sponsoring](https://github.com/sponso
 
 ## License
 
-MIT
+MIT OR Apache-2.0
 
 ---
 

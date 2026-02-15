@@ -3,6 +3,7 @@ name = "vercel-rpc-cli"
 version = "0.1.0"
 edition = "2024"
 description = "CLI tool for Vercel RPC: parses Rust lambdas and generates TypeScript types and client"
+license = "MIT OR Apache-2.0"
 
 [[bin]]
 name = "rpc"
