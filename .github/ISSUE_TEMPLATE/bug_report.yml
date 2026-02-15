@@ -1,0 +1,79 @@
+name: Bug Report
+description: Report a bug in vercel-rpc / svelte-rust
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+
+        Thank you for reporting a bug in **vercel-rpc / svelte-rust**!
+
+        Before submitting, please check:
+        - [README](https://github.com/misha-mad/svelte-rust#readme)
+        - [Existing issues](https://github.com/misha-mad/svelte-rust/issues)
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+      placeholder: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps to reproduce the behavior.
+      placeholder: |
+        1. Run `vercel-rpc generate ...`
+        2. Open the generated file...
+        3. See error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+      placeholder: Describe the expected outcome...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project does this relate to?
+      options:
+        - "Rust macros (#[rpc_query] / #[rpc_mutation])"
+        - "CLI (scan / generate / watch)"
+        - "TypeScript codegen (types / client)"
+        - "SvelteKit integration"
+        - "Vercel deployment"
+        - "Testing"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Provide relevant environment details.
+      placeholder: |
+        - OS: macOS 15 / Ubuntu 24.04 / Windows 11
+        - Rust: 1.82
+        - Node: 22
+        - vercel-rpc version: ...
+      render: markdown
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Error output
+      description: Paste any relevant log output or error messages.
+      placeholder: Paste logs here...
+      render: shell
+    validations:
+      required: false
