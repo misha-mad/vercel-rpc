@@ -41,11 +41,11 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
        │                                                           │
        │  deploy (vercel)                          import (svelte) │
        ▼                                                           ▼
-┌──────────────┐              HTTP (GET/POST)      ┌──────────────────┐
-│ Vercel Lambda│ ◀──────────────────────────────── │   SvelteKit App  │
-│  /api/hello  │                                   │  rpc.query(...)  │
-│  /api/time   │ ──────────────────────────────▶   │  fully typed! ✨ │
-└──────────────┘              JSON response        └──────────────────┘
+┌──────────────┐              HTTP (GET/POST)              ┌──────────────────┐
+│ Vercel Lambda│ ◀───────────────────────────────────────  │   SvelteKit App  │
+│  /api/hello  │                                           │  rpc.query(...)  │
+│  /api/time   │ ───────────────────────────────────────▶  │  fully typed! ✨ │
+└──────────────┘              JSON response                └──────────────────┘
 ```
 
 ## Quick Start
