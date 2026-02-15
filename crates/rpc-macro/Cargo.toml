@@ -8,7 +8,7 @@ repository = "https://github.com/misha-mad/vercel-rpc"
 homepage = "https://github.com/misha-mad/vercel-rpc"
 keywords = ["rpc", "vercel", "macro", "serverless", "svelte"]
 categories = ["web-programming", "development-tools::procedural-macro-helpers"]
-readme = "../../README.md"
+readme = "README.md"
 
 [lib]
 proc-macro = true
