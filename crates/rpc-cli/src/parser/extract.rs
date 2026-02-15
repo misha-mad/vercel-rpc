@@ -2,9 +2,11 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use syn::{Attribute, File, FnArg, Item, ItemFn, ReturnType};
 use walkdir::WalkDir;
 
+use crate::config::InputConfig;
 use crate::model::{EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, StructDef, VariantKind};
 use super::types::{extract_rust_type, extract_struct_fields};
 
@@ -12,25 +14,51 @@ use super::types::{extract_rust_type, extract_struct_fields};
 const RPC_QUERY_ATTR: &str = "rpc_query";
 const RPC_MUTATION_ATTR: &str = "rpc_mutation";
 
-/// Scans all `.rs` files in the given directory and extracts RPC metadata.
+/// Builds a `GlobSet` from a list of glob pattern strings.
+fn build_glob_set(patterns: &[String]) -> Result<GlobSet> {
+    let mut builder = GlobSetBuilder::new();
+    for pattern in patterns {
+        let glob = GlobBuilder::new(pattern)
+            .literal_separator(false)
+            .build()
+            .with_context(|| format!("Invalid glob pattern: {pattern}"))?;
+        builder.add(glob);
+    }
+    builder
+        .build()
+        .context("Failed to build glob set")
+}
+
+/// Scans `.rs` files in the configured directory and extracts RPC metadata.
 ///
-/// Walks the directory recursively, parsing each Rust source file for
+/// Walks the directory recursively, applying `include`/`exclude` glob patterns
+/// from the config, then parsing each matching Rust source file for
 /// `#[rpc_query]` / `#[rpc_mutation]` annotated functions and `#[derive(Serialize)]` structs.
-pub fn scan_directory(api_dir: &Path) -> Result<Manifest> {
+pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
     let mut manifest = Manifest::default();
 
-    let entries: Vec<_> = WalkDir::new(api_dir)
+    let include_set = build_glob_set(&input.include)?;
+    let exclude_set = build_glob_set(&input.exclude)?;
+
+    let entries: Vec<_> = WalkDir::new(&input.dir)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
-            e.path().extension().is_some_and(|ext| ext == "rs")
+            if !e.path().extension().is_some_and(|ext| ext == "rs") {
+                return false;
+            }
+            let rel = match e.path().strip_prefix(&input.dir) {
+                Ok(r) => r,
+                Err(_) => e.path(),
+            };
+            include_set.is_match(rel) && !exclude_set.is_match(rel)
         })
         .collect();
 
     if entries.is_empty() {
         anyhow::bail!(
             "No .rs files found in {}",
-            api_dir.display()
+            input.dir.display()
         );
     }
 
@@ -203,7 +231,7 @@ fn has_serde_derive(attrs: &[Attribute]) -> bool {
 mod tests {
     use super::*;
     use std::io::Write;
-    use tempfile::NamedTempFile;
+    use tempfile::{NamedTempFile, TempDir};
 
     fn parse_source(source: &str) -> Manifest {
         let mut tmp = NamedTempFile::new().unwrap();
@@ -419,5 +447,88 @@ mod tests {
         );
         assert_eq!(manifest.enums.len(), 1);
         assert_eq!(manifest.enums[0].name, "IsSerde");
+    }
+
+    /// Helper: write a minimal RPC file so scan_directory finds at least one procedure.
+    fn write_rpc_file(dir: &Path, rel_path: &str) {
+        let path = dir.join(rel_path);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        std::fs::write(
+            &path,
+            r#"
+            #[rpc_query]
+            async fn handler() -> String { "ok".into() }
+            "#,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn test_include_filters_files() {
+        let tmp = TempDir::new().unwrap();
+        write_rpc_file(tmp.path(), "handlers/hello.rs");
+        write_rpc_file(tmp.path(), "utils/helper.rs");
+
+        let input = InputConfig {
+            dir: tmp.path().to_path_buf(),
+            include: vec!["handlers/**/*.rs".into()],
+            exclude: vec![],
+        };
+
+        let manifest = scan_directory(&input).unwrap();
+        assert_eq!(manifest.procedures.len(), 1);
+        assert_eq!(manifest.procedures[0].name, "handler");
+        // The file from utils/ should not appear
+        assert!(manifest.procedures.iter().all(|p| {
+            p.source_file
+                .to_string_lossy()
+                .contains("handlers")
+        }));
+    }
+
+    #[test]
+    fn test_exclude_filters_files() {
+        let tmp = TempDir::new().unwrap();
+        write_rpc_file(tmp.path(), "hello.rs");
+        write_rpc_file(tmp.path(), "test_hello.rs");
+
+        let input = InputConfig {
+            dir: tmp.path().to_path_buf(),
+            include: vec!["**/*.rs".into()],
+            exclude: vec!["test_*.rs".into()],
+        };
+
+        let manifest = scan_directory(&input).unwrap();
+        assert_eq!(manifest.procedures.len(), 1);
+        assert!(manifest.procedures[0]
+            .source_file
+            .to_string_lossy()
+            .contains("hello.rs"));
+        assert!(!manifest.procedures[0]
+            .source_file
+            .to_string_lossy()
+            .contains("test_hello.rs"));
+    }
+
+    #[test]
+    fn test_exclude_wins_over_include() {
+        let tmp = TempDir::new().unwrap();
+        write_rpc_file(tmp.path(), "hello.rs");
+        write_rpc_file(tmp.path(), "world.rs");
+
+        let input = InputConfig {
+            dir: tmp.path().to_path_buf(),
+            include: vec!["**/*.rs".into()],
+            exclude: vec!["hello.rs".into()],
+        };
+
+        let manifest = scan_directory(&input).unwrap();
+        assert_eq!(manifest.procedures.len(), 1);
+        assert!(manifest.procedures[0]
+            .source_file
+            .to_string_lossy()
+            .contains("world.rs"));
     }
 }

@@ -13,7 +13,7 @@
 //! - **`rpc generate`** — produce `rpc-types.ts` (interfaces + `Procedures`
 //!   type) and `rpc-client.ts` (typed `RpcClient` + `createRpcClient` factory).
 //! - **`rpc watch`** — same as `generate`, but re-runs automatically whenever
-//!   a `.rs` file changes (200 ms debounce).
+//!   a `.rs` file changes (configurable debounce).
 //!
 //! # Architecture
 //!
@@ -33,6 +33,7 @@
 //! - [`watch`] — wraps `generate` in a file-watcher loop with debouncing.
 
 mod codegen;
+mod config;
 mod model;
 mod parser;
 mod watch;
@@ -43,9 +44,19 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 
+use config::RpcConfig;
+
 #[derive(Parser)]
 #[command(name = "rpc", about = "Vercel RPC CLI — parse Rust lambdas and generate TypeScript bindings")]
 struct Cli {
+    /// Path to the config file (default: auto-discover rpc.config.toml)
+    #[arg(long, global = true)]
+    config: Option<PathBuf>,
+
+    /// Disable config file loading
+    #[arg(long, global = true)]
+    no_config: bool,
+
     #[command(subcommand)]
     command: Command,
 }
@@ -55,46 +66,46 @@ enum Command {
     /// Scan the api/ directory and print discovered RPC procedures as JSON
     Scan {
         /// Path to the directory containing Rust lambda source files
-        #[arg(short, long, default_value = "api")]
-        dir: PathBuf,
+        #[arg(short, long)]
+        dir: Option<PathBuf>,
     },
 
     /// Generate TypeScript type definitions and client from Rust lambda source files
     Generate {
         /// Path to the directory containing Rust lambda source files
-        #[arg(short, long, default_value = "api")]
-        dir: PathBuf,
+        #[arg(short, long)]
+        dir: Option<PathBuf>,
 
         /// Output path for the generated TypeScript types file
-        #[arg(short, long, default_value = "src/lib/rpc-types.ts")]
-        output: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
 
         /// Output path for the generated TypeScript client file
-        #[arg(short, long, default_value = "src/lib/rpc-client.ts")]
-        client_output: PathBuf,
+        #[arg(short, long)]
+        client_output: Option<PathBuf>,
 
         /// Import path for the types file used in the client (relative, without extension)
-        #[arg(long, default_value = "./rpc-types")]
-        types_import: String,
+        #[arg(long)]
+        types_import: Option<String>,
     },
 
     /// Watch the api/ directory and regenerate TypeScript files on changes
     Watch {
         /// Path to the directory containing Rust lambda source files
-        #[arg(short, long, default_value = "api")]
-        dir: PathBuf,
+        #[arg(short, long)]
+        dir: Option<PathBuf>,
 
         /// Output path for the generated TypeScript types file
-        #[arg(short, long, default_value = "src/lib/rpc-types.ts")]
-        output: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
 
         /// Output path for the generated TypeScript client file
-        #[arg(short, long, default_value = "src/lib/rpc-client.ts")]
-        client_output: PathBuf,
+        #[arg(short, long)]
+        client_output: Option<PathBuf>,
 
         /// Import path for the types file used in the client (relative, without extension)
-        #[arg(long, default_value = "./rpc-types")]
-        types_import: String,
+        #[arg(long)]
+        types_import: Option<String>,
     },
 }
 
@@ -102,23 +113,44 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Scan { dir } => cmd_scan(&dir),
-        Command::Generate { dir, output, client_output, types_import } => {
-            cmd_generate(&dir, &output, &client_output, &types_import)
+        Command::Scan { dir } => {
+            let cfg = config::resolve(&config::CliOverrides {
+                config: cli.config,
+                no_config: cli.no_config,
+                dir,
+                output: None,
+                client_output: None,
+                types_import: None,
+            })?;
+            cmd_scan(&cfg)
         }
-        Command::Watch { dir, output, client_output, types_import } => {
-            watch::run(&watch::WatchConfig {
-                api_dir: dir,
-                types_output: output,
+        Command::Generate { dir, output, client_output, types_import } => {
+            let cfg = config::resolve(&config::CliOverrides {
+                config: cli.config,
+                no_config: cli.no_config,
+                dir,
+                output,
                 client_output,
                 types_import,
-            })
+            })?;
+            cmd_generate(&cfg)
+        }
+        Command::Watch { dir, output, client_output, types_import } => {
+            let cfg = config::resolve(&config::CliOverrides {
+                config: cli.config,
+                no_config: cli.no_config,
+                dir,
+                output,
+                client_output,
+                types_import,
+            })?;
+            watch::run(&cfg)
         }
     }
 }
 
-fn cmd_scan(dir: &PathBuf) -> Result<()> {
-    let manifest = parser::scan_directory(dir)?;
+fn cmd_scan(config: &RpcConfig) -> Result<()> {
+    let manifest = parser::scan_directory(&config.input)?;
 
     println!(
         "Discovered {} procedure(s), {} struct(s), {} enum(s):\n",
@@ -169,15 +201,15 @@ fn cmd_scan(dir: &PathBuf) -> Result<()> {
     Ok(())
 }
 
-fn cmd_generate(dir: &PathBuf, output: &PathBuf, client_output: &PathBuf, types_import: &str) -> Result<()> {
-    let manifest = parser::scan_directory(dir)?;
+fn cmd_generate(config: &RpcConfig) -> Result<()> {
+    let manifest = parser::scan_directory(&config.input)?;
 
     // Generate types file
     let types_content = codegen::typescript::generate_types_file(&manifest);
-    write_file(output, &types_content)?;
+    write_file(&config.output.types, &types_content)?;
     println!(
         "Generated {} ({} procedure(s), {} struct(s), {} enum(s)) -> {}",
-        output.display(),
+        config.output.types.display(),
         manifest.procedures.len(),
         manifest.structs.len(),
         manifest.enums.len(),
@@ -185,11 +217,12 @@ fn cmd_generate(dir: &PathBuf, output: &PathBuf, client_output: &PathBuf, types_
     );
 
     // Generate client file
-    let client_content = codegen::client::generate_client_file(&manifest, types_import);
-    write_file(client_output, &client_content)?;
+    let client_content =
+        codegen::client::generate_client_file(&manifest, &config.output.imports.types_path);
+    write_file(&config.output.client, &client_content)?;
     println!(
         "Generated {} -> {}",
-        client_output.display(),
+        config.output.client.display(),
         bytecount(&client_content),
     );
 

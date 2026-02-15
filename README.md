@@ -169,6 +169,7 @@ vercel-rpc/
 │   └── rpc-cli/                  # CLI crate (binary: `rpc`)
 │       └── src/
 │           ├── main.rs           #   CLI entry (scan / generate / watch)
+│           ├── config.rs         #   rpc.config.toml loading & merging
 │           ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef
 │           ├── parser/           #   Rust source → Manifest (via syn)
 │           │   ├── extract.rs    #     File scanning & procedure extraction
@@ -240,6 +241,8 @@ cargo run -p vercel-rpc-cli -- generate \
 | `--output`, `-o`        | `src/lib/rpc-types.ts`  | Types output path               |
 | `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path              |
 | `--types-import`        | `./rpc-types`           | Import path for types in client |
+| `--config`              | *(auto-discover)*       | Path to config file             |
+| `--no-config`           | `false`                 | Disable config file loading     |
 
 ### `rpc watch`
 
@@ -248,6 +251,31 @@ Watch for changes and regenerate on save (same flags as `generate`):
 ```bash
 cargo run -p vercel-rpc-cli -- watch --dir api
 ```
+
+### Configuration file
+
+Instead of passing flags every time, you can create an `rpc.config.toml` at the project root:
+
+```toml
+# rpc.config.toml — all fields are optional
+
+[input]
+dir = "api"
+include = ["**/*.rs"]    # glob patterns for files to include
+exclude = []             # glob patterns for files to exclude
+
+[output]
+types = "src/lib/rpc-types.ts"
+client = "src/lib/rpc-client.ts"
+
+[output.imports]
+types_path = "./rpc-types"
+
+[watch]
+debounce_ms = 200
+```
+
+The CLI auto-discovers the config by walking up from the current directory. CLI flags override config values per invocation. Use `--no-config` to ignore the file entirely.
 
 ## Rust Macros
 
