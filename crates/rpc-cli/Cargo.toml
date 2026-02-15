@@ -8,7 +8,7 @@ repository = "https://github.com/misha-mad/vercel-rpc"
 homepage = "https://github.com/misha-mad/vercel-rpc"
 keywords = ["rpc", "vercel", "cli", "serverless", "typescript"]
 categories = ["web-programming", "command-line-utilities"]
-readme = "../../README.md"
+readme = "README.md"
 
 [[bin]]
 name = "rpc"
