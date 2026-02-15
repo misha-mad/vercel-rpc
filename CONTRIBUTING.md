@@ -197,6 +197,14 @@ Before requesting a review, make sure:
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/) to drive automated versioning and changelog generation via [release-plz](https://release-plz.ieni.dev/).
 
+### Git Hooks Setup
+
+The repository includes a `commit-msg` hook that validates your commit messages locally. To activate it, run once after cloning:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ### Commit Format
 
 ```

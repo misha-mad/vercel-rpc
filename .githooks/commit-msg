@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+
+# Validate commit messages against Conventional Commits format.
+# Activate with: git config core.hooksPath .githooks
+
+commit_msg_file="$1"
+commit_msg=$(head -1 "$commit_msg_file")
+
+# Skip merge commits
+if echo "$commit_msg" | grep -qE '^Merge '; then
+  exit 0
+fi
+
+# Skip release-plz automated commits
+if echo "$commit_msg" | grep -qE '^chore\(release\):'; then
+  exit 0
+fi
+
+# Validate Conventional Commits format
+if ! echo "$commit_msg" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|ci)(\(.+\))?!?: .+'; then
+  echo "ERROR: Commit message does not follow Conventional Commits format."
+  echo ""
+  echo "Expected: <type>(<scope>): <description>"
+  echo ""
+  echo "Types:  feat, fix, docs, style, refactor, test, chore, ci"
+  echo "Scopes: rpc-macro, rpc-cli (optional)"
+  echo ""
+  echo "Examples:"
+  echo "  feat(rpc-cli): add --output flag"
+  echo "  fix(rpc-macro): handle empty function bodies"
+  echo "  docs: update installation instructions"
+  echo "  feat!: remove deprecated API"
+  exit 1
+fi
