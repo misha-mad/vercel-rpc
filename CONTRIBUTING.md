@@ -147,6 +147,46 @@ All scripts are run from the `demo/` directory:
 
 5. **Open a Pull Request** against `main` with a clear description of what you changed and why.
 
+## Branch Protection Rules
+
+The `main` branch is protected with the following rules:
+
+### Pull Request Requirements
+
+- All changes must go through a **Pull Request** — direct pushes to `main` are not allowed.
+- Each PR requires **at least 1 approving review**.
+- If a designated [Code Owner](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) is affected, their approval is required.
+- Approvals are **dismissed automatically** when new commits are pushed — re-review is needed.
+- The **most recent push** must be approved by someone other than the author.
+- All **review conversations must be resolved** before merging.
+
+### CI Checks
+
+Every PR must pass these status checks before merging:
+
+| Check                  | What it runs                              |
+|------------------------|-------------------------------------------|
+| **Rust Tests**         | `cargo test --workspace`                  |
+| **Vitest Integration** | `npm run test:integration` (from `demo/`) |
+| **Playwright E2E**     | `npm run test:e2e` (from `demo/`)         |
+
+The PR branch must be **up to date with `main`** before merging. If `main` has new commits, you need to merge them into your branch.
+
+### Merge Policy
+
+- Only **merge commits** are allowed — squash and rebase are disabled.
+- **Force pushes** and **branch deletion** of `main` are blocked.
+
+### Quick Checklist
+
+Before requesting a review, make sure:
+
+- [ ] All three CI checks pass (Rust, Vitest, Playwright)
+- [ ] Branch is up to date with `main`
+- [ ] Code follows the project's style conventions
+- [ ] New functionality has tests
+- [ ] Auto-generated files are not edited manually
+
 ## Code Style
 
 - **Rust**: Follow standard Rust conventions. Run `cargo fmt` and `cargo clippy` before committing.
