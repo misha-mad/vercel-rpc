@@ -1,30 +1,34 @@
-<script lang="ts">
-	import { resolve } from '$app/paths';
-</script>
-
 <svelte:head>
 	<title>About</title>
-	<meta name="description" content="About this app" />
+	<meta name="description" content="About vercel-rpc" />
 </svelte:head>
 
 <div class="text-column">
-	<h1>About this app</h1>
+	<h1>About vercel-rpc</h1>
 
 	<p>
-		This is a <a href="https://svelte.dev/docs/kit">SvelteKit</a> app. You can make your own by typing
-		the following into your command line and following the prompts:
+		<strong>vercel-rpc</strong> is an end-to-end typesafe RPC toolkit for building serverless APIs
+		with Rust on Vercel. It auto-generates TypeScript types and a fully typed client from your Rust
+		source code — no manual sync required.
 	</p>
 
-	<pre>npx sv create</pre>
+	<h2>How it works</h2>
+	<ol>
+		<li>Annotate Rust functions with <code>#[rpc_query]</code> or <code>#[rpc_mutation]</code></li>
+		<li>The CLI scans your <code>api/</code> directory and parses Rust types via <code>syn</code></li>
+		<li>TypeScript types and a typed client are generated automatically</li>
+		<li>Each Rust file deploys as a serverless lambda on Vercel</li>
+	</ol>
+
+	<h2>Tech stack</h2>
+	<ul>
+		<li><strong>Rust</strong> — proc-macro (<code>syn</code>, <code>quote</code>) + CLI (<code>clap</code>)</li>
+		<li><strong>TypeScript</strong> — auto-generated types and client</li>
+		<li><strong>Vercel</strong> — serverless Rust lambdas</li>
+	</ul>
 
 	<p>
-		The page you're looking at is purely static HTML, with no client-side interactivity needed.
-		Because of that, we don't need to load any JavaScript. Try viewing the page's source, or opening
-		the devtools network panel and reloading.
-	</p>
-
-	<p>
-		The <a href={resolve('/sverdle')}>Sverdle</a> page illustrates SvelteKit's data loading and form handling.
-		Try using it with JavaScript disabled!
+		Check out the <a href="/rpc">RPC demo</a> to see it in action, or visit the
+		<a href="https://github.com/misha-mad/svelte-rust">GitHub repository</a> for the full source code.
 	</p>
 </div>

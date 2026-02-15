@@ -2,13 +2,12 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import github from '$lib/images/github.svg';
-	import logo from '$lib/images/svelte-logo.svg';
 </script>
 
 <header>
 	<div class="corner">
-		<a href="https://svelte.dev/docs/kit">
-			<img src={logo} alt="SvelteKit" />
+		<a href={resolve('/')}>
+			<span class="logo">⚡</span>
 		</a>
 	</div>
 
@@ -23,9 +22,6 @@
 			<li aria-current={page.url.pathname === '/about' ? 'page' : undefined}>
 				<a href={resolve('/about')}>About</a>
 			</li>
-			<li aria-current={page.url.pathname.startsWith('/sverdle') ? 'page' : undefined}>
-				<a href={resolve('/sverdle')}>Sverdle</a>
-			</li>
 			<li aria-current={page.url.pathname.startsWith('/rpc') ? 'page' : undefined}>
 				<a href={resolve('/rpc')}>RPC</a>
 			</li>
@@ -36,7 +32,7 @@
 	</nav>
 
 	<div class="corner">
-		<a href="https://github.com/sveltejs/kit">
+		<a href="https://github.com/misha-mad/svelte-rust">
 			<img src={github} alt="GitHub" />
 		</a>
 	</div>
@@ -65,6 +61,11 @@
 		width: 2em;
 		height: 2em;
 		object-fit: contain;
+	}
+
+	.logo {
+		font-size: 1.5em;
+		line-height: 1;
 	}
 
 	nav {

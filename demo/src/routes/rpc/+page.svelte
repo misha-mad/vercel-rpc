@@ -5,7 +5,7 @@
     import { onMount } from "svelte";
 
     // --- Hello (simple query with string input) ---
-    let name = $state("SvelteKit");
+    let name = $state("World");
     let greeting = $state("");
     let helloLoading = $state(false);
 
@@ -97,7 +97,7 @@
     }
 
     // --- Echo (mutation with struct input/output) ---
-    let echoMessage = $state("Hello from SvelteKit!");
+    let echoMessage = $state("Hello from vercel-rpc!");
     let echoUppercase = $state(false);
     let echoResult = $state<EchoOutput | null>(null);
     let echoLoading = $state(false);
@@ -146,7 +146,7 @@
 
 <div class="container">
     <h1>⚡ vercel-rpc Examples</h1>
-    <p class="subtitle">End-to-end typesafe RPC between Rust lambdas and SvelteKit</p>
+    <p class="subtitle">End-to-end typesafe RPC between Rust lambdas and your frontend</p>
 
     <!-- Type Mapping Reference -->
     <section class="card highlight">
