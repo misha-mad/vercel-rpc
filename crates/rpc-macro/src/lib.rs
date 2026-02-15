@@ -144,8 +144,12 @@ fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<TokenStream, syn:
         },
         HandlerKind::Mutation => quote! {
             let __input: #input_type = {
-                let __body = __req.body();
-                let __bytes: &[u8] = __body.as_ref();
+                use ::http_body_util::BodyExt as _;
+                let __collected = __req.into_body().collect().await
+                    .map_err(|e| ::vercel_runtime::Error::from(
+                        format!("Failed to read request body: {}", e)
+                    ))?;
+                let __bytes = __collected.to_bytes();
 
                 if __bytes.is_empty() {
                     match ::serde_json::from_value(::serde_json::Value::Null) {
@@ -154,7 +158,7 @@ fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<TokenStream, syn:
                             &format!("Missing required request body: {}", e)),
                     }
                 } else {
-                    match ::serde_json::from_slice(__bytes) {
+                    match ::serde_json::from_slice(&__bytes) {
                         Ok(v) => v,
                         Err(e) => return __rpc_error_response(400,
                             &format!("Failed to deserialize request body: {}", e)),
