@@ -4,6 +4,8 @@
 
 **End-to-end typesafe RPC between Rust lambdas on Vercel and SvelteKit**
 
+[**Live Demo →** svelte-rust-beta.vercel.app](https://svelte-rust-beta.vercel.app)
+
 [![CI](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml)
 [![Rust Tests](https://img.shields.io/badge/rust_tests-60_passed-brightgreen?logo=rust)](./crates)
 [![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./tests/integration)
@@ -428,6 +430,14 @@ Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 | **File watching** | `notify` + `notify-debouncer-mini` |
 | **Testing**       | `cargo test`, Vitest, Playwright   |
 | **Deploy**        | Vercel (serverless Rust)           |
+
+## Sponsors
+
+<p align="center">
+  <em>You could be the first sponsor! ❤️</em>
+</p>
+
+If you find this project useful, consider [sponsoring](https://github.com/sponsors/misha-mad) to support its development.
 
 ## License
 
