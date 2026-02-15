@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use crate::model::{Manifest, Procedure, ProcedureKind};
-use super::typescript::rust_type_to_ts;
+use super::typescript::{emit_jsdoc, rust_type_to_ts};
 
 // Header comment included at the top of every generated client file.
 const GENERATED_HEADER: &str = "\
@@ -67,7 +67,7 @@ const FETCH_HELPER: &str = r#"async function rpcFetch(
 /// 3. `RpcError` class for structured error handling
 /// 4. Internal `rpcFetch` helper
 /// 5. `createRpcClient` factory function with fully typed `query` / `mutate` methods
-pub fn generate_client_file(manifest: &Manifest, types_import_path: &str) -> String {
+pub fn generate_client_file(manifest: &Manifest, types_import_path: &str, preserve_docs: bool) -> String {
     let mut out = String::with_capacity(2048);
 
     // Header
@@ -103,7 +103,7 @@ pub fn generate_client_file(manifest: &Manifest, types_import_path: &str) -> Str
     out.push('\n');
 
     // Client factory
-    generate_client_factory(manifest, &mut out);
+    generate_client_factory(manifest, preserve_docs, &mut out);
 
     out
 }
@@ -119,7 +119,7 @@ fn generate_type_helpers(out: &mut String) {
 }
 
 /// Generates the `createRpcClient` factory using an interface for typed overloads.
-fn generate_client_factory(manifest: &Manifest, out: &mut String) {
+fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut String) {
     let has_queries = manifest.procedures.iter().any(|p| p.kind == ProcedureKind::Query);
     let has_mutations = manifest.procedures.iter().any(|p| p.kind == ProcedureKind::Mutation);
 
@@ -127,14 +127,14 @@ fn generate_client_factory(manifest: &Manifest, out: &mut String) {
     let _ = writeln!(out, "export interface RpcClient {{");
 
     if has_queries {
-        generate_query_overloads(manifest, out);
+        generate_query_overloads(manifest, preserve_docs, out);
     }
 
     if has_mutations {
         if has_queries {
             out.push('\n');
         }
-        generate_mutation_overloads(manifest, out);
+        generate_mutation_overloads(manifest, preserve_docs, out);
     }
 
     let _ = writeln!(out, "}}");
@@ -161,7 +161,7 @@ fn generate_client_factory(manifest: &Manifest, out: &mut String) {
 }
 
 /// Generates query overload signatures for the RpcClient interface.
-fn generate_query_overloads(manifest: &Manifest, out: &mut String) {
+fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut String) {
     let queries: Vec<&Procedure> = manifest
         .procedures
         .iter()
@@ -173,6 +173,11 @@ fn generate_query_overloads(manifest: &Manifest, out: &mut String) {
 
     // Overload signatures for void-input queries (no input argument required)
     for proc in &void_queries {
+        if preserve_docs {
+            if let Some(doc) = &proc.docs {
+                emit_jsdoc(doc, "  ", out);
+            }
+        }
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
             out,
@@ -183,6 +188,11 @@ fn generate_query_overloads(manifest: &Manifest, out: &mut String) {
 
     // Overload signatures for non-void-input queries
     for proc in &non_void_queries {
+        if preserve_docs {
+            if let Some(doc) = &proc.docs {
+                emit_jsdoc(doc, "  ", out);
+            }
+        }
         let input_ts = proc.input.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
@@ -194,7 +204,7 @@ fn generate_query_overloads(manifest: &Manifest, out: &mut String) {
 }
 
 /// Generates mutation overload signatures for the RpcClient interface.
-fn generate_mutation_overloads(manifest: &Manifest, out: &mut String) {
+fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut String) {
     let mutations: Vec<&Procedure> = manifest
         .procedures
         .iter()
@@ -206,6 +216,11 @@ fn generate_mutation_overloads(manifest: &Manifest, out: &mut String) {
 
     // Overload signatures for void-input mutations
     for proc in &void_mutations {
+        if preserve_docs {
+            if let Some(doc) = &proc.docs {
+                emit_jsdoc(doc, "  ", out);
+            }
+        }
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
             out,
@@ -216,6 +231,11 @@ fn generate_mutation_overloads(manifest: &Manifest, out: &mut String) {
 
     // Overload signatures for non-void-input mutations
     for proc in &non_void_mutations {
+        if preserve_docs {
+            if let Some(doc) = &proc.docs {
+                emit_jsdoc(doc, "  ", out);
+            }
+        }
         let input_ts = proc.input.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
@@ -247,6 +267,7 @@ mod tests {
             input,
             output,
             source_file: PathBuf::from("api/test.rs"),
+            docs: None,
         }
     }
 
@@ -257,6 +278,7 @@ mod tests {
             input,
             output,
             source_file: PathBuf::from("api/test.rs"),
+            docs: None,
         }
     }
 
@@ -271,28 +293,28 @@ mod tests {
     #[test]
     fn contains_generated_header() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.starts_with("// This file is auto-generated"));
     }
 
     #[test]
     fn imports_procedures_type() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("import type { Procedures } from \"./rpc-types\""));
     }
 
     #[test]
     fn reexports_procedures_type() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("export type { Procedures }"));
     }
 
     #[test]
     fn contains_rpc_error_class() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("export class RpcError extends Error"));
         assert!(output.contains("this.status = status"));
     }
@@ -300,7 +322,7 @@ mod tests {
     #[test]
     fn contains_fetch_helper() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("async function rpcFetch("));
         assert!(output.contains("encodeURIComponent(JSON.stringify(input))"));
     }
@@ -310,7 +332,7 @@ mod tests {
         let manifest = make_manifest(vec![
             make_query("hello", Some(RustType::simple("String")), Some(RustType::simple("String"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("query(key: \"hello\", input: string): Promise<string>"));
         assert!(output.contains("rpcFetch(baseUrl, \"GET\", key, args[0])"));
         assert!(output.contains("export interface RpcClient"));
@@ -321,7 +343,7 @@ mod tests {
         let manifest = make_manifest(vec![
             make_query("version", None, Some(RustType::simple("String"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("query(key: \"version\"): Promise<string>"));
     }
 
@@ -330,7 +352,7 @@ mod tests {
         let manifest = make_manifest(vec![
             make_mutation("create_item", Some(RustType::simple("CreateInput")), Some(RustType::simple("Item"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("mutate(key: \"create_item\", input: CreateInput): Promise<Item>"));
         assert!(output.contains("rpcFetch(baseUrl, \"POST\", key, args[0])"));
         assert!(output.contains("export interface RpcClient"));
@@ -341,7 +363,7 @@ mod tests {
         let manifest = make_manifest(vec![
             make_mutation("reset", None, Some(RustType::simple("bool"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("mutate(key: \"reset\"): Promise<boolean>"));
     }
 
@@ -350,7 +372,7 @@ mod tests {
         let manifest = make_manifest(vec![
             make_query("hello", Some(RustType::simple("String")), Some(RustType::simple("String"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("export function createRpcClient(baseUrl: string)"));
     }
 
@@ -359,7 +381,7 @@ mod tests {
         let manifest = make_manifest(vec![
             make_query("hello", Some(RustType::simple("String")), Some(RustType::simple("String"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("type QueryKey = keyof Procedures[\"queries\"]"));
         assert!(output.contains("type QueryInput<K extends QueryKey>"));
         assert!(output.contains("type QueryOutput<K extends QueryKey>"));
@@ -371,7 +393,7 @@ mod tests {
             make_query("get_user", Some(RustType::simple("String")), Some(RustType::simple("User"))),
             make_mutation("delete_user", Some(RustType::simple("String")), Some(RustType::simple("bool"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("query(key: \"get_user\", input: string): Promise<User>"));
         assert!(output.contains("mutate(key: \"delete_user\", input: string): Promise<boolean>"));
     }
@@ -379,7 +401,7 @@ mod tests {
     #[test]
     fn empty_manifest_no_methods() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("createRpcClient"));
         assert!(!output.contains("query("));
         assert!(!output.contains("mutate("));
@@ -394,7 +416,7 @@ mod tests {
                 Some(RustType::with_generics("Vec", vec![RustType::simple("SearchResult")])),
             ),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("query(key: \"search\", input: SearchQuery): Promise<SearchResult[]>"));
     }
 
@@ -404,20 +426,20 @@ mod tests {
             make_query("q", Some(RustType::simple("String")), Some(RustType::simple("String"))),
             make_mutation("m", Some(RustType::simple("String")), Some(RustType::simple("String"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("rpcFetch(baseUrl, \"GET\", key"));
         assert!(output.contains("rpcFetch(baseUrl, \"POST\", key"));
     }
 
     #[test]
     fn custom_types_import_path() {
-        let output = generate_client_file(&make_manifest(vec![]), "$lib/rpc-types");
+        let output = generate_client_file(&make_manifest(vec![]), "$lib/rpc-types", false);
         assert!(output.contains("from \"$lib/rpc-types\""));
     }
 
     #[test]
     fn import_path_with_extension() {
-        let output = generate_client_file(&make_manifest(vec![]), "./rpc-types.js");
+        let output = generate_client_file(&make_manifest(vec![]), "./rpc-types.js", false);
         assert!(output.contains("from \"./rpc-types.js\""));
     }
 
@@ -426,7 +448,7 @@ mod tests {
         let manifest = make_manifest(vec![
             make_query("test", None, Some(RustType::simple("String"))),
         ]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("export interface RpcClient"));
         assert!(output.contains("query(key: \"test\"): Promise<string>"));
         assert!(output.contains("createRpcClient(baseUrl: string): RpcClient"));
@@ -436,7 +458,7 @@ mod tests {
     #[test]
     fn response_unwrapping() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("json?.result?.data ?? json"));
     }
 
@@ -450,10 +472,11 @@ mod tests {
                 name: "TimeResponse".to_string(),
                 fields: vec![("timestamp".to_string(), RustType::simple("u64"))],
                 source_file: PathBuf::from("api/time.rs"),
+                docs: None,
             }],
             enums: vec![],
         };
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("import type { Procedures, TimeResponse } from \"./rpc-types\""));
         assert!(output.contains("export type { Procedures, TimeResponse }"));
     }
@@ -461,8 +484,47 @@ mod tests {
     #[test]
     fn error_handling_in_fetch() {
         let manifest = make_manifest(vec![]);
-        let output = generate_client_file(&manifest, "./rpc-types");
+        let output = generate_client_file(&manifest, "./rpc-types", false);
         assert!(output.contains("if (!res.ok)"));
         assert!(output.contains("throw new RpcError("));
+    }
+
+    #[test]
+    fn test_jsdoc_on_overload() {
+        let manifest = make_manifest(vec![
+            Procedure {
+                name: "hello".to_string(),
+                kind: ProcedureKind::Query,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("String")),
+                source_file: PathBuf::from("api/hello.rs"),
+                docs: Some("Say hello.".to_string()),
+            },
+            Procedure {
+                name: "reset".to_string(),
+                kind: ProcedureKind::Mutation,
+                input: None,
+                output: Some(RustType::simple("bool")),
+                source_file: PathBuf::from("api/reset.rs"),
+                docs: Some("Reset state.".to_string()),
+            },
+        ]);
+        let output = generate_client_file(&manifest, "./rpc-types", true);
+        assert!(output.contains("  /** Say hello. */\n  query(key: \"hello\", input: string): Promise<string>;"));
+        assert!(output.contains("  /** Reset state. */\n  mutate(key: \"reset\"): Promise<boolean>;"));
+    }
+
+    #[test]
+    fn test_no_jsdoc_on_overload_when_disabled() {
+        let manifest = make_manifest(vec![Procedure {
+            name: "hello".to_string(),
+            kind: ProcedureKind::Query,
+            input: Some(RustType::simple("String")),
+            output: Some(RustType::simple("String")),
+            source_file: PathBuf::from("api/hello.rs"),
+            docs: Some("Say hello.".to_string()),
+        }]);
+        let output = generate_client_file(&manifest, "./rpc-types", false);
+        assert!(!output.contains("/**"));
     }
 }

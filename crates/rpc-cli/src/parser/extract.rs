@@ -100,20 +100,24 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
             Item::Struct(item_struct) => {
                 if has_serde_derive(&item_struct.attrs) {
                     let fields = extract_struct_fields(&item_struct.fields);
+                    let docs = extract_docs(&item_struct.attrs);
                     manifest.structs.push(StructDef {
                         name: item_struct.ident.to_string(),
                         fields,
                         source_file: path.to_path_buf(),
+                        docs,
                     });
                 }
             }
             Item::Enum(item_enum) => {
                 if has_serde_derive(&item_enum.attrs) {
                     let variants = extract_enum_variants(item_enum);
+                    let docs = extract_docs(&item_enum.attrs);
                     manifest.enums.push(EnumDef {
                         name: item_enum.ident.to_string(),
                         variants,
                         source_file: path.to_path_buf(),
+                        docs,
                     });
                 }
             }
@@ -124,11 +128,44 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
     Ok(manifest)
 }
 
+/// Extracts doc comments from `#[doc = "..."]` attributes (written as `///` in source).
+///
+/// Returns `None` if no doc comments are present.
+fn extract_docs(attrs: &[Attribute]) -> Option<String> {
+    let lines: Vec<String> = attrs
+        .iter()
+        .filter_map(|attr| {
+            if !attr.path().is_ident("doc") {
+                return None;
+            }
+            if let syn::Meta::NameValue(nv) = &attr.meta {
+                if let syn::Expr::Lit(syn::ExprLit {
+                    lit: syn::Lit::Str(s),
+                    ..
+                }) = &nv.value
+                {
+                    let text = s.value();
+                    // `///` comments produce a leading space, strip it
+                    return Some(text.strip_prefix(' ').unwrap_or(&text).to_string());
+                }
+            }
+            None
+        })
+        .collect();
+
+    if lines.is_empty() {
+        None
+    } else {
+        Some(lines.join("\n"))
+    }
+}
+
 /// Attempts to extract an RPC procedure from a function item.
 /// Returns `None` if the function doesn't have an RPC attribute.
 fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
     let kind = detect_rpc_kind(&func.attrs)?;
     let name = func.sig.ident.to_string();
+    let docs = extract_docs(&func.attrs);
 
     let input = func
         .sig
@@ -158,6 +195,7 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
         input,
         output,
         source_file: path.to_path_buf(),
+        docs,
     })
 }
 
@@ -510,6 +548,76 @@ mod tests {
             .source_file
             .to_string_lossy()
             .contains("test_hello.rs"));
+    }
+
+    #[test]
+    fn test_extracts_doc_comments() {
+        let manifest = parse_source(
+            r#"
+            /// Returns the current server time.
+            /// Includes a friendly message.
+            #[rpc_query]
+            async fn time() -> TimeResponse {
+                todo!()
+            }
+            "#,
+        );
+        assert_eq!(manifest.procedures.len(), 1);
+        let proc = &manifest.procedures[0];
+        assert_eq!(
+            proc.docs.as_deref(),
+            Some("Returns the current server time.\nIncludes a friendly message."),
+        );
+    }
+
+    #[test]
+    fn test_extracts_struct_doc_comments() {
+        let manifest = parse_source(
+            r#"
+            /// A timestamp response.
+            #[derive(Serialize)]
+            struct TimeResponse {
+                timestamp: u64,
+            }
+            "#,
+        );
+        assert_eq!(manifest.structs.len(), 1);
+        assert_eq!(
+            manifest.structs[0].docs.as_deref(),
+            Some("A timestamp response."),
+        );
+    }
+
+    #[test]
+    fn test_extracts_enum_doc_comments() {
+        let manifest = parse_source(
+            r#"
+            /// The status of an entity.
+            #[derive(Serialize)]
+            enum Status {
+                Active,
+                Inactive,
+            }
+            "#,
+        );
+        assert_eq!(manifest.enums.len(), 1);
+        assert_eq!(
+            manifest.enums[0].docs.as_deref(),
+            Some("The status of an entity."),
+        );
+    }
+
+    #[test]
+    fn test_no_doc_comments_returns_none() {
+        let manifest = parse_source(
+            r#"
+            #[rpc_query]
+            async fn ping() -> String {
+                "pong".to_string()
+            }
+            "#,
+        );
+        assert!(manifest.procedures[0].docs.is_none());
     }
 
     #[test]

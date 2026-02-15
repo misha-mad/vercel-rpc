@@ -187,7 +187,7 @@ const [a, b] = await Promise.all([
 // a === b (same reference)
 ```
 
-Implementation: maintain a `Map<string, Promise>` keyed by `procedure + serialized input`. Insert on first call, delete on settlement. This applies to queries only — mutations are never deduplicated.
+Implementation: maintain a `Map<string, Promise>` keyed by `procedure + serialized input`. Insert on the first call, delete it on settlement. This applies to queries only — mutations are never deduplicated.
 
 ### JSDoc from Doc-Comments
 
@@ -269,7 +269,7 @@ This is opt-in via `codegen.client_style = "hooks"` in the config.
 
 ### Serde Enum Representations
 
-serde supports four enum tagging strategies. Currently only the default (externally tagged) is handled.
+Serde supports four enum tagging strategies. Currently, only the default (externally tagged) is handled.
 
 #### Internally tagged
 
@@ -462,9 +462,9 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 ## Summary
 
-| Phase | Focus | Key Deliverables |
-|-------|-------|-----------------|
-| **1** | Foundation | Config file, serde attributes, expanded type support |
-| **2** | Client | Client config, per-call options, request deduplication, JSDoc generation |
-| **3** | DX | Svelte hooks, enum representations, generics, branded types, flatten |
-| **4** | Ecosystem | External crate mappings, macro metadata, server-side caching, batch requests |
+| Phase | Focus      | Key Deliverables                                                             |
+|-------|------------|------------------------------------------------------------------------------|
+| **1** | Foundation | Config file, serde attributes, expanded type support                         |
+| **2** | Client     | Client config, per-call options, request deduplication, JSDoc generation     |
+| **3** | DX         | Svelte hooks, enum representations, generics, branded types, flatten         |
+| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests |

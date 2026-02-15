@@ -61,12 +61,21 @@ type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
 export interface RpcClient {
+  /** Returns current service health, uptime, and version. */
   query(key: "status"): Promise<ServiceStatus>;
+  /** Returns the current server time as a Unix timestamp. */
   query(key: "time"): Promise<TimeResponse>;
+  /**
+   * Greet a user by name.
+   * Returns a personalized greeting string.
+   */
   query(key: "hello", input: string): Promise<string>;
+  /** Perform a math operation. Returns an error on division by zero. */
   query(key: "math", input: MathInput): Promise<MathResult>;
+  /** Compute descriptive statistics for a list of numbers. */
   query(key: "stats", input: number[]): Promise<Stats>;
 
+  /** Echo a message back, optionally transforming it to uppercase. */
   mutate(key: "echo", input: EchoInput): Promise<EchoOutput>;
 }
 

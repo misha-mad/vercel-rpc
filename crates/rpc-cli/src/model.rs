@@ -60,6 +60,9 @@ pub struct Procedure {
     pub output: Option<RustType>,
     /// Source file this procedure was extracted from
     pub source_file: PathBuf,
+    /// Doc comment extracted from `///` lines
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub docs: Option<String>,
 }
 
 /// All user-defined struct types found in the scanned source files.
@@ -72,6 +75,9 @@ pub struct StructDef {
     pub fields: Vec<(String, RustType)>,
     /// Source file this struct was defined in
     pub source_file: PathBuf,
+    /// Doc comment extracted from `///` lines
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub docs: Option<String>,
 }
 
 /// A single variant of a Rust enum.
@@ -104,6 +110,9 @@ pub struct EnumDef {
     pub variants: Vec<EnumVariant>,
     /// Source file this enum was defined in
     pub source_file: PathBuf,
+    /// Doc comment extracted from `///` lines
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub docs: Option<String>,
 }
 
 /// Complete manifest of all discovered RPC metadata from a scan.
