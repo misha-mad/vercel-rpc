@@ -86,8 +86,27 @@ pub fn rust_type_to_ts(ty: &RustType) -> String {
     }
 }
 
+/// Emits a JSDoc comment block from a doc string.
+pub fn emit_jsdoc(doc: &str, indent: &str, out: &mut String) {
+    let lines: Vec<&str> = doc.lines().collect();
+    if lines.len() == 1 {
+        let _ = writeln!(out, "{indent}/** {} */", lines[0]);
+    } else {
+        let _ = writeln!(out, "{indent}/**");
+        for line in &lines {
+            let _ = writeln!(out, "{indent} * {line}");
+        }
+        let _ = writeln!(out, "{indent} */");
+    }
+}
+
 /// Generates a TypeScript interface from a struct definition.
-fn generate_interface(s: &StructDef, out: &mut String) {
+fn generate_interface(s: &StructDef, preserve_docs: bool, out: &mut String) {
+    if preserve_docs {
+        if let Some(doc) = &s.docs {
+            emit_jsdoc(doc, "", out);
+        }
+    }
     let _ = writeln!(out, "export interface {} {{", s.name);
     for (name, ty) in &s.fields {
         let ts_type = rust_type_to_ts(ty);
@@ -105,7 +124,12 @@ fn generate_interface(s: &StructDef, out: &mut String) {
 ///
 /// If all variants are unit, emits a simple string union.
 /// Otherwise, emits a discriminated union of object types.
-fn generate_enum_type(e: &EnumDef, out: &mut String) {
+fn generate_enum_type(e: &EnumDef, preserve_docs: bool, out: &mut String) {
+    if preserve_docs {
+        if let Some(doc) = &e.docs {
+            emit_jsdoc(doc, "", out);
+        }
+    }
     let all_unit = e.variants.iter().all(|v| matches!(v.kind, VariantKind::Unit));
 
     if all_unit {
@@ -150,7 +174,7 @@ fn generate_enum_type(e: &EnumDef, out: &mut String) {
 
 /// Generates the `Procedures` type that maps procedure names to their input/output types,
 /// grouped by kind (queries / mutations).
-fn generate_procedures_type(procedures: &[Procedure], out: &mut String) {
+fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: &mut String) {
     let queries: Vec<&Procedure> = procedures
         .iter()
         .filter(|p| p.kind == ProcedureKind::Query)
@@ -165,6 +189,11 @@ fn generate_procedures_type(procedures: &[Procedure], out: &mut String) {
     // Queries
     let _ = writeln!(out, "  queries: {{");
     for proc in &queries {
+        if preserve_docs {
+            if let Some(doc) = &proc.docs {
+                emit_jsdoc(doc, "    ", out);
+            }
+        }
         let input = proc
             .input
             .as_ref()
@@ -182,6 +211,11 @@ fn generate_procedures_type(procedures: &[Procedure], out: &mut String) {
     // Mutations
     let _ = writeln!(out, "  mutations: {{");
     for proc in &mutations {
+        if preserve_docs {
+            if let Some(doc) = &proc.docs {
+                emit_jsdoc(doc, "    ", out);
+            }
+        }
         let input = proc
             .input
             .as_ref()
@@ -205,7 +239,7 @@ fn generate_procedures_type(procedures: &[Procedure], out: &mut String) {
 /// 1. Auto-generation header
 /// 2. TypeScript interfaces for all referenced structs
 /// 3. The `Procedures` type mapping
-pub fn generate_types_file(manifest: &Manifest) -> String {
+pub fn generate_types_file(manifest: &Manifest, preserve_docs: bool) -> String {
     let mut out = String::with_capacity(1024);
 
     // Header
@@ -214,18 +248,18 @@ pub fn generate_types_file(manifest: &Manifest) -> String {
 
     // Emit all structs discovered in the scanned files.
     for s in &manifest.structs {
-        generate_interface(s, &mut out);
+        generate_interface(s, preserve_docs, &mut out);
         out.push('\n');
     }
 
     // Emit all enums discovered in the scanned files.
     for e in &manifest.enums {
-        generate_enum_type(e, &mut out);
+        generate_enum_type(e, preserve_docs, &mut out);
         out.push('\n');
     }
 
     // Generate the Procedures type
-    generate_procedures_type(&manifest.procedures, &mut out);
+    generate_procedures_type(&manifest.procedures, preserve_docs, &mut out);
 
     out
 }
@@ -334,6 +368,7 @@ mod tests {
                     input: Some(RustType::simple("String")),
                     output: Some(RustType::simple("String")),
                     source_file: PathBuf::from("api/hello.rs"),
+                    docs: None,
                 },
                 Procedure {
                     name: "time".to_string(),
@@ -341,6 +376,7 @@ mod tests {
                     input: None,
                     output: Some(RustType::simple("TimeResponse")),
                     source_file: PathBuf::from("api/time.rs"),
+                    docs: None,
                 },
                 Procedure {
                     name: "create_item".to_string(),
@@ -348,6 +384,7 @@ mod tests {
                     input: Some(RustType::simple("CreateInput")),
                     output: Some(RustType::simple("Item")),
                     source_file: PathBuf::from("api/create_item.rs"),
+                    docs: None,
                 },
             ],
             structs: vec![
@@ -358,6 +395,7 @@ mod tests {
                         ("message".to_string(), RustType::simple("String")),
                     ],
                     source_file: PathBuf::from("api/time.rs"),
+                    docs: None,
                 },
                 StructDef {
                     name: "CreateInput".to_string(),
@@ -366,6 +404,7 @@ mod tests {
                         ("count".to_string(), RustType::simple("i32")),
                     ],
                     source_file: PathBuf::from("api/create_item.rs"),
+                    docs: None,
                 },
                 StructDef {
                     name: "Item".to_string(),
@@ -375,6 +414,7 @@ mod tests {
                         ("tags".to_string(), RustType::with_generics("Vec", vec![RustType::simple("String")])),
                     ],
                     source_file: PathBuf::from("api/create_item.rs"),
+                    docs: None,
                 },
             ],
             enums: vec![],
@@ -384,7 +424,7 @@ mod tests {
     #[test]
     fn generates_complete_types_file() {
         let manifest = make_test_manifest();
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
 
         // Header present
         assert!(output.starts_with("// This file is auto-generated"));
@@ -414,7 +454,7 @@ mod tests {
     #[test]
     fn generates_empty_manifest() {
         let manifest = Manifest::default();
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
 
         assert!(output.contains("queries: {"));
         assert!(output.contains("mutations: {"));
@@ -431,11 +471,12 @@ mod tests {
                 input: None,
                 output: Some(RustType::simple("String")),
                 source_file: PathBuf::from("api/ping.rs"),
+                docs: None,
             }],
             structs: vec![],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
 
         assert!(output.contains("    ping: { input: void; output: string };"));
         assert!(!output.contains("export interface"));
@@ -456,11 +497,12 @@ mod tests {
                     )],
                 )),
                 source_file: PathBuf::from("api/search.rs"),
+                docs: None,
             }],
             structs: vec![],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
         assert!(output.contains("    search: { input: string; output: (Item | null)[] };"));
     }
 
@@ -479,9 +521,10 @@ mod tests {
                     EnumVariant { name: "Banned".to_string(), kind: VariantKind::Unit },
                 ],
                 source_file: PathBuf::from("api/test.rs"),
+                docs: None,
             }],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
         assert!(output.contains("export type Status = \"Active\" | \"Inactive\" | \"Banned\";"));
     }
 
@@ -503,9 +546,10 @@ mod tests {
                     },
                 ],
                 source_file: PathBuf::from("api/test.rs"),
+                docs: None,
             }],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
         assert!(output.contains("export type Response = { Ok: string } | { Error: number };"));
     }
 
@@ -526,9 +570,10 @@ mod tests {
                     },
                 ],
                 source_file: PathBuf::from("api/test.rs"),
+                docs: None,
             }],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
         assert!(output.contains("export type Event = { Click: { x: number; y: number } };"));
     }
 
@@ -554,9 +599,10 @@ mod tests {
                     EnumVariant { name: "Unknown".to_string(), kind: VariantKind::Unit },
                 ],
                 source_file: PathBuf::from("api/test.rs"),
+                docs: None,
             }],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
         assert!(output.contains("export type Shape = { Circle: number } | { Rect: { w: number; h: number } } | \"Unknown\";"));
     }
 
@@ -569,9 +615,10 @@ mod tests {
                 name: "Empty".to_string(),
                 variants: vec![],
                 source_file: PathBuf::from("api/test.rs"),
+                docs: None,
             }],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
         assert!(output.contains("export type Empty = never;"));
     }
 
@@ -592,9 +639,103 @@ mod tests {
                     },
                 ],
                 source_file: PathBuf::from("api/test.rs"),
+                docs: None,
             }],
         };
-        let output = generate_types_file(&manifest);
+        let output = generate_types_file(&manifest, false);
         assert!(output.contains("export type Pair = { Both: [string, number] };"));
+    }
+
+    // --- JSDoc tests ---
+
+    #[test]
+    fn test_jsdoc_on_struct() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![StructDef {
+                name: "Foo".to_string(),
+                fields: vec![("x".to_string(), RustType::simple("i32"))],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: Some("A foo struct.".to_string()),
+            }],
+            enums: vec![],
+        };
+        let output = generate_types_file(&manifest, true);
+        assert!(output.contains("/** A foo struct. */\nexport interface Foo {"));
+    }
+
+    #[test]
+    fn test_jsdoc_on_struct_multiline() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![StructDef {
+                name: "Bar".to_string(),
+                fields: vec![],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: Some("Line one.\nLine two.".to_string()),
+            }],
+            enums: vec![],
+        };
+        let output = generate_types_file(&manifest, true);
+        assert!(output.contains("/**\n * Line one.\n * Line two.\n */\nexport interface Bar {"));
+    }
+
+    #[test]
+    fn test_jsdoc_on_enum() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Status".to_string(),
+                variants: vec![
+                    EnumVariant { name: "Active".to_string(), kind: VariantKind::Unit },
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: Some("Entity status.".to_string()),
+            }],
+        };
+        let output = generate_types_file(&manifest, true);
+        assert!(output.contains("/** Entity status. */\nexport type Status ="));
+    }
+
+    #[test]
+    fn test_jsdoc_on_procedure() {
+        let manifest = Manifest {
+            procedures: vec![Procedure {
+                name: "hello".to_string(),
+                kind: ProcedureKind::Query,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("String")),
+                source_file: PathBuf::from("api/hello.rs"),
+                docs: Some("Say hello.".to_string()),
+            }],
+            structs: vec![],
+            enums: vec![],
+        };
+        let output = generate_types_file(&manifest, true);
+        assert!(output.contains("    /** Say hello. */\n    hello: { input: string; output: string };"));
+    }
+
+    #[test]
+    fn test_no_jsdoc_when_disabled() {
+        let manifest = Manifest {
+            procedures: vec![Procedure {
+                name: "hello".to_string(),
+                kind: ProcedureKind::Query,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("String")),
+                source_file: PathBuf::from("api/hello.rs"),
+                docs: Some("Say hello.".to_string()),
+            }],
+            structs: vec![StructDef {
+                name: "Foo".to_string(),
+                fields: vec![],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: Some("A foo.".to_string()),
+            }],
+            enums: vec![],
+        };
+        let output = generate_types_file(&manifest, false);
+        assert!(!output.contains("/**"));
     }
 }

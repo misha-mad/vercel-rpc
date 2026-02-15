@@ -10,6 +10,7 @@ const CONFIG_FILE_NAME: &str = "rpc.config.toml";
 pub struct RpcConfig {
     pub input: InputConfig,
     pub output: OutputConfig,
+    pub codegen: CodegenConfig,
     pub watch: WatchConfig,
 }
 
@@ -38,6 +39,12 @@ pub struct ImportsConfig {
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
+pub struct CodegenConfig {
+    pub preserve_docs: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(default)]
 pub struct WatchConfig {
     pub debounce_ms: u64,
 }
@@ -47,6 +54,7 @@ impl Default for RpcConfig {
         Self {
             input: InputConfig::default(),
             output: OutputConfig::default(),
+            codegen: CodegenConfig::default(),
             watch: WatchConfig::default(),
         }
     }
@@ -85,6 +93,14 @@ impl ImportsConfig {
     /// Returns the full import specifier: `types_path` + `extension`.
     pub fn types_specifier(&self) -> String {
         format!("{}{}", self.types_path, self.extension)
+    }
+}
+
+impl Default for CodegenConfig {
+    fn default() -> Self {
+        Self {
+            preserve_docs: false,
+        }
     }
 }
 
@@ -173,6 +189,7 @@ mod tests {
         assert_eq!(config.output.imports.types_path, "./rpc-types");
         assert_eq!(config.output.imports.extension, "");
         assert_eq!(config.output.imports.types_specifier(), "./rpc-types");
+        assert!(!config.codegen.preserve_docs);
         assert_eq!(config.watch.debounce_ms, 200);
     }
 
@@ -207,6 +224,9 @@ client = "client.ts"
 types_path = "./types"
 extension = ".js"
 
+[codegen]
+preserve_docs = true
+
 [watch]
 debounce_ms = 500
 "#;
@@ -219,6 +239,7 @@ debounce_ms = 500
         assert_eq!(config.output.imports.types_path, "./types");
         assert_eq!(config.output.imports.extension, ".js");
         assert_eq!(config.output.imports.types_specifier(), "./types.js");
+        assert!(config.codegen.preserve_docs);
         assert_eq!(config.watch.debounce_ms, 500);
     }
 
@@ -236,6 +257,19 @@ exclude = ["**/test_*.rs"]
             vec!["handlers/**/*.rs".to_string(), "api/**/*.rs".to_string()]
         );
         assert_eq!(config.input.exclude, vec!["**/test_*.rs".to_string()]);
+    }
+
+    #[test]
+    fn test_parse_codegen_preserve_docs() {
+        let toml_str = r#"
+[codegen]
+preserve_docs = true
+"#;
+        let config: RpcConfig = toml::from_str(toml_str).unwrap();
+        assert!(config.codegen.preserve_docs);
+        // Other fields should be defaults
+        assert_eq!(config.input.dir, PathBuf::from("api"));
+        assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
     }
 
     #[test]

@@ -127,11 +127,93 @@ client = "src/lib/rpc-client.ts"     # generated client file path
 types_path = "./rpc-types"           # import specifier used in client file
 extension = ""                       # suffix appended to import (e.g. ".js" for ESM)
 
+[codegen]
+preserve_docs = false                # forward Rust `///` doc comments as JSDoc
+
 [watch]
 debounce_ms = 200                    # file watcher debounce interval (ms)
 ```
 
 `include` and `exclude` accept glob patterns matched against file paths relative to `dir`. A file must match at least one `include` pattern and no `exclude` pattern to be scanned. When both match, `exclude` wins.
+
+### Preserving doc comments
+
+When `preserve_docs = true` in `[codegen]`, Rust `///` doc comments are forwarded as JSDoc (`/** ... */`) in the generated TypeScript files. This is useful for editor tooltips and documentation.
+
+Given this Rust source:
+
+```rust
+/// Returns the current server time.
+#[rpc_query]
+async fn time() -> TimeResponse {
+    // ...
+}
+
+/// A timestamp with a human-readable message.
+#[derive(Serialize)]
+struct TimeResponse {
+    timestamp: u64,
+    message: String,
+}
+
+/// Possible request statuses.
+#[derive(Serialize)]
+enum Status {
+    Active,
+    Inactive,
+}
+```
+
+With `preserve_docs = true`, the generated `rpc-types.ts` includes:
+
+```typescript
+/** A timestamp with a human-readable message. */
+export interface TimeResponse {
+  timestamp: number;
+  message: string;
+}
+
+/** Possible request statuses. */
+export type Status = "Active" | "Inactive";
+
+export type Procedures = {
+  queries: {
+    /** Returns the current server time. */
+    time: { input: void; output: TimeResponse };
+  };
+  mutations: {};
+};
+```
+
+And the generated `rpc-client.ts` includes JSDoc on overloads:
+
+```typescript
+export interface RpcClient {
+  /** Returns the current server time. */
+  query(key: "time"): Promise<TimeResponse>;
+}
+```
+
+Multi-line doc comments are preserved as multi-line JSDoc:
+
+```rust
+/// Greet a user by name.
+/// Returns a personalized greeting string.
+#[rpc_query]
+async fn hello(name: String) -> String { /* ... */ }
+```
+
+```typescript
+/**
+ * Greet a user by name.
+ * Returns a personalized greeting string.
+ */
+export interface RpcClient {
+  // ...
+}
+```
+
+With `preserve_docs = false` (the default), doc comments are silently ignored and no JSDoc is emitted.
 
 ### Config discovery
 

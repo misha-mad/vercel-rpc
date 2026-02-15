@@ -272,11 +272,50 @@ client = "src/lib/rpc-client.ts"
 types_path = "./rpc-types"
 extension = ""               # suffix appended to import (e.g. ".js" for ESM)
 
+[codegen]
+preserve_docs = false        # forward Rust `///` doc comments as JSDoc
+
 [watch]
 debounce_ms = 200
 ```
 
 The CLI auto-discovers the config by walking up from the current directory. CLI flags override config values per invocation. Use `--no-config` to ignore the file entirely.
+
+### Preserving doc comments
+
+Set `preserve_docs = true` in `[codegen]` to forward Rust `///` doc comments as JSDoc in the generated TypeScript. This gives you editor tooltips and inline documentation on the TypeScript side.
+
+```rust
+/// Returns the current server time.
+#[rpc_query]
+async fn time() -> TimeResponse { /* ... */ }
+
+/// A timestamp with a human-readable message.
+#[derive(Serialize)]
+struct TimeResponse {
+    timestamp: u64,
+    message: String,
+}
+```
+
+Generated output with `preserve_docs = true`:
+
+```typescript
+/** A timestamp with a human-readable message. */
+export interface TimeResponse {
+  timestamp: number;
+  message: string;
+}
+
+export type Procedures = {
+  queries: {
+    /** Returns the current server time. */
+    time: { input: void; output: TimeResponse };
+  };
+};
+```
+
+Doc comments are preserved on procedures, structs, and enums. Disabled by default (`preserve_docs = false`).
 
 ## Rust Macros
 
