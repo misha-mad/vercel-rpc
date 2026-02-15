@@ -1,5 +1,6 @@
 use std::fmt::Write;
 
+use crate::config::FieldNaming;
 use crate::model::{EnumDef, Manifest, Procedure, ProcedureKind, RustType, StructDef, VariantKind};
 
 // Header comment included at the top of every generated file.
@@ -100,8 +101,33 @@ pub fn emit_jsdoc(doc: &str, indent: &str, out: &mut String) {
     }
 }
 
+/// Converts a snake_case string to camelCase.
+fn to_camel_case(s: &str) -> String {
+    let mut segments = s.split('_');
+    let mut result = match segments.next() {
+        Some(first) => first.to_lowercase(),
+        None => return String::new(),
+    };
+    for segment in segments {
+        let mut chars = segment.chars();
+        if let Some(first) = chars.next() {
+            result.extend(first.to_uppercase());
+            result.push_str(&chars.as_str().to_lowercase());
+        }
+    }
+    result
+}
+
+/// Transforms a field name according to the naming strategy.
+fn transform_field_name(name: &str, naming: FieldNaming) -> String {
+    match naming {
+        FieldNaming::Preserve => name.to_string(),
+        FieldNaming::CamelCase => to_camel_case(name),
+    }
+}
+
 /// Generates a TypeScript interface from a struct definition.
-fn generate_interface(s: &StructDef, preserve_docs: bool, out: &mut String) {
+fn generate_interface(s: &StructDef, preserve_docs: bool, field_naming: FieldNaming, out: &mut String) {
     if preserve_docs {
         if let Some(doc) = &s.docs {
             emit_jsdoc(doc, "", out);
@@ -110,7 +136,8 @@ fn generate_interface(s: &StructDef, preserve_docs: bool, out: &mut String) {
     let _ = writeln!(out, "export interface {} {{", s.name);
     for (name, ty) in &s.fields {
         let ts_type = rust_type_to_ts(ty);
-        let _ = writeln!(out, "  {name}: {ts_type};");
+        let field_name = transform_field_name(name, field_naming);
+        let _ = writeln!(out, "  {field_name}: {ts_type};");
     }
     let _ = writeln!(out, "}}");
 }
@@ -124,7 +151,7 @@ fn generate_interface(s: &StructDef, preserve_docs: bool, out: &mut String) {
 ///
 /// If all variants are unit, emits a simple string union.
 /// Otherwise, emits a discriminated union of object types.
-fn generate_enum_type(e: &EnumDef, preserve_docs: bool, out: &mut String) {
+fn generate_enum_type(e: &EnumDef, preserve_docs: bool, field_naming: FieldNaming, out: &mut String) {
     if preserve_docs {
         if let Some(doc) = &e.docs {
             emit_jsdoc(doc, "", out);
@@ -161,7 +188,10 @@ fn generate_enum_type(e: &EnumDef, preserve_docs: bool, out: &mut String) {
                 VariantKind::Struct(fields) => {
                     let field_strs: Vec<String> = fields
                         .iter()
-                        .map(|(name, ty)| format!("{}: {}", name, rust_type_to_ts(ty)))
+                        .map(|(name, ty)| {
+                            let field_name = transform_field_name(name, field_naming);
+                            format!("{}: {}", field_name, rust_type_to_ts(ty))
+                        })
                         .collect();
                     variant_types.push(format!("{{ {}: {{ {} }} }}", v.name, field_strs.join("; ")));
                 }
@@ -239,7 +269,7 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
 /// 1. Auto-generation header
 /// 2. TypeScript interfaces for all referenced structs
 /// 3. The `Procedures` type mapping
-pub fn generate_types_file(manifest: &Manifest, preserve_docs: bool) -> String {
+pub fn generate_types_file(manifest: &Manifest, preserve_docs: bool, field_naming: FieldNaming) -> String {
     let mut out = String::with_capacity(1024);
 
     // Header
@@ -248,13 +278,13 @@ pub fn generate_types_file(manifest: &Manifest, preserve_docs: bool) -> String {
 
     // Emit all structs discovered in the scanned files.
     for s in &manifest.structs {
-        generate_interface(s, preserve_docs, &mut out);
+        generate_interface(s, preserve_docs, field_naming, &mut out);
         out.push('\n');
     }
 
     // Emit all enums discovered in the scanned files.
     for e in &manifest.enums {
-        generate_enum_type(e, preserve_docs, &mut out);
+        generate_enum_type(e, preserve_docs, field_naming, &mut out);
         out.push('\n');
     }
 
@@ -267,6 +297,7 @@ pub fn generate_types_file(manifest: &Manifest, preserve_docs: bool) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::FieldNaming;
     use crate::model::*;
     use std::path::PathBuf;
 
@@ -424,7 +455,7 @@ mod tests {
     #[test]
     fn generates_complete_types_file() {
         let manifest = make_test_manifest();
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
 
         // Header present
         assert!(output.starts_with("// This file is auto-generated"));
@@ -454,7 +485,7 @@ mod tests {
     #[test]
     fn generates_empty_manifest() {
         let manifest = Manifest::default();
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
 
         assert!(output.contains("queries: {"));
         assert!(output.contains("mutations: {"));
@@ -476,7 +507,7 @@ mod tests {
             structs: vec![],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
 
         assert!(output.contains("    ping: { input: void; output: string };"));
         assert!(!output.contains("export interface"));
@@ -502,7 +533,7 @@ mod tests {
             structs: vec![],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(output.contains("    search: { input: string; output: (Item | null)[] };"));
     }
 
@@ -524,7 +555,7 @@ mod tests {
                 docs: None,
             }],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(output.contains("export type Status = \"Active\" | \"Inactive\" | \"Banned\";"));
     }
 
@@ -549,7 +580,7 @@ mod tests {
                 docs: None,
             }],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(output.contains("export type Response = { Ok: string } | { Error: number };"));
     }
 
@@ -573,7 +604,7 @@ mod tests {
                 docs: None,
             }],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(output.contains("export type Event = { Click: { x: number; y: number } };"));
     }
 
@@ -602,7 +633,7 @@ mod tests {
                 docs: None,
             }],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(output.contains("export type Shape = { Circle: number } | { Rect: { w: number; h: number } } | \"Unknown\";"));
     }
 
@@ -618,7 +649,7 @@ mod tests {
                 docs: None,
             }],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(output.contains("export type Empty = never;"));
     }
 
@@ -642,7 +673,7 @@ mod tests {
                 docs: None,
             }],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(output.contains("export type Pair = { Both: [string, number] };"));
     }
 
@@ -660,7 +691,7 @@ mod tests {
             }],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest, true);
+        let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
         assert!(output.contains("/** A foo struct. */\nexport interface Foo {"));
     }
 
@@ -676,7 +707,7 @@ mod tests {
             }],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest, true);
+        let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
         assert!(output.contains("/**\n * Line one.\n * Line two.\n */\nexport interface Bar {"));
     }
 
@@ -694,7 +725,7 @@ mod tests {
                 docs: Some("Entity status.".to_string()),
             }],
         };
-        let output = generate_types_file(&manifest, true);
+        let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
         assert!(output.contains("/** Entity status. */\nexport type Status ="));
     }
 
@@ -712,7 +743,7 @@ mod tests {
             structs: vec![],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest, true);
+        let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
         assert!(output.contains("    /** Say hello. */\n    hello: { input: string; output: string };"));
     }
 
@@ -735,7 +766,63 @@ mod tests {
             }],
             enums: vec![],
         };
-        let output = generate_types_file(&manifest, false);
+        let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
         assert!(!output.contains("/**"));
+    }
+
+    // --- to_camel_case ---
+
+    #[test]
+    fn test_to_camel_case() {
+        assert_eq!(to_camel_case("uptime_secs"), "uptimeSecs");
+        assert_eq!(to_camel_case("user_id"), "userId");
+        assert_eq!(to_camel_case("message"), "message");
+        assert_eq!(to_camel_case("created_at_ms"), "createdAtMs");
+    }
+
+    // --- camelCase field naming ---
+
+    #[test]
+    fn test_camel_case_fields() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![StructDef {
+                name: "ServerInfo".to_string(),
+                fields: vec![
+                    ("uptime_secs".to_string(), RustType::simple("u64")),
+                    ("user_id".to_string(), RustType::simple("String")),
+                    ("message".to_string(), RustType::simple("String")),
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+            }],
+            enums: vec![],
+        };
+        let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+        assert!(output.contains("  uptimeSecs: number;"));
+        assert!(output.contains("  userId: string;"));
+        assert!(output.contains("  message: string;"));
+    }
+
+    #[test]
+    fn test_camel_case_enum_struct_variant() {
+        let manifest = Manifest {
+            procedures: vec![],
+            structs: vec![],
+            enums: vec![EnumDef {
+                name: "Event".to_string(),
+                variants: vec![EnumVariant {
+                    name: "Click".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        ("page_x".to_string(), RustType::simple("i32")),
+                        ("page_y".to_string(), RustType::simple("i32")),
+                    ]),
+                }],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+            }],
+        };
+        let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+        assert!(output.contains("{ Click: { pageX: number; pageY: number } }"));
     }
 }

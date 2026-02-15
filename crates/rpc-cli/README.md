@@ -130,6 +130,9 @@ extension = ""                       # suffix appended to import (e.g. ".js" for
 [codegen]
 preserve_docs = false                # forward Rust `///` doc comments as JSDoc
 
+[codegen.naming]
+fields = "preserve"                  # "preserve" (default) or "camelCase"
+
 [watch]
 debounce_ms = 200                    # file watcher debounce interval (ms)
 ```
@@ -215,6 +218,59 @@ export interface RpcClient {
 
 With `preserve_docs = false` (the default), doc comments are silently ignored and no JSDoc is emitted.
 
+### Field naming
+
+The `[codegen.naming]` section controls how struct field names appear in the generated TypeScript.
+
+| Value                  | Behavior                        | Example                       |
+|------------------------|---------------------------------|-------------------------------|
+| `"preserve"` (default) | Keep Rust field names as-is     | `uptime_secs` → `uptime_secs` |
+| `"camelCase"`          | Convert snake_case to camelCase | `uptime_secs` → `uptimeSecs`  |
+
+```toml
+[codegen.naming]
+fields = "camelCase"
+```
+
+Given this Rust source:
+
+```rust
+#[derive(Serialize)]
+struct ServiceStatus {
+    uptime_secs: u64,
+    api_version: String,
+}
+
+#[derive(Serialize)]
+enum Event {
+    Click { page_x: i32, page_y: i32 },
+}
+```
+
+With `fields = "preserve"` (default):
+
+```typescript
+export interface ServiceStatus {
+  uptime_secs: number;
+  api_version: string;
+}
+
+export type Event = { Click: { page_x: number; page_y: number } };
+```
+
+With `fields = "camelCase"`:
+
+```typescript
+export interface ServiceStatus {
+  uptimeSecs: number;
+  apiVersion: string;
+}
+
+export type Event = { Click: { pageX: number; pageY: number } };
+```
+
+The transform applies to struct interface fields and struct variant fields in enums. Enum variant names and procedure names are not affected.
+
 ### Config discovery
 
 The CLI walks up from the current directory looking for `rpc.config.toml`. If no file is found, built-in defaults are used.
@@ -239,14 +295,14 @@ A config file sets project-level defaults; CLI flags override them per invocatio
 
 ## Flags
 
-| Flag | Short | Default | Description |
-|------|-------|---------|-------------|
-| `--dir` | `-d` | `api` | Rust source directory to scan |
-| `--output` | `-o` | `src/lib/rpc-types.ts` | Output path for TypeScript types |
-| `--client-output` | `-c` | `src/lib/rpc-client.ts` | Output path for TypeScript client |
-| `--types-import` | | `./rpc-types` | Import path for types in the client file |
-| `--config` | | *(auto-discover)* | Path to config file |
-| `--no-config` | | `false` | Disable config file loading |
+| Flag              | Short | Default                 | Description                              |
+|-------------------|-------|-------------------------|------------------------------------------|
+| `--dir`           | `-d`  | `api`                   | Rust source directory to scan            |
+| `--output`        | `-o`  | `src/lib/rpc-types.ts`  | Output path for TypeScript types         |
+| `--client-output` | `-c`  | `src/lib/rpc-client.ts` | Output path for TypeScript client        |
+| `--types-import`  |       | `./rpc-types`           | Import path for types in the client file |
+| `--config`        |       | *(auto-discover)*       | Path to config file                      |
+| `--no-config`     |       | `false`                 | Disable config file loading              |
 
 ## What gets scanned
 
@@ -261,21 +317,21 @@ The parser recognizes:
 
 ## Type mapping
 
-| Rust | TypeScript |
-|------|------------|
-| `String`, `&str`, `char` | `string` |
-| `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number` |
-| `bool` | `boolean` |
-| `()` | `void` |
-| `Vec<T>` | `T[]` |
-| `Option<T>` | `T \| null` |
-| `HashMap<K, V>`, `BTreeMap<K, V>` | `Record<K, V>` |
-| `(A, B, C)` | `[A, B, C]` |
-| `Result<T, E>` | `T` (error handled at runtime) |
-| Custom structs | `interface` with same fields |
-| Enums (unit variants) | `"A" \| "B"` |
-| Enums (tuple variants) | `{ A: string } \| { B: number }` |
-| Enums (struct variants) | `{ A: { x: number } }` |
+| Rust                                     | TypeScript                       |
+|------------------------------------------|----------------------------------|
+| `String`, `&str`, `char`                 | `string`                         |
+| `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number`                         |
+| `bool`                                   | `boolean`                        |
+| `()`                                     | `void`                           |
+| `Vec<T>`                                 | `T[]`                            |
+| `Option<T>`                              | `T \| null`                      |
+| `HashMap<K, V>`, `BTreeMap<K, V>`        | `Record<K, V>`                   |
+| `(A, B, C)`                              | `[A, B, C]`                      |
+| `Result<T, E>`                           | `T` (error handled at runtime)   |
+| Custom structs                           | `interface` with same fields     |
+| Enums (unit variants)                    | `"A" \| "B"`                     |
+| Enums (tuple variants)                   | `{ A: string } \| { B: number }` |
+| Enums (struct variants)                  | `{ A: { x: number } }`           |
 
 ## Generated client features
 
