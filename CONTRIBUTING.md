@@ -193,6 +193,59 @@ Before requesting a review, make sure:
 - **TypeScript / Svelte**: Follow the project's Prettier and ESLint configuration. Run `npm run format` and `npm run lint` from `demo/`.
 - Auto-generated files (`rpc-types.ts`, `rpc-client.ts`) should not be edited manually.
 
+## Conventional Commits
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) to drive automated versioning and changelog generation via [release-plz](https://release-plz.ieni.dev/).
+
+### Commit Format
+
+```
+<type>(<scope>): <description>
+```
+
+### Types
+
+| Type       | Version Bump | Description                          |
+|------------|--------------|--------------------------------------|
+| `feat`     | Minor        | A new feature                        |
+| `fix`      | Patch        | A bug fix                            |
+| `docs`     | None         | Documentation only                   |
+| `style`    | None         | Formatting, missing semicolons, etc. |
+| `refactor` | None         | Code change that neither fixes a bug nor adds a feature |
+| `test`     | None         | Adding or updating tests             |
+| `chore`    | None         | Build process, dependencies, etc.    |
+| `ci`       | None         | CI configuration changes             |
+
+### Scopes
+
+| Scope       | Crate              |
+|-------------|---------------------|
+| `rpc-macro` | `vercel-rpc-macro`  |
+| `rpc-cli`   | `vercel-rpc-cli`    |
+
+### Breaking Changes
+
+A breaking change triggers a **Major** version bump. Use either:
+
+- `feat!:` or `fix!:` prefix (e.g., `feat!: remove deprecated API`)
+- `BREAKING CHANGE:` footer in the commit body
+
+### Examples
+
+```bash
+# Patch bump for rpc-macro
+git commit -m "fix(rpc-macro): handle empty function bodies"
+
+# Minor bump for rpc-cli
+git commit -m "feat(rpc-cli): add --output flag for custom output directory"
+
+# No version bump
+git commit -m "docs: update installation instructions"
+
+# Major bump (breaking change)
+git commit -m "feat(rpc-macro)!: rename #[rpc_query] to #[query]"
+```
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the same license as the project: **MIT OR Apache-2.0**.

@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 description = "Procedural macros for Vercel RPC framework"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/misha-mad/vercel-rpc"
+homepage = "https://github.com/misha-mad/vercel-rpc"
+keywords = ["rpc", "vercel", "macro", "serverless", "svelte"]
+categories = ["web-programming", "development-tools::procedural-macro-helpers"]
+readme = "../../README.md"
 
 [lib]
 proc-macro = true

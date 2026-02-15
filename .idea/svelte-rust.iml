@@ -10,6 +10,11 @@
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.svelte-kit" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/.vercel" />
+      <excludeFolder url="file://$MODULE_DIR$/demo/.svelte-kit" />
+      <excludeFolder url="file://$MODULE_DIR$/demo/.vercel" />
+      <excludeFolder url="file://$MODULE_DIR$/demo/test-results" />
+      <excludeFolder url="file://$MODULE_DIR$/demo/tests/integration/.tmp" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

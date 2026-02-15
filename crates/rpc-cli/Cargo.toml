@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2024"
 description = "CLI tool for Vercel RPC: parses Rust lambdas and generates TypeScript types and client"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/misha-mad/vercel-rpc"
+homepage = "https://github.com/misha-mad/vercel-rpc"
+keywords = ["rpc", "vercel", "cli", "serverless", "typescript"]
+categories = ["web-programming", "command-line-utilities"]
+readme = "../../README.md"
 
 [[bin]]
 name = "rpc"
