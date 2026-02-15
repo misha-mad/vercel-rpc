@@ -687,6 +687,78 @@ preserve_docs = true  # default: false`}</pre>
 		{/if}
 	</section>
 
+	<!-- Field Naming: camelCase config -->
+	<section class="card highlight">
+		<h2>🔤 Field Naming — snake_case to camelCase</h2>
+		<p class="desc">
+			With <code>fields = "camelCase"</code> in <code>[codegen.naming]</code>, Rust snake_case field
+			names are automatically converted to camelCase in generated TypeScript. This matches JavaScript
+			conventions while keeping Rust code idiomatic.
+		</p>
+		<button class="toggle-code" onclick={() => toggleCode('naming')}>
+			{openCode['naming'] ? '▾ Hide' : '▸ Show'} Config & Generated Output
+		</button>
+		{#if openCode['naming']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">⚙️ rpc.config.toml</span>
+					<pre class="code rust">{`[codegen.naming]
+fields = "camelCase"   # default: "preserve"`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/status.rs</span>
+					<pre class="code rust">{`#[derive(Serialize)]
+pub struct ServiceStatus {
+    pub name: String,
+    pub status: HealthStatus,
+    pub uptime_secs: u64,
+    pub version: String,
+}
+
+#[derive(Serialize)]
+enum Event {
+    Click { page_x: i32, page_y: i32 },
+}`}</pre>
+				</div>
+			</div>
+			<div class="code-panels" style="margin-top: 0.5rem;">
+				<div class="code-panel">
+					<span class="code-label">🟦 fields = "preserve" (default)</span>
+					<pre class="code ts">{`export interface ServiceStatus {
+  name: string;
+  status: HealthStatus;
+  uptime_secs: number;   // ← kept as-is
+  version: string;
+}
+
+export type Event = { Click: { page_x: number; page_y: number } };`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 fields = "camelCase"</span>
+					<pre class="code ts">{`export interface ServiceStatus {
+  name: string;
+  status: HealthStatus;
+  uptimeSecs: number;    // ← converted!
+  version: string;
+}
+
+export type Event = { Click: { pageX: number; pageY: number } };`}</pre>
+				</div>
+			</div>
+			<div class="code-panels" style="margin-top: 0.5rem;">
+				<div class="code-panel full-width">
+					<span class="code-label">💡 What gets transformed</span>
+					<pre class="code ts">{`uptime_secs  → uptimeSecs     // struct fields
+page_x       → pageX          // enum struct variant fields
+api_version  → apiVersion     // multi-segment names
+message      → message        // no underscore — unchanged
+HealthStatus → HealthStatus   // enum variant names — NOT affected
+create_item  → create_item    // procedure names — NOT affected`}</pre>
+				</div>
+			</div>
+		{/if}
+	</section>
+
 	<!-- Raw JSON viewer -->
 	<section class="card">
 		<h2>🔍 Raw Response Viewer</h2>
