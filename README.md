@@ -4,6 +4,7 @@
 
 **End-to-end typesafe RPC between Rust lambdas on Vercel and SvelteKit**
 
+[![CI](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml)
 [![Rust Tests](https://img.shields.io/badge/rust_tests-60_passed-brightgreen?logo=rust)](./crates)
 [![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./tests/integration)
 [![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./tests/e2e)
