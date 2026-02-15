@@ -174,6 +174,21 @@ const data = await client.query("hello", "world", {
 });
 ```
 
+### Request Deduplication
+
+When multiple components call the same query with the same input simultaneously, only one HTTP request should be made. Subsequent callers receive the same in-flight promise.
+
+```typescript
+// Both calls result in a single HTTP request
+const [a, b] = await Promise.all([
+  client.query("user", { id: 1 }),
+  client.query("user", { id: 1 }),
+]);
+// a === b (same reference)
+```
+
+Implementation: maintain a `Map<string, Promise>` keyed by `procedure + serialized input`. Insert on first call, delete on settlement. This applies to queries only — mutations are never deduplicated.
+
 ### JSDoc from Doc-Comments
 
 Forward Rust `///` doc-comments to the generated TypeScript as JSDoc:
@@ -404,8 +419,29 @@ async fn slow_report(input: ReportParams) -> Report { ... }
 async fn create_order(input: Order) -> OrderResult { ... }
 ```
 
-These attributes flow into the generated manifest and can influence client behavior:
-- `cache` — generates `Cache-Control` headers and client-side `stale-while-revalidate`.
+These attributes flow into the generated manifest and can influence both server and client behavior.
+
+#### Server-Side Caching via `cache`
+
+The `cache` attribute generates `Cache-Control` HTTP headers in the macro-expanded handler. On Vercel, this automatically enables edge caching without any infrastructure setup.
+
+```rust
+#[rpc_query(cache = "1h")]
+async fn get_settings() -> Settings { ... }
+// → Cache-Control: public, max-age=3600, s-maxage=3600
+
+#[rpc_query(cache = "5m", stale = "1h")]
+async fn get_feed() -> Vec<Post> { ... }
+// → Cache-Control: public, max-age=300, s-maxage=300, stale-while-revalidate=3600
+
+#[rpc_query(cache = "private, 10m")]
+async fn get_profile() -> Profile { ... }
+// → Cache-Control: private, max-age=600
+```
+
+Duration shorthand: `30s`, `5m`, `1h`, `1d`. The macro parses these at compile time and emits the appropriate header values. Mutations never set cache headers.
+
+#### Other metadata
 - `timeout` — sets per-procedure server-side and client-side timeouts.
 - `idempotent` — enables safe client-side retries for mutations.
 
@@ -429,6 +465,6 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | Phase | Focus | Key Deliverables |
 |-------|-------|-----------------|
 | **1** | Foundation | Config file, serde attributes, expanded type support |
-| **2** | Client | Client config, per-call options, JSDoc generation |
+| **2** | Client | Client config, per-call options, request deduplication, JSDoc generation |
 | **3** | DX | Svelte hooks, enum representations, generics, branded types, flatten |
-| **4** | Ecosystem | External crate mappings, macro metadata, batch requests |
+| **4** | Ecosystem | External crate mappings, macro metadata, server-side caching, batch requests |
