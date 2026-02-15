@@ -231,12 +231,12 @@ cargo run -p vercel-rpc-cli -- generate \
   --types-import ./rpc-types
 ```
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--dir`, `-d` | `api` | Rust source directory |
-| `--output`, `-o` | `src/lib/rpc-types.ts` | Types output path |
-| `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path |
-| `--types-import` | `./rpc-types` | Import path for types in client |
+| Flag                    | Default                 | Description                     |
+|-------------------------|-------------------------|---------------------------------|
+| `--dir`, `-d`           | `api`                   | Rust source directory           |
+| `--output`, `-o`        | `src/lib/rpc-types.ts`  | Types output path               |
+| `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path              |
+| `--types-import`        | `./rpc-types`           | Import path for types in client |
 
 ### `rpc watch`
 
@@ -333,33 +333,33 @@ export type ApiResult = { Ok: string } | "NotFound" | { Error: { code: number; m
 
 Every macro-annotated function automatically gets:
 
-| Feature | Description |
-|---------|-------------|
-| **CORS** | `Access-Control-Allow-Origin: *` on all responses |
-| **Preflight** | `OPTIONS` → `204 No Content` with CORS headers |
-| **Method check** | `405 Method Not Allowed` for wrong HTTP method |
-| **Input parsing** | Query param (GET) or JSON body (POST) |
-| **Error handling** | `Result<T, E>` → `Ok` = 200, `Err` = 400 with JSON error |
-| **Response format** | `{ "result": { "type": "response", "data": ... } }` |
+| Feature             | Description                                              |
+|---------------------|----------------------------------------------------------|
+| **CORS**            | `Access-Control-Allow-Origin: *` on all responses        |
+| **Preflight**       | `OPTIONS` → `204 No Content` with CORS headers           |
+| **Method check**    | `405 Method Not Allowed` for wrong HTTP method           |
+| **Input parsing**   | Query param (GET) or JSON body (POST)                    |
+| **Error handling**  | `Result<T, E>` → `Ok` = 200, `Err` = 400 with JSON error |
+| **Response format** | `{ "result": { "type": "response", "data": ... } }`      |
 
 ## Type Mapping
 
-| Rust | TypeScript |
-|------|-----------|
-| `String`, `&str`, `char` | `string` |
-| `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number` |
-| `bool` | `boolean` |
-| `()` | `void` |
-| `Vec<T>` | `T[]` |
-| `Option<T>` | `T \| null` |
-| `HashMap<K, V>`, `BTreeMap<K, V>` | `Record<K, V>` |
-| `(A, B, C)` | `[A, B, C]` |
-| `Result<T, E>` | `T` (error handled at runtime) |
-| Custom structs | `interface` with same fields |
-| Enums (unit variants) | `"A" \| "B" \| "C"` (string union) |
-| Enums (tuple variants) | `{ A: string } \| { B: number }` (tagged union) |
-| Enums (struct variants) | `{ A: { x: number; y: number } }` (tagged union) |
-| Enums (mixed) | Combination of all above |
+| Rust                                     | TypeScript                                       |
+|------------------------------------------|--------------------------------------------------|
+| `String`, `&str`, `char`                 | `string`                                         |
+| `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number`                                         |
+| `bool`                                   | `boolean`                                        |
+| `()`                                     | `void`                                           |
+| `Vec<T>`                                 | `T[]`                                            |
+| `Option<T>`                              | `T \| null`                                      |
+| `HashMap<K, V>`, `BTreeMap<K, V>`        | `Record<K, V>`                                   |
+| `(A, B, C)`                              | `[A, B, C]`                                      |
+| `Result<T, E>`                           | `T` (error handled at runtime)                   |
+| Custom structs                           | `interface` with same fields                     |
+| Enums (unit variants)                    | `"A" \| "B" \| "C"` (string union)               |
+| Enums (tuple variants)                   | `{ A: string } \| { B: number }` (tagged union)  |
+| Enums (struct variants)                  | `{ A: { x: number; y: number } }` (tagged union) |
+| Enums (mixed)                            | Combination of all above                         |
 
 ## npm Scripts
 
@@ -370,15 +370,15 @@ cd demo
 npm install
 ```
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Watch mode + Vite dev server |
-| `npm run build` | Generate types + Vite build |
-| `npm run generate` | One-time TypeScript generation |
-| `npm run test` | Rust unit tests + Vitest integration |
-| `npm run test:e2e` | Playwright browser tests |
-| `npm run test:rust` | Rust tests only |
-| `npm run test:all` | Full test suite (Rust + Vitest + Playwright) |
+| Script              | Description                                  |
+|---------------------|----------------------------------------------|
+| `npm run dev`       | Watch mode + Vite dev server                 |
+| `npm run build`     | Generate types + Vite build                  |
+| `npm run generate`  | One-time TypeScript generation               |
+| `npm run test`      | Rust unit tests + Vitest integration         |
+| `npm run test:e2e`  | Playwright browser tests                     |
+| `npm run test:rust` | Rust tests only                              |
+| `npm run test:all`  | Full test suite (Rust + Vitest + Playwright) |
 
 ## Testing
 
@@ -389,11 +389,11 @@ The project has **80 tests** across three layers:
 npm run test:all
 ```
 
-| Layer | Count | What's tested |
-|-------|-------|---------------|
-| **Rust unit** | 60 | Type parsing, struct/enum extraction, TS codegen, client codegen |
-| **Vitest integration** | 12 | Full codegen pipeline, TypeScript compilation, idempotency |
-| **Playwright e2e** | 8 | UI rendering, typed queries, API response format |
+| Layer                  | Count | What's tested                                                    |
+|------------------------|-------|------------------------------------------------------------------|
+| **Rust unit**          | 60    | Type parsing, struct/enum extraction, TS codegen, client codegen |
+| **Vitest integration** | 12    | Full codegen pipeline, TypeScript compilation, idempotency       |
+| **Playwright e2e**     | 8     | UI rendering, typed queries, API response format                 |
 
 ## Deploy to Vercel
 
@@ -418,15 +418,15 @@ Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| **Frontend** | SvelteKit 2, TypeScript 5 |
-| **Backend** | Rust, Vercel Runtime |
-| **Macros** | `syn`, `quote`, `proc-macro2` |
-| **CLI parser** | `syn` (AST), `clap` (args) |
+| Component         | Technology                         |
+|-------------------|------------------------------------|
+| **Frontend**      | SvelteKit 2, TypeScript 5          |
+| **Backend**       | Rust, Vercel Runtime               |
+| **Macros**        | `syn`, `quote`, `proc-macro2`      |
+| **CLI parser**    | `syn` (AST), `clap` (args)         |
 | **File watching** | `notify` + `notify-debouncer-mini` |
-| **Testing** | `cargo test`, Vitest, Playwright |
-| **Deploy** | Vercel (serverless Rust) |
+| **Testing**       | `cargo test`, Vitest, Playwright   |
+| **Deploy**        | Vercel (serverless Rust)           |
 
 ## License
 
