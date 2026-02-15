@@ -1,0 +1,27 @@
+title: "[Announcement] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📣 Announcements
+
+        This category is for official updates from the maintainers of **vercel-rpc / svelte-rust**.
+
+        Topics include new releases, breaking changes, roadmap updates, and important notices.
+  - type: textarea
+    id: announcement
+    attributes:
+      label: Announcement
+      description: What would you like to announce?
+      placeholder: Describe the update, release, or change...
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional details
+      description: Any extra context, migration steps, or links.
+      placeholder: Links, migration guides, related PRs...
+    validations:
+      required: false

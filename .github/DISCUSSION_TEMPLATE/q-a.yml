@@ -1,0 +1,45 @@
+title: "[Q&A] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ❓ Questions & Answers
+
+        Ask anything about **vercel-rpc / svelte-rust** — setup, usage, deployment, type generation, macros, or troubleshooting.
+
+        Before posting, please check:
+        - [README](https://github.com/misha-mad/svelte-rust#readme)
+        - [CONTRIBUTING.md](https://github.com/misha-mad/svelte-rust/blob/main/CONTRIBUTING.md)
+        - Existing discussions and issues
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: Describe your question clearly...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project does this relate to?
+      options:
+        - "Rust macros (#[rpc_query] / #[rpc_mutation])"
+        - "CLI (scan / generate / watch)"
+        - "TypeScript codegen (types / client)"
+        - "SvelteKit integration"
+        - "Vercel deployment"
+        - "Testing"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any relevant code snippets, error messages, or screenshots.
+      placeholder: Paste code, logs, or screenshots here...
+    validations:
+      required: false

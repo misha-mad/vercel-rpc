@@ -1,0 +1,27 @@
+title: ""
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 💬 General Discussion
+
+        This is a space for open-ended conversations about **vercel-rpc / svelte-rust**.
+
+        Topics can include architecture decisions, best practices, comparisons with other tools, community feedback, or anything that doesn't fit other categories.
+  - type: textarea
+    id: topic
+    attributes:
+      label: What's on your mind?
+      description: Start a conversation with the community.
+      placeholder: Share your thoughts...
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any relevant links, code, or references.
+      placeholder: Links, code snippets, or screenshots...
+    validations:
+      required: false

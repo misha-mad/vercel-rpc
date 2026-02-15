@@ -1,0 +1,38 @@
+title: "[Show & Tell] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🙌 Show & Tell
+
+        Built something cool with **vercel-rpc / svelte-rust**? Share it here!
+
+        We'd love to see your projects, demos, blog posts, tutorials, or creative uses of the framework.
+  - type: textarea
+    id: showcase
+    attributes:
+      label: What did you build?
+      description: Tell us about your project or creation.
+      placeholder: Describe what you built and how you used vercel-rpc...
+    validations:
+      required: true
+  - type: textarea
+    id: links
+    attributes:
+      label: Links
+      description: Share links to your project, demo, repo, or blog post.
+      placeholder: |
+        - Live demo: https://...
+        - Repository: https://github.com/...
+        - Blog post: https://...
+    validations:
+      required: false
+  - type: textarea
+    id: highlights
+    attributes:
+      label: Highlights & learnings
+      description: What went well? Any tips or lessons learned?
+      placeholder: Share your experience...
+    validations:
+      required: false
