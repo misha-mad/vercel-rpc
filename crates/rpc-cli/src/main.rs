@@ -18,10 +18,10 @@
 //! # Architecture
 //!
 //! ```text
-//! ┌────────────┐  scan   ┌──────────┐  codegen  ┌────────────────┐
+//! ┌─────────────┐  scan   ┌──────────┐  codegen  ┌────────────────┐
 //! │  api/*.rs   │ ──────► │ Manifest │ ────────► │ rpc-types.ts   │
 //! │  attributes │  (syn)  │          │ (fmt)     │ rpc-client.ts  │
-//! └────────────┘         └──────────┘           └────────────────┘
+//! └─────────────┘         └──────────┘           └────────────────┘
 //! ```
 //!
 //! - [`parser`] — walks the source directory, parses each `.rs` file with
