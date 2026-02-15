@@ -694,6 +694,7 @@ export function createRpcClient(baseUrl: string): RpcClient;`}</pre>
         color: #666;
         margin-top: 0;
         margin-bottom: 2rem;
+        text-align: center;
     }
 
     .card {
