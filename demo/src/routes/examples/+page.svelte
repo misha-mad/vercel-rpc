@@ -109,7 +109,7 @@
 		echoLoading = true;
 		try {
 			echoResult = await rpc.mutate('echo', { message: echoMessage, uppercase: echoUppercase });
-		} catch (e) {
+		} catch {
 			echoResult = null;
 		} finally {
 			echoLoading = false;
