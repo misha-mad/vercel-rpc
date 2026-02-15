@@ -104,7 +104,51 @@ rpc watch --dir api
   Watching for changes in api
 ```
 
-Changes are debounced at 200 ms. Press Ctrl+C to stop.
+Changes are debounced (200 ms by default, configurable via `rpc.config.toml`).
+Press Ctrl+C to stop.
+
+## Configuration
+
+The CLI can be configured with an optional `rpc.config.toml` file. Place it at your project root (next to `Cargo.toml` or `package.json`). All fields are optional — defaults match the CLI flags below.
+
+```toml
+# rpc.config.toml
+
+[input]
+dir = "api"                          # Rust source directory to scan
+
+[output]
+types = "src/lib/rpc-types.ts"       # generated types file path
+client = "src/lib/rpc-client.ts"     # generated client file path
+
+[output.imports]
+types_path = "./rpc-types"           # import specifier used in client file
+
+[watch]
+debounce_ms = 200                    # file watcher debounce interval (ms)
+```
+
+### Config discovery
+
+The CLI walks up from the current directory looking for `rpc.config.toml`. If no file is found, built-in defaults are used.
+
+```bash
+# Use a specific config file
+rpc generate --config ./custom-config.toml
+
+# Disable config file loading entirely
+rpc generate --no-config --dir api
+```
+
+### Resolution order
+
+Values are resolved with this priority (highest first):
+
+```
+CLI flag  >  rpc.config.toml  >  built-in default
+```
+
+A config file sets project-level defaults; CLI flags override them per invocation.
 
 ## Flags
 
@@ -114,6 +158,8 @@ Changes are debounced at 200 ms. Press Ctrl+C to stop.
 | `--output` | `-o` | `src/lib/rpc-types.ts` | Output path for TypeScript types |
 | `--client-output` | `-c` | `src/lib/rpc-client.ts` | Output path for TypeScript client |
 | `--types-import` | | `./rpc-types` | Import path for types in the client file |
+| `--config` | | *(auto-discover)* | Path to config file |
+| `--no-config` | | `false` | Disable config file loading |
 
 ## What gets scanned
 
