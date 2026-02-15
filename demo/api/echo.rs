@@ -1,12 +1,14 @@
 use serde::{Deserialize, Serialize};
 use vercel_rpc_macro::rpc_mutation;
 
+/// Input for the echo mutation.
 #[derive(Deserialize, Serialize)]
 pub struct EchoInput {
     pub message: String,
     pub uppercase: bool,
 }
 
+/// Output returned by the echo mutation.
 #[derive(Serialize)]
 pub struct EchoOutput {
     pub original: String,
@@ -14,6 +16,7 @@ pub struct EchoOutput {
     pub length: u32,
 }
 
+/// Echo a message back, optionally transforming it to uppercase.
 #[rpc_mutation]
 async fn echo(input: EchoInput) -> EchoOutput {
     let transformed = if input.uppercase {

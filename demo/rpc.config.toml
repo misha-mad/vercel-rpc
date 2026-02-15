@@ -1,0 +1,11 @@
+# rpc.config.toml — demo configuration
+
+[input]
+dir = "api"
+
+[output]
+types = "src/lib/rpc-types.ts"
+client = "src/lib/rpc-client.ts"
+
+[codegen]
+preserve_docs = true

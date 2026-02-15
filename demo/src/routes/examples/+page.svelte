@@ -610,6 +610,83 @@ const result = await rpc.mutate("echo", {
 		{/if}
 	</section>
 
+	<!-- JSDoc: Doc comments preserved -->
+	<section class="card highlight">
+		<h2>📝 JSDoc — Doc Comments Preserved</h2>
+		<p class="desc">
+			With <code>preserve_docs = true</code> in <code>[codegen]</code>, Rust <code>///</code> doc
+			comments are forwarded as JSDoc (<code>/** ... */</code>) in the generated TypeScript. This
+			gives you <strong>editor tooltips</strong> and inline documentation on the TypeScript side.
+		</p>
+		<button class="toggle-code" onclick={() => toggleCode('jsdoc')}>
+			{openCode['jsdoc'] ? '▾ Hide' : '▸ Show'} Rust → TypeScript JSDoc
+		</button>
+		{#if openCode['jsdoc']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/time.rs</span>
+					<pre class="code rust">{`/// Server timestamp with a human-readable message.
+#[derive(Serialize)]
+pub struct TimeResponse {
+    pub timestamp: u64,
+    pub message: String,
+}
+
+/// Returns the current server time as a Unix timestamp.
+#[rpc_query]
+async fn time() -> TimeResponse { ... }`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated rpc-types.ts</span>
+					<pre class="code ts">{`/** Server timestamp with a human-readable message. */
+export interface TimeResponse {
+  timestamp: number;
+  message: string;
+}
+
+export type Procedures = {
+  queries: {
+    /** Returns the current server time as a Unix timestamp. */
+    time: { input: void; output: TimeResponse };
+  };
+};`}</pre>
+				</div>
+			</div>
+			<div class="code-panels" style="margin-top: 0.5rem;">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/hello.rs (multi-line)</span>
+					<pre class="code rust">{`/// Greet a user by name.
+/// Returns a personalized greeting string.
+#[rpc_query]
+async fn hello(name: String) -> String { ... }`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated rpc-client.ts</span>
+					<pre class="code ts">{`export interface RpcClient {
+  /**
+   * Greet a user by name.
+   * Returns a personalized greeting string.
+   */
+  query(key: "hello", input: string): Promise<string>;
+}`}</pre>
+				</div>
+			</div>
+			<div class="code-panels" style="margin-top: 0.5rem;">
+				<div class="code-panel">
+					<span class="code-label">⚙️ rpc.config.toml</span>
+					<pre class="code rust">{`[codegen]
+preserve_docs = true  # default: false`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">💡 What gets documented</span>
+					<pre class="code ts">{`/// on a function  → JSDoc on Procedures entry + RpcClient overload
+/// on a struct    → JSDoc above export interface
+/// on an enum     → JSDoc above export type`}</pre>
+				</div>
+			</div>
+		{/if}
+	</section>
+
 	<!-- Raw JSON viewer -->
 	<section class="card">
 		<h2>🔍 Raw Response Viewer</h2>
@@ -652,31 +729,37 @@ const result = await rpc.mutate("echo", {
 		{#if openCode['generated']}
 			<div class="code-panels">
 				<div class="code-panel">
-					<span class="code-label">rpc-types.ts</span>
-					<pre class="code ts">{`export interface EchoInput {
+					<span class="code-label">rpc-types.ts (with preserve_docs = true)</span>
+					<pre class="code ts">{`/** Input for the echo mutation. */
+export interface EchoInput {
   message: string;
   uppercase: boolean;
 }
+/** Output returned by the echo mutation. */
 export interface EchoOutput {
   original: string;
   transformed: string;
   length: number;
 }
+/** Input for a math calculation. */
 export interface MathInput {
   a: number;
   b: number;
   op: Operation;
 }
+/** Result of a math calculation with a formatted expression. */
 export interface MathResult {
   result: number;
   expression: string;
 }
+/** Snapshot of service health and version info. */
 export interface ServiceStatus {
   name: string;
   status: HealthStatus;
   uptime_secs: number;
   version: string;
 }
+/** Descriptive statistics for a list of numbers. */
 export interface Stats {
   count: number;
   sum: number;
@@ -685,39 +768,51 @@ export interface Stats {
   max: number;
   frequencies: Record<string, number>;
 }
+/** Server timestamp with a human-readable message. */
 export interface TimeResponse {
   timestamp: number;
   message: string;
 }
+/** Overall health of the service. */
 export type HealthStatus = "Healthy" | "Degraded" | "Down";
+/** Arithmetic operation to perform. */
 export type Operation = "Add" | "Subtract" | "Multiply" | "Divide";
 
 export type Procedures = {
   queries: {
+    /** Greet a user by name. Returns a personalized greeting string. */
     hello: { input: string; output: string };
+    /** Perform a math operation. Returns an error on division by zero. */
     math: { input: MathInput; output: MathResult };
+    /** Compute descriptive statistics for a list of numbers. */
     stats: { input: number[]; output: Stats };
+    /** Returns current service health, uptime, and version. */
     status: { input: void; output: ServiceStatus };
+    /** Returns the current server time as a Unix timestamp. */
     time: { input: void; output: TimeResponse };
   };
   mutations: {
+    /** Echo a message back, optionally transforming it to uppercase. */
     echo: { input: EchoInput; output: EchoOutput };
   };
 };`}</pre>
 				</div>
 				<div class="code-panel">
-					<span class="code-label">rpc-client.ts (interface)</span>
+					<span class="code-label">rpc-client.ts (interface with JSDoc)</span>
 					<pre class="code ts">{`export interface RpcClient {
-  // Void-input queries (no argument)
+  /** Returns current service health, uptime, and version. */
   query(key: "status"): Promise<ServiceStatus>;
+  /** Returns the current server time as a Unix timestamp. */
   query(key: "time"): Promise<TimeResponse>;
 
-  // Typed-input queries
+  /** Greet a user by name. Returns a personalized greeting string. */
   query(key: "hello", input: string): Promise<string>;
+  /** Perform a math operation. Returns an error on division by zero. */
   query(key: "math", input: MathInput): Promise<MathResult>;
+  /** Compute descriptive statistics for a list of numbers. */
   query(key: "stats", input: number[]): Promise<Stats>;
 
-  // Mutations (POST)
+  /** Echo a message back, optionally transforming it to uppercase. */
   mutate(key: "echo", input: EchoInput): Promise<EchoOutput>;
 }
 

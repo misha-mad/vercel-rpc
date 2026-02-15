@@ -2,6 +2,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use vercel_rpc_macro::rpc_query;
 
+/// Descriptive statistics for a list of numbers.
 #[derive(Serialize)]
 pub struct Stats {
     pub count: u32,
@@ -12,6 +13,7 @@ pub struct Stats {
     pub frequencies: HashMap<String, u32>,
 }
 
+/// Compute descriptive statistics for a list of numbers.
 #[rpc_query]
 async fn stats(numbers: Vec<f64>) -> Result<Stats, String> {
     if numbers.is_empty() {

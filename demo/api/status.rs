@@ -1,6 +1,7 @@
 use serde::Serialize;
 use vercel_rpc_macro::rpc_query;
 
+/// Overall health of the service.
 #[derive(Serialize)]
 pub enum HealthStatus {
     Healthy,
@@ -8,6 +9,7 @@ pub enum HealthStatus {
     Down,
 }
 
+/// Snapshot of service health and version info.
 #[derive(Serialize)]
 pub struct ServiceStatus {
     pub name: String,
@@ -16,6 +18,7 @@ pub struct ServiceStatus {
     pub version: String,
 }
 
+/// Returns current service health, uptime, and version.
 #[rpc_query]
 async fn status() -> ServiceStatus {
     let uptime = std::time::SystemTime::now()
