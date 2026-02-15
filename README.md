@@ -419,18 +419,6 @@ vercel
 
 Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 
-## Tech Stack
-
-| Component         | Technology                         |
-|-------------------|------------------------------------|
-| **Frontend**      | SvelteKit 2, TypeScript 5          |
-| **Backend**       | Rust, Vercel Runtime               |
-| **Macros**        | `syn`, `quote`, `proc-macro2`      |
-| **CLI parser**    | `syn` (AST), `clap` (args)         |
-| **File watching** | `notify` + `notify-debouncer-mini` |
-| **Testing**       | `cargo test`, Vitest, Playwright   |
-| **Deploy**        | Vercel (serverless Rust)           |
-
 ## Sponsors
 
 <p style="text-align: center;">
