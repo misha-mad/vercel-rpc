@@ -270,6 +270,7 @@ client = "src/lib/rpc-client.ts"
 
 [output.imports]
 types_path = "./rpc-types"
+extension = ""               # suffix appended to import (e.g. ".js" for ESM)
 
 [watch]
 debounce_ms = 200

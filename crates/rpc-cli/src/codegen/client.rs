@@ -416,6 +416,12 @@ mod tests {
     }
 
     #[test]
+    fn import_path_with_extension() {
+        let output = generate_client_file(&make_manifest(vec![]), "./rpc-types.js");
+        assert!(output.contains("from \"./rpc-types.js\""));
+    }
+
+    #[test]
     fn interface_based_overloads() {
         let manifest = make_manifest(vec![
             make_query("test", None, Some(RustType::simple("String"))),

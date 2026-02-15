@@ -218,7 +218,7 @@ fn cmd_generate(config: &RpcConfig) -> Result<()> {
 
     // Generate client file
     let client_content =
-        codegen::client::generate_client_file(&manifest, &config.output.imports.types_path);
+        codegen::client::generate_client_file(&manifest, &config.output.imports.types_specifier());
     write_file(&config.output.client, &client_content)?;
     println!(
         "Generated {} -> {}",
