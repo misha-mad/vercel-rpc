@@ -3,78 +3,78 @@
 
 /** Input for the echo mutation. */
 export interface EchoInput {
-	message: string;
-	uppercase: boolean;
+  message: string;
+  uppercase: boolean;
 }
 
 /** Output returned by the echo mutation. */
 export interface EchoOutput {
-	original: string;
-	transformed: string;
-	length: number;
+  original: string;
+  transformed: string;
+  length: number;
 }
 
 /** Input for a math calculation. */
 export interface MathInput {
-	a: number;
-	b: number;
-	op: Operation;
+  a: number;
+  b: number;
+  op: Operation;
 }
 
 /** Result of a math calculation with a formatted expression. */
 export interface MathResult {
-	result: number;
-	expression: string;
+  result: number;
+  expression: string;
 }
 
 /** Snapshot of service health and version info. */
 export interface ServiceStatus {
-	name: string;
-	status: HealthStatus;
-	uptime_secs: number;
-	version: string;
+  name: string;
+  status: HealthStatus;
+  uptime_secs: number;
+  version: string;
 }
 
 /** Descriptive statistics for a list of numbers. */
 export interface Stats {
-	count: number;
-	sum: number;
-	mean: number;
-	min: number;
-	max: number;
-	frequencies: Record<string, number>;
+  count: number;
+  sum: number;
+  mean: number;
+  min: number;
+  max: number;
+  frequencies: Record<string, number>;
 }
 
 /** Server timestamp with a human-readable message. */
 export interface TimeResponse {
-	timestamp: number;
-	message: string;
+  timestamp: number;
+  message: string;
 }
 
 /** Overall health of the service. */
-export type HealthStatus = 'Healthy' | 'Degraded' | 'Down';
+export type HealthStatus = "Healthy" | "Degraded" | "Down";
 
 /** Arithmetic operation to perform. */
-export type Operation = 'Add' | 'Subtract' | 'Multiply' | 'Divide';
+export type Operation = "Add" | "Subtract" | "Multiply" | "Divide";
 
 export type Procedures = {
-	queries: {
-		/**
-		 * Greet a user by name.
-		 * Returns a personalized greeting string.
-		 */
-		hello: { input: string; output: string };
-		/** Perform a math operation. Returns an error on division by zero. */
-		math: { input: MathInput; output: MathResult };
-		/** Compute descriptive statistics for a list of numbers. */
-		stats: { input: number[]; output: Stats };
-		/** Returns current service health, uptime, and version. */
-		status: { input: void; output: ServiceStatus };
-		/** Returns the current server time as a Unix timestamp. */
-		time: { input: void; output: TimeResponse };
-	};
-	mutations: {
-		/** Echo a message back, optionally transforming it to uppercase. */
-		echo: { input: EchoInput; output: EchoOutput };
-	};
+  queries: {
+    /**
+     * Greet a user by name.
+     * Returns a personalized greeting string.
+     */
+    hello: { input: string; output: string };
+    /** Perform a math operation. Returns an error on division by zero. */
+    math: { input: MathInput; output: MathResult };
+    /** Compute descriptive statistics for a list of numbers. */
+    stats: { input: number[]; output: Stats };
+    /** Returns current service health, uptime, and version. */
+    status: { input: void; output: ServiceStatus };
+    /** Returns the current server time as a Unix timestamp. */
+    time: { input: void; output: TimeResponse };
+  };
+  mutations: {
+    /** Echo a message back, optionally transforming it to uppercase. */
+    echo: { input: EchoInput; output: EchoOutput };
+  };
 };
