@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align: center;">
 
 # ⚡ vercel-rpc
 
@@ -8,9 +8,9 @@
 
 [![CI](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/svelte-rust/actions/workflows/ci.yml)
 [![Rust Tests](https://img.shields.io/badge/rust_tests-60_passed-brightgreen?logo=rust)](./crates)
-[![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./tests/integration)
-[![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./tests/e2e)
-[![TypeScript](https://img.shields.io/badge/types-auto--generated-blue?logo=typescript)](./src/lib/rpc-types.ts)
+[![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./demo/tests/integration)
+[![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./demo/tests/e2e)
+[![TypeScript](https://img.shields.io/badge/types-auto--generated-blue?logo=typescript)](./demo/src/lib/rpc-types.ts)
 [![Vercel](https://img.shields.io/badge/deploy-vercel-black?logo=vercel)](https://vercel.com)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](#license)
 
@@ -62,7 +62,7 @@ async fn hello(name: String) -> String {
 }
 ```
 
-That's it. The macro generates the full Vercel-compatible handler with:
+That's it. The macro generates a full Vercel-compatible handler with:
 - Input parsing (query params for queries, JSON body for mutations)
 - JSON serialization of the response
 - CORS headers & OPTIONS preflight
@@ -106,7 +106,7 @@ export interface RpcClient {
   query(key: "hello", input: string): Promise<string>;
 }
 
-export function createRpcClient(baseUrl: string): RpcClient;
+export function createRpcClient(baseUrl: string): RpcClient { /* ... */ }
 ```
 
 ### 3. Use in SvelteKit
@@ -288,7 +288,7 @@ use vercel_rpc_macro::rpc_mutation;
 
 #[rpc_mutation]
 async fn create_item(input: CreateInput) -> Item {
-    // input is parsed from JSON request body
+    // input is parsed from the JSON request body
     Item { id: 1, name: input.name }
 }
 ```
@@ -415,7 +415,7 @@ npm i -g vercel
 vercel
 ```
 
-> **Note:** With Root Directory set to `demo`, Vercel detects `demo/api/` as the serverless functions directory. So `demo/api/hello.rs` → `/api/hello`.
+> **Note:** With Root Directory set to `demo`, Vercel detects `demo/api/` as the serverless functions' directory. So `demo/api/hello.rs` → `/api/hello`.
 
 Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 
@@ -433,7 +433,7 @@ Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 
 ## Sponsors
 
-<p align="center">
+<p style="text-align: center;">
   <em>You could be the first sponsor! ❤️</em>
 </p>
 
