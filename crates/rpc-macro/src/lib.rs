@@ -1,18 +1,122 @@
+//! Procedural macros that turn async Rust functions into
+//! [Vercel](https://vercel.com) serverless lambda handlers.
+//!
+//! Part of the [`vercel-rpc`](https://github.com/misha-mad/vercel-rpc) project
+//! — end-to-end typesafe RPC between Rust lambdas on Vercel and SvelteKit.
+//!
+//! # Quick Start
+//!
+//! Add the macro crate **and** its runtime dependencies to your `Cargo.toml`
+//! (the generated code uses these crates directly, so they must be present):
+//!
+//! ```toml
+//! [dependencies]
+//! vercel-rpc-macro = "0.1"
+//! vercel_runtime   = "1"
+//! serde            = { version = "1", features = ["derive"] }
+//! serde_json       = "1"
+//! tokio            = { version = "1", features = ["macros"] }
+//! url              = "2"
+//! http-body-util   = "0.1"
+//! ```
+//!
+//! Then annotate an async function:
+//!
+//! ```rust,ignore
+//! use vercel_rpc_macro::rpc_query;
+//!
+//! #[rpc_query]
+//! async fn hello(name: String) -> String {
+//!     format!("Hello, {}!", name)
+//! }
+//! ```
+//!
+//! This single attribute generates a complete Vercel-compatible binary with a
+//! `main()` entry point — no extra boilerplate needed.
+//!
+//! # What Gets Generated
+//!
+//! Each macro invocation produces:
+//!
+//! - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+//! - An `OPTIONS` handler that returns `204` with CORS headers.
+//! - HTTP method validation (`GET` for queries, `POST` for mutations).
+//! - Input deserialization — from the `?input=<JSON>` query parameter (queries)
+//!   or from the JSON request body (mutations).
+//! - Serialization of the return value into a JSON response.
+//! - Automatic error responses when the function returns `Result::Err`.
+//!
+//! # Response Format
+//!
+//! **Success** (HTTP 200):
+//! ```json
+//! { "result": { "type": "response", "data": <value> } }
+//! ```
+//!
+//! **Error** (HTTP 400):
+//! ```json
+//! { "error": { "type": "error", "message": "<description>" } }
+//! ```
+//!
+//! # Supported Signatures
+//!
+//! | Signature | Input | Output |
+//! |-----------|-------|--------|
+//! | `async fn f() -> T` | none | `T` serialized |
+//! | `async fn f(input: I) -> T` | `I` deserialized | `T` serialized |
+//! | `async fn f() -> Result<T, E>` | none | `Ok` → 200, `Err` → 400 |
+//! | `async fn f(input: I) -> Result<T, E>` | `I` deserialized | `Ok` → 200, `Err` → 400 |
+//!
+//! More than one parameter is a **compile error**.
+//!
+//! # CORS
+//!
+//! Every response includes the following headers:
+//!
+//! - `Access-Control-Allow-Origin: *`
+//! - `Access-Control-Allow-Methods: GET, POST, OPTIONS`
+//! - `Access-Control-Allow-Headers: Content-Type`
+//! - `Access-Control-Max-Age: 86400`
+//!
+//! # Companion Crate
+//!
+//! [`vercel-rpc-cli`](https://crates.io/crates/vercel-rpc-cli) scans your
+//! `#[rpc_query]` / `#[rpc_mutation]` functions and generates TypeScript type
+//! definitions and a fully typed RPC client for use in SvelteKit (or any
+//! TypeScript frontend).
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, FnArg, ItemFn, PatType, ReturnType, Type};
 
-/// Generates a Vercel-compatible lambda handler from an RPC query function.
+/// Generates a Vercel-compatible lambda handler from an async **query** function.
 ///
-/// The macro wraps the annotated function with:
-/// - A `main()` entry point compatible with `vercel_runtime`
-/// - Automatic JSON deserialization of the `input` query parameter (GET)
-/// - Automatic JSON serialization of the return value
-/// - CORS headers for cross-origin requests
-/// - HTTP method validation (GET only, with OPTIONS preflight)
-/// - Standardized error response format for `Result<T, E>` return types
+/// The annotated function becomes a **GET** endpoint. Input is read from the
+/// `?input=<JSON>` query parameter and the return value is serialized as JSON.
 ///
-/// # Example
+/// The macro generates:
+/// - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+/// - Automatic JSON deserialization of the `input` query parameter.
+/// - Automatic JSON serialization of the return value.
+/// - CORS headers on every response (including `OPTIONS` preflight → `204`).
+/// - HTTP method validation — only `GET` is accepted; other methods return `405`.
+/// - If the function returns `Result<T, E>`, `Err` is mapped to a `400` JSON
+///   error response automatically.
+///
+/// # Examples
+///
+/// **No input:**
+///
+/// ```rust,ignore
+/// use vercel_rpc_macro::rpc_query;
+///
+/// #[rpc_query]
+/// async fn version() -> String {
+///     "1.0.0".to_string()
+/// }
+/// ```
+///
+/// **With input parameter:**
 ///
 /// ```rust,ignore
 /// use vercel_rpc_macro::rpc_query;
@@ -22,6 +126,42 @@ use syn::{parse_macro_input, FnArg, ItemFn, PatType, ReturnType, Type};
 ///     format!("Hello, {}!", name)
 /// }
 /// ```
+///
+/// **Returning `Result`:**
+///
+/// ```rust,ignore
+/// use vercel_rpc_macro::rpc_query;
+///
+/// #[rpc_query]
+/// async fn find_user(id: u32) -> Result<String, String> {
+///     if id == 0 {
+///         Err("not found".into())
+///     } else {
+///         Ok(format!("user_{}", id))
+///     }
+/// }
+/// ```
+///
+/// **Returning a `Vec`:**
+///
+/// ```rust,ignore
+/// use vercel_rpc_macro::rpc_query;
+///
+/// #[rpc_query]
+/// async fn list_tags() -> Vec<String> {
+///     vec!["rust".into(), "vercel".into()]
+/// }
+/// ```
+///
+/// # Compile errors
+///
+/// The macro rejects functions with more than one parameter:
+///
+/// ```rust,compile_fail,ignore
+/// #[rpc_query]
+/// async fn bad(a: String, b: u32) -> String { todo!() }
+/// // error: RPC handlers accept at most one input parameter
+/// ```
 #[proc_macro_attribute]
 pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
@@ -29,20 +169,74 @@ pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
 
-/// Generates a Vercel-compatible lambda handler from an RPC mutation function.
+/// Generates a Vercel-compatible lambda handler from an async **mutation** function.
 ///
-/// Same as `#[rpc_query]` but reads input from the request body (POST)
-/// instead of query parameters (GET).
+/// Works like [`rpc_query`] but creates a **POST** endpoint.
+/// Input is read from the **JSON request body** instead of query parameters.
 ///
-/// # Example
+/// The macro generates:
+/// - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+/// - Automatic JSON deserialization of the request body.
+/// - Automatic JSON serialization of the return value.
+/// - CORS headers on every response (including `OPTIONS` preflight → `204`).
+/// - HTTP method validation — only `POST` is accepted; other methods return `405`.
+/// - If the function returns `Result<T, E>`, `Err` is mapped to a `400` JSON
+///   error response automatically.
+///
+/// # Examples
+///
+/// **No input:**
 ///
 /// ```rust,ignore
 /// use vercel_rpc_macro::rpc_mutation;
 ///
 /// #[rpc_mutation]
-/// async fn create_user(input: CreateUserInput) -> User {
-///     // ...
+/// async fn reset_counter() -> u32 {
+///     0
 /// }
+/// ```
+///
+/// **With a struct input:**
+///
+/// ```rust,ignore
+/// use vercel_rpc_macro::rpc_mutation;
+/// use serde::Deserialize;
+///
+/// #[derive(Deserialize)]
+/// struct CreateUserInput {
+///     name: String,
+///     email: String,
+/// }
+///
+/// #[rpc_mutation]
+/// async fn create_user(input: CreateUserInput) -> String {
+///     format!("Created {}", input.name)
+/// }
+/// ```
+///
+/// **Returning `Result`:**
+///
+/// ```rust,ignore
+/// use vercel_rpc_macro::rpc_mutation;
+///
+/// #[rpc_mutation]
+/// async fn delete_user(id: u32) -> Result<String, String> {
+///     if id == 0 {
+///         Err("cannot delete root user".into())
+///     } else {
+///         Ok(format!("deleted user {}", id))
+///     }
+/// }
+/// ```
+///
+/// # Compile errors
+///
+/// The macro rejects functions with more than one parameter:
+///
+/// ```rust,compile_fail,ignore
+/// #[rpc_mutation]
+/// async fn bad(a: String, b: u32) -> String { todo!() }
+/// // error: RPC handlers accept at most one input parameter
 /// ```
 #[proc_macro_attribute]
 pub fn rpc_mutation(_attr: TokenStream, item: TokenStream) -> TokenStream {
