@@ -868,15 +868,9 @@ export function createRpcClient(baseUrl: string): RpcClient;`}</pre>
 
     .code-panels {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 0.5rem;
         margin-top: 0.5rem;
-    }
-
-    @media (max-width: 700px) {
-        .code-panels {
-            grid-template-columns: 1fr;
-        }
     }
 
     .code-panel {
