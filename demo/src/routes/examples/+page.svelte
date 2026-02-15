@@ -692,8 +692,8 @@ preserve_docs = true  # default: false`}</pre>
 		<h2>🔤 Field Naming — snake_case to camelCase</h2>
 		<p class="desc">
 			With <code>fields = "camelCase"</code> in <code>[codegen.naming]</code>, Rust snake_case field
-			names are automatically converted to camelCase in generated TypeScript. This matches JavaScript
-			conventions while keeping Rust code idiomatic.
+			names are automatically converted to camelCase in generated TypeScript. This matches
+			JavaScript conventions while keeping Rust code idiomatic.
 		</p>
 		<button class="toggle-code" onclick={() => toggleCode('naming')}>
 			{openCode['naming'] ? '▾ Hide' : '▸ Show'} Config & Generated Output
