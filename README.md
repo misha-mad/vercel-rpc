@@ -30,19 +30,19 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 ## How It Works
 
 ```
-┌─────────────┐     scan      ┌─────────────┐    codegen    ┌──────────────────┐
-│  api/*.rs    │ ──────────▶  │   Manifest   │ ──────────▶  │  rpc-types.ts    │
-│  #[rpc_query]│   (syn)      │  procedures  │   (rust→ts)  │  rpc-client.ts   │
-│  #[rpc_mut.] │              │  structs     │              │  Typed RpcClient │
-└─────────────┘              └─────────────┘              └──────────────────┘
+┌──────────────┐     scan     ┌─────────────┐    codegen   ┌──────────────────┐
+│  api/*.rs    │ ──────────▶  │   Manifest  │ ──────────▶  │  rpc-types.ts    │
+│  #[rpc_query]│   (syn)      │  procedures │   (rust→ts)  │  rpc-client.ts   │
+│  #[rpc_mut.] │              │  structs    │              │  Typed RpcClient │
+└──────────────┘              └─────────────┘              └──────────────────┘
        │                                                           │
        │  deploy (vercel)                          import (svelte) │
        ▼                                                           ▼
-┌─────────────┐              HTTP (GET/POST)       ┌──────────────────┐
+┌──────────────┐              HTTP (GET/POST)      ┌──────────────────┐
 │ Vercel Lambda│ ◀──────────────────────────────── │   SvelteKit App  │
 │  /api/hello  │                                   │  rpc.query(...)  │
-│  /api/time   │ ──────────────────────────────▶  │  fully typed! ✨  │
-└─────────────┘              JSON response         └──────────────────┘
+│  /api/time   │ ──────────────────────────────▶   │  fully typed! ✨ │
+└──────────────┘              JSON response        └──────────────────┘
 ```
 
 ## Quick Start
