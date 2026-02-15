@@ -15,9 +15,9 @@ test.describe("RPC page — full e2e cycle", () => {
   });
 
   test("hello query returns greeting", async ({ page }) => {
-    const section = page.locator("section").filter({ hasText: "Hello" }).first();
+    const section = page.locator("section").filter({ hasText: "Hello — Simple Query" });
     const input = section.locator('input[type="text"]');
-    const button = section.locator("button");
+    const button = section.locator("button").filter({ hasText: "Say Hello" });
 
     await input.fill("Playwright");
     await button.click();
@@ -27,8 +27,8 @@ test.describe("RPC page — full e2e cycle", () => {
   });
 
   test("math query calculates result", async ({ page }) => {
-    const section = page.locator("section").filter({ hasText: "Math" }).first();
-    const button = section.locator("button");
+    const section = page.locator("section").filter({ hasText: "Math — Enum Input" });
+    const button = section.locator("button").filter({ hasText: "Calculate" });
     await button.click();
 
     const result = section.locator(".result.success");
@@ -36,7 +36,7 @@ test.describe("RPC page — full e2e cycle", () => {
   });
 
   test("echo mutation works", async ({ page }) => {
-    const section = page.locator("section").filter({ hasText: "Echo" }).first();
+    const section = page.locator("section").filter({ hasText: "Echo — Mutation" });
     const button = section.locator("button").filter({ hasText: "Send" });
     await button.click();
 
@@ -46,7 +46,7 @@ test.describe("RPC page — full e2e cycle", () => {
   });
 
   test("stats query computes statistics", async ({ page }) => {
-    const section = page.locator("section").filter({ hasText: "Stats" }).first();
+    const section = page.locator("section").filter({ hasText: "Stats — Vec" });
     const button = section.locator("button").filter({ hasText: "Compute" });
     await button.click();
 
@@ -57,7 +57,7 @@ test.describe("RPC page — full e2e cycle", () => {
   });
 
   test("status query shows service info", async ({ page }) => {
-    const section = page.locator("section").filter({ hasText: "Status" }).first();
+    const section = page.locator("section").filter({ hasText: "Status — Enum in Struct" });
     const result = section.locator(".result.success");
     await expect(result).toBeVisible({ timeout: 10_000 });
     await expect(result).toContainText("vercel-rpc-demo");
