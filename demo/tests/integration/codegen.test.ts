@@ -52,13 +52,13 @@ describe('codegen pipeline: scan → generate → validate', () => {
 		const markerIdx = output.indexOf(JSON_MARKER);
 		const manifest = JSON.parse(output.slice(markerIdx + JSON_MARKER.length).trim());
 
-		const hello = manifest.procedures.find((p: any) => p.name === 'hello');
+		const hello = manifest.procedures.find((p: { name: string }) => p.name === 'hello');
 		expect(hello).toBeDefined();
 		expect(hello.kind).toBe('query');
 		expect(hello.input).toEqual({ name: 'String', generics: [] });
 		expect(hello.output).toEqual({ name: 'String', generics: [] });
 
-		const time = manifest.procedures.find((p: any) => p.name === 'time');
+		const time = manifest.procedures.find((p: { name: string }) => p.name === 'time');
 		expect(time).toBeDefined();
 		expect(time.kind).toBe('query');
 		expect(time.input).toBeNull();
@@ -70,7 +70,7 @@ describe('codegen pipeline: scan → generate → validate', () => {
 		const markerIdx = output.indexOf(JSON_MARKER);
 		const manifest = JSON.parse(output.slice(markerIdx + JSON_MARKER.length).trim());
 
-		const timeResp = manifest.structs.find((s: any) => s.name === 'TimeResponse');
+		const timeResp = manifest.structs.find((s: { name: string }) => s.name === 'TimeResponse');
 		expect(timeResp).toBeDefined();
 		expect(timeResp.fields).toEqual(
 			expect.arrayContaining([
