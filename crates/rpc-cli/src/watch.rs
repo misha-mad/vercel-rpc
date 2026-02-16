@@ -15,6 +15,7 @@ use crate::{codegen, parser};
 /// in the api directory and regenerates TypeScript files on each change.
 ///
 /// Blocks until the process receives SIGINT (Ctrl+C).
+#[cfg(not(tarpaulin_include))]
 pub fn run(config: &RpcConfig) -> Result<()> {
     let running = Arc::new(AtomicBool::new(true));
     let running_clone = running.clone();
@@ -94,6 +95,7 @@ pub fn run(config: &RpcConfig) -> Result<()> {
 }
 
 /// Performs a full scan + generation cycle, printing timing info.
+#[cfg(not(tarpaulin_include))]
 fn generate(config: &RpcConfig) -> Result<()> {
     let start = Instant::now();
 
@@ -139,6 +141,7 @@ fn generate(config: &RpcConfig) -> Result<()> {
 }
 
 /// Writes content to a file, creating parent directories as needed.
+#[cfg(not(tarpaulin_include))]
 fn write_file(path: &Path, content: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)
@@ -149,6 +152,7 @@ fn write_file(path: &Path, content: &str) -> Result<()> {
     Ok(())
 }
 
+#[cfg(not(tarpaulin_include))]
 fn print_banner(config: &RpcConfig) {
     println!();
     println!(
@@ -174,6 +178,7 @@ fn print_banner(config: &RpcConfig) {
     println!();
 }
 
+#[cfg(not(tarpaulin_include))]
 fn print_change(paths: &[&Path]) {
     for p in paths {
         let name = p.file_name().map(|n| n.to_string_lossy()).unwrap_or_default();
@@ -181,10 +186,12 @@ fn print_change(paths: &[&Path]) {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 fn clear_screen() {
     print!("\x1B[2J\x1B[H");
 }
 
+#[cfg(not(tarpaulin_include))]
 fn print_error(err: &anyhow::Error) {
     eprintln!("  {} {err:#}", "✗".red().bold());
     for cause in err.chain().skip(1) {

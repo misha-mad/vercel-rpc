@@ -165,7 +165,7 @@ enum Command {
     },
 }
 
-#[cfg_attr(tarpaulin, skip)]
+#[cfg(not(tarpaulin_include))]
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
