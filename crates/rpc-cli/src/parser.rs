@@ -9,7 +9,7 @@
 //! The public entry point is [`scan_directory`], which returns a
 //! [`Manifest`](crate::model::Manifest) containing all discovered metadata.
 
-mod extract;
-mod types;
+pub mod extract;
+pub mod types;
 
 pub use extract::scan_directory;
