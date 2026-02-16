@@ -107,6 +107,12 @@ rpc watch --dir api
 Changes are debounced (200 ms by default, configurable via `rpc.config.toml`).
 Press Ctrl+C to stop.
 
+Use `--clear-screen` to clear the terminal before each regeneration cycle:
+
+```bash
+rpc watch --dir api --clear-screen
+```
+
 ## Configuration
 
 The CLI can be configured with an optional `rpc.config.toml` file. Place it at your project root (next to `Cargo.toml` or `package.json`). All fields are optional — defaults match the CLI flags below.
@@ -135,6 +141,7 @@ fields = "preserve"                  # "preserve" (default) or "camelCase"
 
 [watch]
 debounce_ms = 200                    # file watcher debounce interval (ms)
+clear_screen = false                 # clear terminal before each regeneration
 ```
 
 `include` and `exclude` accept glob patterns matched against file paths relative to `dir`. A file must match at least one `include` pattern and no `exclude` pattern to be scanned. When both match, `exclude` wins.
@@ -295,14 +302,15 @@ A config file sets project-level defaults; CLI flags override them per invocatio
 
 ## Flags
 
-| Flag              | Short | Default                 | Description                              |
-|-------------------|-------|-------------------------|------------------------------------------|
-| `--dir`           | `-d`  | `api`                   | Rust source directory to scan            |
-| `--output`        | `-o`  | `src/lib/rpc-types.ts`  | Output path for TypeScript types         |
-| `--client-output` | `-c`  | `src/lib/rpc-client.ts` | Output path for TypeScript client        |
-| `--types-import`  |       | `./rpc-types`           | Import path for types in the client file |
-| `--config`        |       | *(auto-discover)*       | Path to config file                      |
-| `--no-config`     |       | `false`                 | Disable config file loading              |
+| Flag              | Short | Default                 | Description                                            |
+|-------------------|-------|-------------------------|--------------------------------------------------------|
+| `--dir`           | `-d`  | `api`                   | Rust source directory to scan                          |
+| `--output`        | `-o`  | `src/lib/rpc-types.ts`  | Output path for TypeScript types                       |
+| `--client-output` | `-c`  | `src/lib/rpc-client.ts` | Output path for TypeScript client                      |
+| `--types-import`  |       | `./rpc-types`           | Import path for types in the client file               |
+| `--config`        |       | *(auto-discover)*       | Path to config file                                    |
+| `--clear-screen`  |       | `false`                 | Clear terminal before each regeneration (`watch` only) |
+| `--no-config`     |       | `false`                 | Disable config file loading                            |
 
 ## What gets scanned
 
