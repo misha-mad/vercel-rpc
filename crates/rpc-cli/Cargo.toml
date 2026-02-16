@@ -10,6 +10,9 @@ keywords = ["rpc", "vercel", "cli", "serverless", "typescript"]
 categories = ["web-programming", "command-line-utilities"]
 readme = "README.md"
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin)'] }
+
 [[bin]]
 name = "rpc"
 path = "src/main.rs"
