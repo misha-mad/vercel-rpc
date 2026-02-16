@@ -104,10 +104,8 @@ pub fn emit_jsdoc(doc: &str, indent: &str, out: &mut String) {
 /// Converts a snake_case string to camelCase.
 fn to_camel_case(s: &str) -> String {
     let mut segments = s.split('_');
-    let mut result = match segments.next() {
-        Some(first) => first.to_lowercase(),
-        None => return String::new(),
-    };
+    // split() always yields at least one element
+    let mut result = segments.next().unwrap().to_lowercase();
     for segment in segments {
         let mut chars = segment.chars();
         if let Some(first) = chars.next() {
@@ -748,6 +746,24 @@ mod tests {
     }
 
     #[test]
+    fn test_jsdoc_on_mutation_procedure() {
+        let manifest = Manifest {
+            procedures: vec![Procedure {
+                name: "update".to_string(),
+                kind: ProcedureKind::Mutation,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("bool")),
+                source_file: PathBuf::from("api/update.rs"),
+                docs: Some("Update item.".to_string()),
+            }],
+            structs: vec![],
+            enums: vec![],
+        };
+        let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+        assert!(output.contains("    /** Update item. */\n    update: { input: string; output: boolean };"));
+    }
+
+    #[test]
     fn test_no_jsdoc_when_disabled() {
         let manifest = Manifest {
             procedures: vec![Procedure {
@@ -778,6 +794,7 @@ mod tests {
         assert_eq!(to_camel_case("user_id"), "userId");
         assert_eq!(to_camel_case("message"), "message");
         assert_eq!(to_camel_case("created_at_ms"), "createdAtMs");
+        assert_eq!(to_camel_case(""), "");
     }
 
     // --- camelCase field naming ---

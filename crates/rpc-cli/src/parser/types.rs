@@ -9,11 +9,8 @@ use crate::model::RustType;
 pub fn extract_rust_type(ty: &Type) -> RustType {
     match ty {
         Type::Path(type_path) => {
-            let segment = match type_path.path.segments.last() {
-                Some(s) => s,
-                None => return RustType::simple("unknown"),
-            };
-
+            // A parsed Type::Path always has at least one segment
+            let segment = &type_path.path.segments[type_path.path.segments.len() - 1];
             let name = segment.ident.to_string();
             let generics = extract_generic_args(&segment.arguments);
 
@@ -132,6 +129,55 @@ mod tests {
     fn reference_type() {
         let ty = extract_rust_type(&parse_type("&str"));
         assert_eq!(ty.name, "str");
+    }
+
+    #[test]
+    fn non_empty_tuple() {
+        let ty = extract_rust_type(&parse_type("(String, i32)"));
+        assert_eq!(ty.name, "tuple");
+        assert_eq!(ty.generics.len(), 2);
+        assert_eq!(ty.generics[0].name, "String");
+        assert_eq!(ty.generics[1].name, "i32");
+    }
+
+    #[test]
+    fn array_type() {
+        let ty = extract_rust_type(&parse_type("[u8; 32]"));
+        assert_eq!(ty.name, "Array");
+        assert_eq!(ty.generics.len(), 1);
+        assert_eq!(ty.generics[0].name, "u8");
+    }
+
+    #[test]
+    fn slice_type() {
+        // &[u8] is a reference to a slice
+        let ty = extract_rust_type(&parse_type("&[u8]"));
+        assert_eq!(ty.name, "Array");
+        assert_eq!(ty.generics.len(), 1);
+        assert_eq!(ty.generics[0].name, "u8");
+    }
+
+    #[test]
+    fn fallback_type() {
+        // Function pointer is not handled by specific arms
+        let ty = extract_rust_type(&parse_type("fn() -> bool"));
+        assert!(!ty.name.is_empty());
+    }
+
+    #[test]
+    fn lifetime_generic_ignored() {
+        // Cow<'a, str> — the lifetime generic should be filtered out
+        let ty = extract_rust_type(&parse_type("Cow<'a, str>"));
+        assert_eq!(ty.name, "Cow");
+        assert_eq!(ty.generics.len(), 1);
+        assert_eq!(ty.generics[0].name, "str");
+    }
+
+    #[test]
+    fn extract_tuple_struct_fields() {
+        let item: syn::ItemStruct = syn::parse_str("struct Wrapper(String);").unwrap();
+        let fields = extract_struct_fields(&item.fields);
+        assert!(fields.is_empty());
     }
 
     #[test]

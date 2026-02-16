@@ -515,6 +515,38 @@ mod tests {
     }
 
     #[test]
+    fn test_jsdoc_on_void_query_overload() {
+        let manifest = make_manifest(vec![
+            Procedure {
+                name: "version".to_string(),
+                kind: ProcedureKind::Query,
+                input: None,
+                output: Some(RustType::simple("String")),
+                source_file: PathBuf::from("api/version.rs"),
+                docs: Some("Get version.".to_string()),
+            },
+        ]);
+        let output = generate_client_file(&manifest, "./rpc-types", true);
+        assert!(output.contains("  /** Get version. */\n  query(key: \"version\"): Promise<string>;"));
+    }
+
+    #[test]
+    fn test_jsdoc_on_non_void_mutation_overload() {
+        let manifest = make_manifest(vec![
+            Procedure {
+                name: "update".to_string(),
+                kind: ProcedureKind::Mutation,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("bool")),
+                source_file: PathBuf::from("api/update.rs"),
+                docs: Some("Update item.".to_string()),
+            },
+        ]);
+        let output = generate_client_file(&manifest, "./rpc-types", true);
+        assert!(output.contains("  /** Update item. */\n  mutate(key: \"update\", input: string): Promise<boolean>;"));
+    }
+
+    #[test]
     fn test_no_jsdoc_on_overload_when_disabled() {
         let manifest = make_manifest(vec![Procedure {
             name: "hello".to_string(),
