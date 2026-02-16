@@ -165,7 +165,8 @@ use syn::{parse_macro_input, FnArg, ItemFn, PatType, ReturnType, Type};
 #[proc_macro_attribute]
 pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
-    generate_handler(input_fn, HandlerKind::Query)
+    build_handler(input_fn, HandlerKind::Query)
+        .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
 
@@ -241,7 +242,8 @@ pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn rpc_mutation(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
-    generate_handler(input_fn, HandlerKind::Mutation)
+    build_handler(input_fn, HandlerKind::Mutation)
+        .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
 
@@ -249,10 +251,6 @@ pub fn rpc_mutation(_attr: TokenStream, item: TokenStream) -> TokenStream {
 enum HandlerKind {
     Query,
     Mutation,
-}
-
-fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<TokenStream, syn::Error> {
-    build_handler(func, kind).map(Into::into)
 }
 
 fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenStream, syn::Error> {
