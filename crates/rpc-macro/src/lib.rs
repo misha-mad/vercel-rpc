@@ -601,6 +601,18 @@ mod tests {
         assert!(err.to_string().contains("at most one input parameter"));
     }
 
+    #[test]
+    fn self_receiver_ignored() {
+        let func: ItemFn = syn::parse_str(
+            "async fn method(self, name: String) -> String { name }",
+        )
+        .unwrap();
+        let tokens = build_handler(func, HandlerKind::Query).unwrap();
+        let code = tokens.to_string();
+        // `self` is filtered out, only `name: String` remains as input
+        assert!(code.contains("input"));
+    }
+
     // --- generate_handler: shared structure ---
 
     #[test]
