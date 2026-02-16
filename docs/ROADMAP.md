@@ -4,7 +4,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ## Phase 1 — Foundation
 
-### Configuration File (`rpc.config.toml`)
+### ~~Configuration File (`rpc.config.toml`)~~ ✅
+
+> Implemented in [RFC-2](./RFC-2.md). Full config file with CLI flag parity.
 
 Replace CLI-only configuration with a project-level config file. The CLI flags remain as overrides.
 
@@ -189,7 +191,9 @@ const [a, b] = await Promise.all([
 
 Implementation: maintain a `Map<string, Promise>` keyed by `procedure + serialized input`. Insert on the first call, delete it on settlement. This applies to queries only — mutations are never deduplicated.
 
-### JSDoc from Doc-Comments
+### ~~JSDoc from Doc-Comments~~ ✅
+
+> Implemented via `codegen.preserve_docs` config option and `--preserve-docs` CLI flag.
 
 Forward Rust `///` doc-comments to the generated TypeScript as JSDoc:
 
@@ -464,7 +468,7 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 | Phase | Focus      | Key Deliverables                                                             |
 |-------|------------|------------------------------------------------------------------------------|
-| **1** | Foundation | Config file, serde attributes, expanded type support                         |
-| **2** | Client     | Client config, per-call options, request deduplication, JSDoc generation     |
+| **1** | Foundation | ~~Config file~~ ✅, serde attributes, expanded type support                  |
+| **2** | Client     | Client config, per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
 | **3** | DX         | Svelte hooks, enum representations, generics, branded types, flatten         |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests |

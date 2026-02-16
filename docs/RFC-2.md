@@ -1,6 +1,6 @@
 # RFC-2: Configuration File (`rpc.config.toml`)
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Project-level configuration file for rpc-cli
 - **Date:** February 2026
 

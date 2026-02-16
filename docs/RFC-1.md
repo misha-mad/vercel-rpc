@@ -1,6 +1,6 @@
 # RFC-1: VRS-RPC (Vercel-Rust-SvelteKit RPC)
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Author:** OSS Maintainer / Lead Architect
 - **Topic:** Type-safe, file-based RPC for Rust Lambdas on Vercel
 - **Date:** February 2026
