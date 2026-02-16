@@ -49,13 +49,13 @@ Similarly, `#[serde(skip)]` fields appear in the TypeScript interface even thoug
 
 ### In scope (this RFC)
 
-| Attribute | Level | Effect |
-|-----------|-------|--------|
-| `rename_all` | struct, enum | Rename all fields/variants by convention |
-| `rename` | field, variant | Override name for a single field/variant |
-| `skip` | field | Omit from generated TypeScript |
-| `skip_serializing` | field | Omit from generated TypeScript |
-| `default` | field | Mark `Option<T>` fields as optional (`?`) |
+| Attribute          | Level          | Effect                                    |
+|--------------------|----------------|-------------------------------------------|
+| `rename_all`       | struct, enum   | Rename all fields/variants by convention  |
+| `rename`           | field, variant | Override name for a single field/variant  |
+| `skip`             | field          | Omit from generated TypeScript            |
+| `skip_serializing` | field          | Omit from generated TypeScript            |
+| `default`          | field          | Mark `Option<T>` fields as optional (`?`) |
 
 ### Out of scope (deferred to future RFCs)
 
@@ -296,27 +296,27 @@ if field.has_default && is_option_type(&field.ty) {
 
 The config-level `fields = "camelCase"` setting acts as a fallback. Serde attributes always take priority:
 
-| serde attr | config naming | result |
-|------------|--------------|--------|
-| `rename = "foo"` | any | `foo` |
-| `rename_all = "camelCase"` | any | camelCase from serde |
-| none | `camelCase` | camelCase from config |
-| none | `preserve` | original name |
+| serde attr                 | config naming | result                |
+|----------------------------|---------------|-----------------------|
+| `rename = "foo"`           | any           | `foo`                 |
+| `rename_all = "camelCase"` | any           | camelCase from serde  |
+| none                       | `camelCase`   | camelCase from config |
+| none                       | `preserve`    | original name         |
 
 ## 7. `RenameRule` Transformation Logic
 
 Each rule splits the input into words (by `_` for snake_case fields, by uppercase boundaries for PascalCase variants) and reassembles:
 
-| Rule | Input `first_name` | Input `MyVariant` |
-|------|-------------------|-------------------|
-| `camelCase` | `firstName` | `myVariant` |
-| `snake_case` | `first_name` | `my_variant` |
-| `PascalCase` | `FirstName` | `MyVariant` |
-| `SCREAMING_SNAKE_CASE` | `FIRST_NAME` | `MY_VARIANT` |
-| `kebab-case` | `first-name` | `my-variant` |
-| `SCREAMING-KEBAB-CASE` | `FIRST-NAME` | `MY-VARIANT` |
-| `lowercase` | `firstname` | `myvariant` |
-| `UPPERCASE` | `FIRSTNAME` | `MYVARIANT` |
+| Rule                   | Input `first_name` | Input `MyVariant` |
+|------------------------|--------------------|-------------------|
+| `camelCase`            | `firstName`        | `myVariant`       |
+| `snake_case`           | `first_name`       | `my_variant`      |
+| `PascalCase`           | `FirstName`        | `MyVariant`       |
+| `SCREAMING_SNAKE_CASE` | `FIRST_NAME`       | `MY_VARIANT`      |
+| `kebab-case`           | `first-name`       | `my-variant`      |
+| `SCREAMING-KEBAB-CASE` | `FIRST-NAME`       | `MY-VARIANT`      |
+| `lowercase`            | `firstname`        | `myvariant`       |
+| `UPPERCASE`            | `FIRSTNAME`        | `MYVARIANT`       |
 
 Implementation: a shared `fn split_words(input: &str) -> Vec<String>` that handles both snake_case and PascalCase inputs, then each rule joins words with its convention.
 
@@ -441,68 +441,68 @@ export interface UserProfile {
 
 ## 9. Files Modified
 
-| File | Action |
-|------|--------|
-| `crates/rpc-cli/src/model.rs` | Add `FieldDef`, `RenameRule`; update `StructDef`, `EnumDef`, `EnumVariant`, `VariantKind` |
-| `crates/rpc-cli/src/parser/serde.rs` | **New** — serde attribute parsing helpers |
-| `crates/rpc-cli/src/parser.rs` | Add `pub mod serde;` |
-| `crates/rpc-cli/src/parser/extract.rs` | Use `FieldDef`, parse serde attrs on structs/enums/fields/variants |
-| `crates/rpc-cli/src/codegen/typescript.rs` | Use `resolve_field_name`, skip logic, optional fields |
-| `crates/rpc-cli/src/codegen/client.rs` | No changes expected (operates on procedure level) |
-| `crates/rpc-cli/tests/*.rs` | Update existing tests for `FieldDef`, add serde-specific tests |
+| File                                       | Action                                                                                    |
+|--------------------------------------------|-------------------------------------------------------------------------------------------|
+| `crates/rpc-cli/src/model.rs`              | Add `FieldDef`, `RenameRule`; update `StructDef`, `EnumDef`, `EnumVariant`, `VariantKind` |
+| `crates/rpc-cli/src/parser/serde.rs`       | **New** — serde attribute parsing helpers                                                 |
+| `crates/rpc-cli/src/parser.rs`             | Add `pub mod serde;`                                                                      |
+| `crates/rpc-cli/src/parser/extract.rs`     | Use `FieldDef`, parse serde attrs on structs/enums/fields/variants                        |
+| `crates/rpc-cli/src/codegen/typescript.rs` | Use `resolve_field_name`, skip logic, optional fields                                     |
+| `crates/rpc-cli/src/codegen/client.rs`     | No changes expected (operates on procedure level)                                         |
+| `crates/rpc-cli/tests/*.rs`                | Update existing tests for `FieldDef`, add serde-specific tests                            |
 
 ## 10. Test Plan
 
 ### Unit tests (parser/serde.rs)
 
-| Test | Description |
-|------|-------------|
-| `parse_rename_all_camel_case` | `#[serde(rename_all = "camelCase")]` returns `CamelCase` |
-| `parse_rename_all_snake_case` | `#[serde(rename_all = "snake_case")]` returns `SnakeCase` |
-| `parse_rename_all_all_variants` | All 8 rename rules parse correctly |
-| `parse_rename_all_missing` | No serde attr returns `None` |
-| `parse_rename_value` | `#[serde(rename = "foo")]` returns `Some("foo")` |
-| `is_skipped_skip` | `#[serde(skip)]` returns `true` |
-| `is_skipped_skip_serializing` | `#[serde(skip_serializing)]` returns `true` |
-| `is_skipped_skip_deserializing` | `#[serde(skip_deserializing)]` returns `false` |
-| `is_skipped_none` | No skip attr returns `false` |
-| `has_default_present` | `#[serde(default)]` returns `true` |
+| Test                            | Description                                               |
+|---------------------------------|-----------------------------------------------------------|
+| `parse_rename_all_camel_case`   | `#[serde(rename_all = "camelCase")]` returns `CamelCase`  |
+| `parse_rename_all_snake_case`   | `#[serde(rename_all = "snake_case")]` returns `SnakeCase` |
+| `parse_rename_all_all_variants` | All 8 rename rules parse correctly                        |
+| `parse_rename_all_missing`      | No serde attr returns `None`                              |
+| `parse_rename_value`            | `#[serde(rename = "foo")]` returns `Some("foo")`          |
+| `is_skipped_skip`               | `#[serde(skip)]` returns `true`                           |
+| `is_skipped_skip_serializing`   | `#[serde(skip_serializing)]` returns `true`               |
+| `is_skipped_skip_deserializing` | `#[serde(skip_deserializing)]` returns `false`            |
+| `is_skipped_none`               | No skip attr returns `false`                              |
+| `has_default_present`           | `#[serde(default)]` returns `true`                        |
 
 ### Unit tests (model — RenameRule)
 
-| Test | Description |
-|------|-------------|
-| `rename_rule_camel_case` | `first_name` → `firstName`, `MyVariant` → `myVariant` |
-| `rename_rule_snake_case` | `MyVariant` → `my_variant` |
-| `rename_rule_pascal_case` | `first_name` → `FirstName` |
-| `rename_rule_screaming_snake` | `first_name` → `FIRST_NAME` |
-| `rename_rule_kebab` | `first_name` → `first-name` |
-| `rename_rule_screaming_kebab` | `first_name` → `FIRST-NAME` |
-| `rename_rule_lowercase` | `first_name` → `firstname` |
-| `rename_rule_uppercase` | `first_name` → `FIRSTNAME` |
+| Test                          | Description                                           |
+|-------------------------------|-------------------------------------------------------|
+| `rename_rule_camel_case`      | `first_name` → `firstName`, `MyVariant` → `myVariant` |
+| `rename_rule_snake_case`      | `MyVariant` → `my_variant`                            |
+| `rename_rule_pascal_case`     | `first_name` → `FirstName`                            |
+| `rename_rule_screaming_snake` | `first_name` → `FIRST_NAME`                           |
+| `rename_rule_kebab`           | `first_name` → `first-name`                           |
+| `rename_rule_screaming_kebab` | `first_name` → `FIRST-NAME`                           |
+| `rename_rule_lowercase`       | `first_name` → `firstname`                            |
+| `rename_rule_uppercase`       | `first_name` → `FIRSTNAME`                            |
 
 ### Integration tests (extract)
 
-| Test | Description |
-|------|-------------|
-| `struct_rename_all` | Struct with `rename_all` parsed into model |
-| `struct_field_rename` | Field-level `rename` parsed |
-| `struct_field_skip` | Skipped field has `skip: true` |
+| Test                   | Description                                  |
+|------------------------|----------------------------------------------|
+| `struct_rename_all`    | Struct with `rename_all` parsed into model   |
+| `struct_field_rename`  | Field-level `rename` parsed                  |
+| `struct_field_skip`    | Skipped field has `skip: true`               |
 | `struct_field_default` | Field with `default` has `has_default: true` |
-| `enum_rename_all` | Enum `rename_all` parsed |
-| `enum_variant_rename` | Variant-level `rename` parsed |
+| `enum_rename_all`      | Enum `rename_all` parsed                     |
+| `enum_variant_rename`  | Variant-level `rename` parsed                |
 
 ### Integration tests (codegen)
 
-| Test | Description |
-|------|-------------|
-| `ts_struct_rename_all_camel` | Fields renamed in generated TS |
-| `ts_field_rename_overrides_rename_all` | `rename` takes priority |
-| `ts_skip_field_omitted` | Skipped fields not in output |
-| `ts_default_option_optional` | `default` + `Option<T>` → `field?: T \| null` |
-| `ts_enum_rename_all_snake` | Variant names transformed in union |
-| `ts_enum_variant_rename` | Single variant override |
-| `ts_rename_all_priority_over_config` | Serde attr beats `codegen.naming.fields` |
+| Test                                   | Description                                   |
+|----------------------------------------|-----------------------------------------------|
+| `ts_struct_rename_all_camel`           | Fields renamed in generated TS                |
+| `ts_field_rename_overrides_rename_all` | `rename` takes priority                       |
+| `ts_skip_field_omitted`                | Skipped fields not in output                  |
+| `ts_default_option_optional`           | `default` + `Option<T>` → `field?: T \| null` |
+| `ts_enum_rename_all_snake`             | Variant names transformed in union            |
+| `ts_enum_variant_rename`               | Single variant override                       |
+| `ts_rename_all_priority_over_config`   | Serde attr beats `codegen.naming.fields`      |
 
 ## 11. Backward Compatibility
 
