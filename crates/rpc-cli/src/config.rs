@@ -37,11 +37,13 @@ pub struct ImportsConfig {
     pub extension: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, clap::ValueEnum)]
 pub enum FieldNaming {
     #[serde(rename = "preserve")]
+    #[value(name = "preserve")]
     Preserve,
     #[serde(rename = "camelCase")]
+    #[value(name = "camelCase")]
     CamelCase,
 }
 
@@ -170,10 +172,21 @@ pub fn load(path: &Path) -> Result<RpcConfig> {
 pub struct CliOverrides {
     pub config: Option<PathBuf>,
     pub no_config: bool,
+    // input
     pub dir: Option<PathBuf>,
+    pub include: Vec<String>,
+    pub exclude: Vec<String>,
+    // output
     pub output: Option<PathBuf>,
     pub client_output: Option<PathBuf>,
     pub types_import: Option<String>,
+    pub extension: Option<String>,
+    // codegen
+    pub preserve_docs: bool,
+    pub fields: Option<FieldNaming>,
+    // watch
+    pub debounce_ms: Option<u64>,
+    pub clear_screen: bool,
 }
 
 /// Resolve config: discover/load the file, then apply CLI overrides.
@@ -194,6 +207,12 @@ pub fn resolve(cli: &CliOverrides) -> Result<RpcConfig> {
     if let Some(dir) = &cli.dir {
         config.input.dir = dir.clone();
     }
+    if !cli.include.is_empty() {
+        config.input.include = cli.include.clone();
+    }
+    if !cli.exclude.is_empty() {
+        config.input.exclude = cli.exclude.clone();
+    }
     if let Some(output) = &cli.output {
         config.output.types = output.clone();
     }
@@ -202,6 +221,21 @@ pub fn resolve(cli: &CliOverrides) -> Result<RpcConfig> {
     }
     if let Some(types_import) = &cli.types_import {
         config.output.imports.types_path = types_import.clone();
+    }
+    if let Some(extension) = &cli.extension {
+        config.output.imports.extension = extension.clone();
+    }
+    if cli.preserve_docs {
+        config.codegen.preserve_docs = true;
+    }
+    if let Some(fields) = cli.fields {
+        config.codegen.naming.fields = fields;
+    }
+    if let Some(debounce_ms) = cli.debounce_ms {
+        config.watch.debounce_ms = debounce_ms;
+    }
+    if cli.clear_screen {
+        config.watch.clear_screen = true;
     }
 
     Ok(config)
@@ -439,32 +473,34 @@ client = "client.ts"
         assert_eq!(config.input.dir, PathBuf::from("lambdas"));
 
         // Now test that CLI overrides work
-        let mut config = load(&config_path).unwrap();
         let overrides = CliOverrides {
-            config: None,
+            config: Some(config_path),
             no_config: false,
             dir: Some(PathBuf::from("other")),
+            include: vec!["handlers/**/*.rs".into()],
+            exclude: vec!["**/test_*.rs".into()],
             output: Some(PathBuf::from("out.ts")),
             client_output: None,
             types_import: Some("./my-types".to_string()),
+            extension: Some(".js".to_string()),
+            preserve_docs: true,
+            fields: Some(FieldNaming::CamelCase),
+            debounce_ms: Some(500),
+            clear_screen: true,
         };
 
-        if let Some(dir) = &overrides.dir {
-            config.input.dir = dir.clone();
-        }
-        if let Some(output) = &overrides.output {
-            config.output.types = output.clone();
-        }
-        if let Some(client_output) = &overrides.client_output {
-            config.output.client = client_output.clone();
-        }
-        if let Some(types_import) = &overrides.types_import {
-            config.output.imports.types_path = types_import.clone();
-        }
+        let config = resolve(&overrides).unwrap();
 
         assert_eq!(config.input.dir, PathBuf::from("other"));
+        assert_eq!(config.input.include, vec!["handlers/**/*.rs".to_string()]);
+        assert_eq!(config.input.exclude, vec!["**/test_*.rs".to_string()]);
         assert_eq!(config.output.types, PathBuf::from("out.ts"));
         assert_eq!(config.output.client, PathBuf::from("client.ts")); // not overridden
         assert_eq!(config.output.imports.types_path, "./my-types");
+        assert_eq!(config.output.imports.extension, ".js");
+        assert!(config.codegen.preserve_docs);
+        assert_eq!(config.codegen.naming.fields, FieldNaming::CamelCase);
+        assert_eq!(config.watch.debounce_ms, 500);
+        assert!(config.watch.clear_screen);
     }
 }

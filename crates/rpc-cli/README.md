@@ -302,15 +302,21 @@ A config file sets project-level defaults; CLI flags override them per invocatio
 
 ## Flags
 
-| Flag              | Short | Default                 | Description                                            |
-|-------------------|-------|-------------------------|--------------------------------------------------------|
-| `--dir`           | `-d`  | `api`                   | Rust source directory to scan                          |
-| `--output`        | `-o`  | `src/lib/rpc-types.ts`  | Output path for TypeScript types                       |
-| `--client-output` | `-c`  | `src/lib/rpc-client.ts` | Output path for TypeScript client                      |
-| `--types-import`  |       | `./rpc-types`           | Import path for types in the client file               |
-| `--config`        |       | *(auto-discover)*       | Path to config file                                    |
-| `--clear-screen`  |       | `false`                 | Clear terminal before each regeneration (`watch` only) |
-| `--no-config`     |       | `false`                 | Disable config file loading                            |
+| Flag              | Short | Default                 | Commands              | Description                                           |
+|-------------------|-------|-------------------------|-----------------------|-------------------------------------------------------|
+| `--dir`           | `-d`  | `api`                   | scan, generate, watch | Rust source directory to scan                         |
+| `--include`       |       | `**/*.rs`               | scan, generate, watch | Glob pattern for files to include (repeatable)        |
+| `--exclude`       |       | *(none)*                | scan, generate, watch | Glob pattern for files to exclude (repeatable)        |
+| `--output`        | `-o`  | `src/lib/rpc-types.ts`  | generate, watch       | Output path for TypeScript types                      |
+| `--client-output` | `-c`  | `src/lib/rpc-client.ts` | generate, watch       | Output path for TypeScript client                     |
+| `--types-import`  |       | `./rpc-types`           | generate, watch       | Import path for types in the client file              |
+| `--extension`     |       | `""`                    | generate, watch       | Suffix appended to types import (e.g. `.js` for ESM)  |
+| `--preserve-docs` |       | `false`                 | generate, watch       | Forward Rust doc comments as JSDoc                    |
+| `--fields`        |       | `preserve`              | generate, watch       | Field naming: `preserve` or `camelCase`               |
+| `--debounce-ms`   |       | `200`                   | watch                 | File watcher debounce interval in milliseconds        |
+| `--clear-screen`  |       | `false`                 | watch                 | Clear terminal before each regeneration               |
+| `--config`        |       | *(auto-discover)*       | *(global)*            | Path to config file                                   |
+| `--no-config`     |       | `false`                 | *(global)*            | Disable config file loading                           |
 
 ## What gets scanned
 
