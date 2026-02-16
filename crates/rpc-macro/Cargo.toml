@@ -10,6 +10,9 @@ keywords = ["rpc", "vercel", "macro", "serverless", "svelte"]
 categories = ["web-programming", "development-tools::procedural-macro-helpers"]
 readme = "README.md"
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin)'] }
+
 [lib]
 proc-macro = true
 
