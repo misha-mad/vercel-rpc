@@ -8,9 +8,9 @@
 
 [![CI](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/misha-mad/vercel-rpc/graph/badge.svg)](https://codecov.io/gh/misha-mad/vercel-rpc)
-[![Rust Tests](https://img.shields.io/badge/rust_tests-117_passed-brightgreen?logo=rust)](./crates)
-[![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./demo/tests/integration)
-[![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./demo/tests/e2e)
+[![Rust Tests](https://img.shields.io/badge/rust_tests-passed-brightgreen?logo=rust)](./crates)
+[![Vitest](https://img.shields.io/badge/vitest-passed-brightgreen?logo=vitest)](./demo/tests/integration)
+[![Playwright](https://img.shields.io/badge/e2e-passed-brightgreen?logo=playwright)](./demo/tests/e2e)
 [![TypeScript](https://img.shields.io/badge/types-auto--generated-blue?logo=typescript)](./demo/src/lib/rpc-types.ts)
 [![Vercel](https://img.shields.io/badge/deploy-vercel-black?logo=vercel)](https://vercel.com)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-yellow.svg)](#license)
