@@ -1,6 +1,7 @@
 # vercel-rpc-cli
 
 [![Crates.io](https://img.shields.io/crates/v/vercel-rpc-cli.svg)](https://crates.io/crates/vercel-rpc-cli)
+[![codecov](https://codecov.io/gh/misha-mad/vercel-rpc/graph/badge.svg?flag=rpc-cli)](https://codecov.io/gh/misha-mad/vercel-rpc)
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/vercel-rpc-cli.svg)](https://github.com/misha-mad/vercel-rpc/blob/main/LICENSE-MIT)
 
 CLI that scans Rust lambda source files annotated with `#[rpc_query]` /
