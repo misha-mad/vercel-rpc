@@ -47,10 +47,7 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
             if !e.path().extension().is_some_and(|ext| ext == "rs") {
                 return false;
             }
-            let rel = match e.path().strip_prefix(&input.dir) {
-                Ok(r) => r,
-                Err(_) => e.path(),
-            };
+            let rel = e.path().strip_prefix(&input.dir).unwrap_or(e.path());
             include_set.is_match(rel) && !exclude_set.is_match(rel)
         })
         .collect();
@@ -167,14 +164,10 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
     let name = func.sig.ident.to_string();
     let docs = extract_docs(&func.attrs);
 
-    let input = func
-        .sig
-        .inputs
-        .iter()
-        .find_map(|arg| match arg {
-            FnArg::Typed(pat) => Some(extract_rust_type(&pat.ty)),
-            _ => None,
-        });
+    let input = func.sig.inputs.iter().find_map(|arg| {
+        let FnArg::Typed(pat) = arg else { return None };
+        Some(extract_rust_type(&pat.ty))
+    });
 
     let output = match &func.sig.output {
         ReturnType::Default => None,
@@ -253,14 +246,14 @@ fn has_serde_derive(attrs: &[Attribute]) -> bool {
         if !attr.path().is_ident("derive") {
             return false;
         }
-        let Ok(nested) = attr.parse_args_with(
+        attr.parse_args_with(
             syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
-        ) else {
-            return false;
-        };
-        nested.iter().any(|path| {
-            path.is_ident("Serialize")
-                || path.segments.last().is_some_and(|s| s.ident == "Serialize")
+        )
+        .is_ok_and(|nested| {
+            nested.iter().any(|path| {
+                path.is_ident("Serialize")
+                    || path.segments.last().is_some_and(|s| s.ident == "Serialize")
+            })
         })
     })
 }

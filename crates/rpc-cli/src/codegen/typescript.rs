@@ -104,10 +104,8 @@ pub fn emit_jsdoc(doc: &str, indent: &str, out: &mut String) {
 /// Converts a snake_case string to camelCase.
 fn to_camel_case(s: &str) -> String {
     let mut segments = s.split('_');
-    let mut result = match segments.next() {
-        Some(first) => first.to_lowercase(),
-        None => return String::new(),
-    };
+    // split() always yields at least one element
+    let mut result = segments.next().unwrap().to_lowercase();
     for segment in segments {
         let mut chars = segment.chars();
         if let Some(first) = chars.next() {
