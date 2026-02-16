@@ -162,7 +162,6 @@ use syn::{parse_macro_input, FnArg, ItemFn, PatType, ReturnType, Type};
 /// async fn bad(a: String, b: u32) -> String { todo!() }
 /// // error: RPC handlers accept at most one input parameter
 /// ```
-#[cfg_attr(tarpaulin, skip)]
 #[proc_macro_attribute]
 pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
@@ -240,7 +239,6 @@ pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
 /// async fn bad(a: String, b: u32) -> String { todo!() }
 /// // error: RPC handlers accept at most one input parameter
 /// ```
-#[cfg_attr(tarpaulin, skip)]
 #[proc_macro_attribute]
 pub fn rpc_mutation(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
