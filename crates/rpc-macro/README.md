@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/vercel-rpc-macro.svg)](https://crates.io/crates/vercel-rpc-macro)
 [![docs.rs](https://docs.rs/vercel-rpc-macro/badge.svg)](https://docs.rs/vercel-rpc-macro)
+[![codecov](https://codecov.io/gh/misha-mad/vercel-rpc/graph/badge.svg?flag=rpc-macro)](https://codecov.io/gh/misha-mad/vercel-rpc)
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/vercel-rpc-macro.svg)](https://github.com/misha-mad/vercel-rpc/blob/main/LICENSE-MIT)
 
 Procedural macros that turn plain async Rust functions into
