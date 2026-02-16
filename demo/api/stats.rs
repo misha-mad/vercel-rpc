@@ -1,9 +1,10 @@
 use serde::Serialize;
 use std::collections::HashMap;
+#[cfg(not(test))]
 use vercel_rpc_macro::rpc_query;
 
 /// Descriptive statistics for a list of numbers.
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Stats {
     pub count: u32,
     pub sum: f64,
@@ -13,9 +14,7 @@ pub struct Stats {
     pub frequencies: HashMap<String, u32>,
 }
 
-/// Compute descriptive statistics for a list of numbers.
-#[rpc_query]
-async fn stats(numbers: Vec<f64>) -> Result<Stats, String> {
+fn stats_handler(numbers: Vec<f64>) -> Result<Stats, String> {
     if numbers.is_empty() {
         return Err("Cannot compute stats for empty list".to_string());
     }
@@ -40,4 +39,49 @@ async fn stats(numbers: Vec<f64>) -> Result<Stats, String> {
         max,
         frequencies,
     })
+}
+
+/// Compute descriptive statistics for a list of numbers.
+#[cfg(not(test))]
+#[rpc_query]
+async fn stats(numbers: Vec<f64>) -> Result<Stats, String> {
+    stats_handler(numbers)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic() {
+        let r = stats_handler(vec![1.0, 2.0, 3.0, 4.0, 5.0]).unwrap();
+        assert_eq!(r.count, 5);
+        assert_eq!(r.sum, 15.0);
+        assert_eq!(r.mean, 3.0);
+        assert_eq!(r.min, 1.0);
+        assert_eq!(r.max, 5.0);
+    }
+
+    #[test]
+    fn test_frequencies() {
+        let r = stats_handler(vec![1.0, 2.0, 2.0, 3.0, 3.0, 3.0]).unwrap();
+        assert_eq!(r.frequencies.get("1"), Some(&1));
+        assert_eq!(r.frequencies.get("2"), Some(&2));
+        assert_eq!(r.frequencies.get("3"), Some(&3));
+    }
+
+    #[test]
+    fn test_single() {
+        let r = stats_handler(vec![42.0]).unwrap();
+        assert_eq!(r.count, 1);
+        assert_eq!(r.mean, 42.0);
+        assert_eq!(r.min, 42.0);
+        assert_eq!(r.max, 42.0);
+    }
+
+    #[test]
+    fn test_empty() {
+        let r = stats_handler(vec![]);
+        assert_eq!(r.unwrap_err(), "Cannot compute stats for empty list");
+    }
 }
