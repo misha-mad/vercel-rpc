@@ -1,0 +1,197 @@
+use std::fs;
+
+use tempfile::TempDir;
+
+use vercel_rpc_cli::commands::{bytecount, cmd_generate, cmd_scan, write_file};
+use vercel_rpc_cli::config;
+
+// --- bytecount ---
+
+#[test]
+fn bytecount_small() {
+    assert_eq!(bytecount("hello"), "5 bytes");
+}
+
+#[test]
+fn bytecount_empty() {
+    assert_eq!(bytecount(""), "0 bytes");
+}
+
+#[test]
+fn bytecount_kilobytes() {
+    let s = "x".repeat(2048);
+    assert_eq!(bytecount(&s), "2.0 KB");
+}
+
+#[test]
+fn bytecount_boundary() {
+    let s = "x".repeat(1023);
+    assert_eq!(bytecount(&s), "1023 bytes");
+}
+
+// --- write_file ---
+
+#[test]
+fn write_file_creates_parent_dirs() {
+    let tmp = TempDir::new().unwrap();
+    let path = tmp.path().join("a/b/c/output.ts");
+    write_file(&path, "content").unwrap();
+    assert_eq!(fs::read_to_string(&path).unwrap(), "content");
+}
+
+#[test]
+fn write_file_overwrites_existing() {
+    let tmp = TempDir::new().unwrap();
+    let path = tmp.path().join("out.ts");
+    write_file(&path, "first").unwrap();
+    write_file(&path, "second").unwrap();
+    assert_eq!(fs::read_to_string(&path).unwrap(), "second");
+}
+
+// --- cmd_scan ---
+
+#[test]
+fn cmd_scan_empty_dir_errors() {
+    let tmp = TempDir::new().unwrap();
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: tmp.path().to_path_buf(),
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        ..config::RpcConfig::default()
+    };
+    let err = cmd_scan(&cfg).unwrap_err();
+    assert!(err.to_string().contains("No .rs files found"));
+}
+
+#[test]
+fn cmd_scan_with_procedure() {
+    let tmp = TempDir::new().unwrap();
+    fs::write(
+        tmp.path().join("hello.rs"),
+        r#"
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct Greeting {
+    message: String,
+}
+
+#[rpc_query]
+async fn hello(name: String) -> Greeting {
+    Greeting { message: format!("Hello, {}!", name) }
+}
+"#,
+    )
+    .unwrap();
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: tmp.path().to_path_buf(),
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_scan(&cfg).unwrap();
+}
+
+#[test]
+fn cmd_scan_with_enum() {
+    let tmp = TempDir::new().unwrap();
+    fs::write(
+        tmp.path().join("status.rs"),
+        r#"
+use serde::Serialize;
+
+#[derive(Serialize)]
+enum Status {
+    Active,
+    Inactive,
+}
+
+#[rpc_query]
+async fn get_status() -> Status {
+    Status::Active
+}
+"#,
+    )
+    .unwrap();
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: tmp.path().to_path_buf(),
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_scan(&cfg).unwrap();
+}
+
+// --- cmd_generate ---
+
+#[test]
+fn cmd_generate_produces_files() {
+    let tmp = TempDir::new().unwrap();
+    let api_dir = tmp.path().join("api");
+    fs::create_dir(&api_dir).unwrap();
+    fs::write(
+        api_dir.join("ping.rs"),
+        r#"
+#[rpc_query]
+async fn ping() -> String {
+    "pong".to_string()
+}
+"#,
+    )
+    .unwrap();
+
+    let types_path = tmp.path().join("out/rpc-types.ts");
+    let client_path = tmp.path().join("out/rpc-client.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: api_dir,
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path.clone(),
+            client: client_path.clone(),
+            imports: config::ImportsConfig::default(),
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_generate(&cfg).unwrap();
+
+    let types = fs::read_to_string(&types_path).unwrap();
+    assert!(types.contains("ping"));
+
+    let client = fs::read_to_string(&client_path).unwrap();
+    assert!(client.contains("ping"));
+}
+
+#[test]
+fn cmd_generate_empty_dir_errors() {
+    let tmp = TempDir::new().unwrap();
+    let types_path = tmp.path().join("rpc-types.ts");
+    let client_path = tmp.path().join("rpc-client.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: tmp.path().to_path_buf(),
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path,
+            client: client_path,
+            imports: config::ImportsConfig::default(),
+        },
+        ..config::RpcConfig::default()
+    };
+    let err = cmd_generate(&cfg).unwrap_err();
+    assert!(err.to_string().contains("No .rs files found"));
+}
