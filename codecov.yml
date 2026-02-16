@@ -1,0 +1,7 @@
+flags:
+  rpc-cli:
+    paths:
+      - crates/rpc-cli/
+  rpc-macro:
+    paths:
+      - crates/rpc-macro/
