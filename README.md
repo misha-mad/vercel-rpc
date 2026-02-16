@@ -508,7 +508,7 @@ Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
   <em>You could be the first sponsor! ❤️</em>
 </div>
 
-If you find this project useful, consider [sponsoring](https://github.com/sponsors/misha-mad) to support its development.
+<p align="center">If you find this project useful, consider <a href="https://github.com/sponsors/misha-mad">sponsoring</a> to support its development.</p>
 
 ## License
 
