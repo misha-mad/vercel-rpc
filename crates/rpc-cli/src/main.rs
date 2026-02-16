@@ -106,6 +106,10 @@ enum Command {
         /// Import path for the types file used in the client (relative, without extension)
         #[arg(long)]
         types_import: Option<String>,
+
+        /// Clear the terminal before each regeneration
+        #[arg(long)]
+        clear_screen: bool,
     },
 }
 
@@ -135,8 +139,8 @@ fn main() -> Result<()> {
             })?;
             cmd_generate(&cfg)
         }
-        Command::Watch { dir, output, client_output, types_import } => {
-            let cfg = config::resolve(&config::CliOverrides {
+        Command::Watch { dir, output, client_output, types_import, clear_screen } => {
+            let mut cfg = config::resolve(&config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
                 dir,
@@ -144,6 +148,9 @@ fn main() -> Result<()> {
                 client_output,
                 types_import,
             })?;
+            if clear_screen {
+                cfg.watch.clear_screen = true;
+            }
             watch::run(&cfg)
         }
     }

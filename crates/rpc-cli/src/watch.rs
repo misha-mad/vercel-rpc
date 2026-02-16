@@ -24,6 +24,9 @@ pub fn run(config: &RpcConfig) -> Result<()> {
     })
     .context("Failed to set Ctrl+C handler")?;
 
+    if config.watch.clear_screen {
+        clear_screen();
+    }
     print_banner(config);
 
     // Initial generation
@@ -64,6 +67,11 @@ pub fn run(config: &RpcConfig) -> Result<()> {
                         .filter(|e| e.path.extension().is_some_and(|ext| ext == "rs"))
                         .map(|e| e.path.as_path())
                         .collect();
+
+                    if config.watch.clear_screen {
+                        clear_screen();
+                        print_banner(config);
+                    }
 
                     print_change(&changed);
 
@@ -171,6 +179,10 @@ fn print_change(paths: &[&Path]) {
         let name = p.file_name().map(|n| n.to_string_lossy()).unwrap_or_default();
         println!("\n  {} {}", "↻".yellow().bold(), name);
     }
+}
+
+fn clear_screen() {
+    print!("\x1B[2J\x1B[H");
 }
 
 fn print_error(err: &anyhow::Error) {
