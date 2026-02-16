@@ -503,4 +503,113 @@ client = "client.ts"
         assert_eq!(config.watch.debounce_ms, 500);
         assert!(config.watch.clear_screen);
     }
+
+    #[test]
+    fn test_resolve_no_config_flag() {
+        let overrides = CliOverrides {
+            config: None,
+            no_config: true,
+            dir: Some(PathBuf::from("custom")),
+            include: vec![],
+            exclude: vec![],
+            output: None,
+            client_output: None,
+            types_import: None,
+            extension: None,
+            preserve_docs: false,
+            fields: None,
+            debounce_ms: None,
+            clear_screen: false,
+        };
+        let config = resolve(&overrides).unwrap();
+        assert_eq!(config.input.dir, PathBuf::from("custom"));
+        // Everything else should be defaults
+        assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
+    }
+
+    #[test]
+    fn test_resolve_auto_discovery() {
+        let tmp = TempDir::new().unwrap();
+        let config_path = tmp.path().join(CONFIG_FILE_NAME);
+        std::fs::write(
+            &config_path,
+            "[input]\ndir = \"discovered\"\n",
+        )
+        .unwrap();
+
+        // Run resolve from inside the tmp dir (auto-discover)
+        let orig_dir = std::env::current_dir().unwrap();
+        std::env::set_current_dir(tmp.path()).unwrap();
+
+        let overrides = CliOverrides {
+            config: None,
+            no_config: false,
+            dir: None,
+            include: vec![],
+            exclude: vec![],
+            output: None,
+            client_output: None,
+            types_import: None,
+            extension: None,
+            preserve_docs: false,
+            fields: None,
+            debounce_ms: None,
+            clear_screen: false,
+        };
+        let config = resolve(&overrides).unwrap();
+        std::env::set_current_dir(orig_dir).unwrap();
+
+        assert_eq!(config.input.dir, PathBuf::from("discovered"));
+    }
+
+    #[test]
+    fn test_resolve_auto_discovery_not_found() {
+        let tmp = TempDir::new().unwrap();
+        // No config file in tmp dir
+        let orig_dir = std::env::current_dir().unwrap();
+        std::env::set_current_dir(tmp.path()).unwrap();
+
+        let overrides = CliOverrides {
+            config: None,
+            no_config: false,
+            dir: None,
+            include: vec![],
+            exclude: vec![],
+            output: None,
+            client_output: None,
+            types_import: None,
+            extension: None,
+            preserve_docs: false,
+            fields: None,
+            debounce_ms: None,
+            clear_screen: false,
+        };
+        let config = resolve(&overrides).unwrap();
+        std::env::set_current_dir(orig_dir).unwrap();
+
+        // Should fall back to defaults when no config file found
+        assert_eq!(config.input.dir, PathBuf::from("api"));
+        assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
+    }
+
+    #[test]
+    fn test_resolve_client_output_override() {
+        let overrides = CliOverrides {
+            config: None,
+            no_config: true,
+            dir: None,
+            include: vec![],
+            exclude: vec![],
+            output: None,
+            client_output: Some(PathBuf::from("custom-client.ts")),
+            types_import: None,
+            extension: None,
+            preserve_docs: false,
+            fields: None,
+            debounce_ms: None,
+            clear_screen: false,
+        };
+        let config = resolve(&overrides).unwrap();
+        assert_eq!(config.output.client, PathBuf::from("custom-client.ts"));
+    }
 }

@@ -748,6 +748,24 @@ mod tests {
     }
 
     #[test]
+    fn test_jsdoc_on_mutation_procedure() {
+        let manifest = Manifest {
+            procedures: vec![Procedure {
+                name: "update".to_string(),
+                kind: ProcedureKind::Mutation,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("bool")),
+                source_file: PathBuf::from("api/update.rs"),
+                docs: Some("Update item.".to_string()),
+            }],
+            structs: vec![],
+            enums: vec![],
+        };
+        let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+        assert!(output.contains("    /** Update item. */\n    update: { input: string; output: boolean };"));
+    }
+
+    #[test]
     fn test_no_jsdoc_when_disabled() {
         let manifest = Manifest {
             procedures: vec![Procedure {
@@ -778,6 +796,7 @@ mod tests {
         assert_eq!(to_camel_case("user_id"), "userId");
         assert_eq!(to_camel_case("message"), "message");
         assert_eq!(to_camel_case("created_at_ms"), "createdAtMs");
+        assert_eq!(to_camel_case(""), "");
     }
 
     // --- camelCase field naming ---

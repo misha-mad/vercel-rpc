@@ -439,6 +439,39 @@ async fn hello(name: String) -> Greeting {
         cmd_scan(&cfg).unwrap();
     }
 
+    #[test]
+    fn cmd_scan_with_enum() {
+        let tmp = TempDir::new().unwrap();
+        fs::write(
+            tmp.path().join("status.rs"),
+            r#"
+use serde::Serialize;
+
+#[derive(Serialize)]
+enum Status {
+    Active,
+    Inactive,
+}
+
+#[rpc_query]
+async fn get_status() -> Status {
+    Status::Active
+}
+"#,
+        )
+        .unwrap();
+
+        let cfg = RpcConfig {
+            input: config::InputConfig {
+                dir: tmp.path().to_path_buf(),
+                include: vec!["**/*.rs".into()],
+                exclude: vec![],
+            },
+            ..RpcConfig::default()
+        };
+        cmd_scan(&cfg).unwrap();
+    }
+
     // --- cmd_generate ---
 
     #[test]
