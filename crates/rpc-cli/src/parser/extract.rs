@@ -44,7 +44,7 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| {
-            if !e.path().extension().is_some_and(|ext| ext == "rs") {
+            if e.path().extension().is_none_or(|ext| ext != "rs") {
                 return false;
             }
             let rel = e.path().strip_prefix(&input.dir).unwrap_or(e.path());
@@ -135,16 +135,15 @@ fn extract_docs(attrs: &[Attribute]) -> Option<String> {
             if !attr.path().is_ident("doc") {
                 return None;
             }
-            if let syn::Meta::NameValue(nv) = &attr.meta {
-                if let syn::Expr::Lit(syn::ExprLit {
+            if let syn::Meta::NameValue(nv) = &attr.meta
+                && let syn::Expr::Lit(syn::ExprLit {
                     lit: syn::Lit::Str(s),
                     ..
                 }) = &nv.value
-                {
-                    let text = s.value();
-                    // `///` comments produce a leading space, strip it
-                    return Some(text.strip_prefix(' ').unwrap_or(&text).to_string());
-                }
+            {
+                let text = s.value();
+                // `///` comments produce a leading space, strip it
+                return Some(text.strip_prefix(' ').unwrap_or(&text).to_string());
             }
             None
         })
