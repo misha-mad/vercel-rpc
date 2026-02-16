@@ -76,6 +76,7 @@ pub struct CodegenConfig {
 #[serde(default)]
 pub struct WatchConfig {
     pub debounce_ms: u64,
+    pub clear_screen: bool,
 }
 
 impl Default for RpcConfig {
@@ -136,7 +137,10 @@ impl Default for CodegenConfig {
 
 impl Default for WatchConfig {
     fn default() -> Self {
-        Self { debounce_ms: 200 }
+        Self {
+            debounce_ms: 200,
+            clear_screen: false,
+        }
     }
 }
 
@@ -222,6 +226,7 @@ mod tests {
         assert!(!config.codegen.preserve_docs);
         assert_eq!(config.codegen.naming.fields, FieldNaming::Preserve);
         assert_eq!(config.watch.debounce_ms, 200);
+        assert!(!config.watch.clear_screen);
     }
 
     #[test]
@@ -263,6 +268,7 @@ fields = "camelCase"
 
 [watch]
 debounce_ms = 500
+clear_screen = true
 "#;
         let config: RpcConfig = toml::from_str(toml_str).unwrap();
         assert_eq!(config.input.dir, PathBuf::from("lambdas"));
@@ -276,6 +282,7 @@ debounce_ms = 500
         assert!(config.codegen.preserve_docs);
         assert_eq!(config.codegen.naming.fields, FieldNaming::CamelCase);
         assert_eq!(config.watch.debounce_ms, 500);
+        assert!(config.watch.clear_screen);
     }
 
     #[test]
