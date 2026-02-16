@@ -166,7 +166,6 @@ use syn::{parse_macro_input, FnArg, ItemFn, PatType, ReturnType, Type};
 pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
     generate_handler(input_fn, HandlerKind::Query)
-        .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
 
@@ -243,7 +242,6 @@ pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn rpc_mutation(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(item as ItemFn);
     generate_handler(input_fn, HandlerKind::Mutation)
-        .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
 
@@ -253,7 +251,11 @@ enum HandlerKind {
     Mutation,
 }
 
-fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenStream, syn::Error> {
+fn generate_handler(func: ItemFn, kind: HandlerKind) -> Result<TokenStream, syn::Error> {
+    build_handler(func, kind).map(Into::into)
+}
+
+fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenStream, syn::Error> {
     let fn_name = &func.sig.ident;
     let fn_block = &func.block;
     let fn_output = &func.sig.output;
@@ -535,7 +537,7 @@ mod tests {
     #[test]
     fn query_no_input() {
         let func = parse_fn("async fn version() -> String { \"1.0\".into() }");
-        let tokens = generate_handler(func, HandlerKind::Query).unwrap();
+        let tokens = build_handler(func, HandlerKind::Query).unwrap();
         let code = tokens.to_string();
         assert!(code.contains("\"GET\""));
         assert!(code.contains("__rpc_handler"));
@@ -545,7 +547,7 @@ mod tests {
     #[test]
     fn query_with_input() {
         let func = parse_fn("async fn hello(name: String) -> String { name }");
-        let tokens = generate_handler(func, HandlerKind::Query).unwrap();
+        let tokens = build_handler(func, HandlerKind::Query).unwrap();
         let code = tokens.to_string();
         assert!(code.contains("\"GET\""));
         assert!(code.contains("input"));
@@ -556,7 +558,7 @@ mod tests {
         let func = parse_fn(
             "async fn fetch(id: u32) -> Result<String, String> { Ok(\"ok\".into()) }",
         );
-        let tokens = generate_handler(func, HandlerKind::Query).unwrap();
+        let tokens = build_handler(func, HandlerKind::Query).unwrap();
         let code = tokens.to_string();
         assert!(code.contains("__rpc_error_response (400"));
         assert!(code.contains("Ok (__val)"));
@@ -566,7 +568,7 @@ mod tests {
     #[test]
     fn query_no_return_type() {
         let func = parse_fn("async fn ping() {}");
-        let tokens = generate_handler(func, HandlerKind::Query).unwrap();
+        let tokens = build_handler(func, HandlerKind::Query).unwrap();
         let code = tokens.to_string();
         assert!(code.contains("__rpc_ok_response"));
     }
@@ -576,7 +578,7 @@ mod tests {
     #[test]
     fn mutation_with_input() {
         let func = parse_fn("async fn create(input: Data) -> Data { input }");
-        let tokens = generate_handler(func, HandlerKind::Mutation).unwrap();
+        let tokens = build_handler(func, HandlerKind::Mutation).unwrap();
         let code = tokens.to_string();
         assert!(code.contains("\"POST\""));
         assert!(code.contains("into_body"));
@@ -585,7 +587,7 @@ mod tests {
     #[test]
     fn mutation_no_input() {
         let func = parse_fn("async fn reset() -> u32 { 0 }");
-        let tokens = generate_handler(func, HandlerKind::Mutation).unwrap();
+        let tokens = build_handler(func, HandlerKind::Mutation).unwrap();
         let code = tokens.to_string();
         assert!(code.contains("\"POST\""));
     }
@@ -595,7 +597,7 @@ mod tests {
     #[test]
     fn rejects_multiple_params() {
         let func = parse_fn("async fn bad(a: String, b: u32) -> String { a }");
-        let err = generate_handler(func, HandlerKind::Query).unwrap_err();
+        let err = build_handler(func, HandlerKind::Query).unwrap_err();
         assert!(err.to_string().contains("at most one input parameter"));
     }
 
@@ -604,7 +606,7 @@ mod tests {
     #[test]
     fn generates_cors_headers() {
         let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
-        let code = generate_handler(func, HandlerKind::Query).unwrap().to_string();
+        let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
         assert!(code.contains("Access-Control-Allow-Origin"));
         assert!(code.contains("Access-Control-Allow-Methods"));
         assert!(code.contains("Access-Control-Max-Age"));
@@ -613,7 +615,7 @@ mod tests {
     #[test]
     fn generates_options_handler() {
         let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
-        let code = generate_handler(func, HandlerKind::Query).unwrap().to_string();
+        let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
         assert!(code.contains("\"OPTIONS\""));
         assert!(code.contains("204"));
     }
@@ -621,7 +623,7 @@ mod tests {
     #[test]
     fn generates_method_not_allowed() {
         let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
-        let code = generate_handler(func, HandlerKind::Query).unwrap().to_string();
+        let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
         assert!(code.contains("405"));
         assert!(code.contains("not allowed"));
     }
