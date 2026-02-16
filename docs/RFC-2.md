@@ -197,14 +197,11 @@ glob = "0.3"        # for include/exclude patterns
 
 ### 7.2 Config Struct
 
-A new `config` module in `rpc-cli`:
+A `config` module in `rpc-cli` (implemented as a single file):
 
 ```
 crates/rpc-cli/src/
-├── config/
-│   ├── mod.rs      # public RpcConfig struct, load() function
-│   ├── file.rs     # TOML parsing, config discovery
-│   └── merge.rs    # CLI flags + file + defaults merge logic
+└── config.rs       # RpcConfig struct, TOML parsing, discovery, CLI merge
 ```
 
 Core types:

@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/misha-mad/vercel-rpc/graph/badge.svg)](https://codecov.io/gh/misha-mad/vercel-rpc)
-[![Rust Tests](https://img.shields.io/badge/rust_tests-60_passed-brightgreen?logo=rust)](./crates)
+[![Rust Tests](https://img.shields.io/badge/rust_tests-117_passed-brightgreen?logo=rust)](./crates)
 [![Vitest](https://img.shields.io/badge/vitest-12_passed-brightgreen?logo=vitest)](./demo/tests/integration)
 [![Playwright](https://img.shields.io/badge/e2e-8_passed-brightgreen?logo=playwright)](./demo/tests/e2e)
 [![TypeScript](https://img.shields.io/badge/types-auto--generated-blue?logo=typescript)](./demo/src/lib/rpc-types.ts)
@@ -167,22 +167,36 @@ vercel-rpc/
 ├── crates/
 │   ├── rpc-macro/                # Proc-macro crate
 │   │   └── src/lib.rs            #   #[rpc_query] / #[rpc_mutation]
-│   └── rpc-cli/                  # CLI crate (binary: `rpc`)
-│       └── src/
-│           ├── main.rs           #   CLI entry (scan / generate / watch)
-│           ├── config.rs         #   rpc.config.toml loading & merging
-│           ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef
-│           ├── parser/           #   Rust source → Manifest (via syn)
-│           │   ├── extract.rs    #     File scanning & procedure extraction
-│           │   └── types.rs      #     syn::Type → RustType conversion
-│           ├── codegen/          #   Manifest → TypeScript
-│           │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
-│           │   └── client.rs     #     RpcClient interface + rpc-client.ts
-│           └── watch.rs          #   File watcher with debounce
+│   └── rpc-cli/                  # CLI crate (library + binary: `rpc`)
+│       ├── src/
+│       │   ├── lib.rs            #   Library root — public module declarations
+│       │   ├── main.rs           #   CLI entry (clap arg parsing)
+│       │   ├── commands.rs       #   scan / generate command implementations
+│       │   ├── config.rs         #   rpc.config.toml loading & merging
+│       │   ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef
+│       │   ├── parser/           #   Rust source → Manifest (via syn)
+│       │   │   ├── extract.rs    #     File scanning & procedure extraction
+│       │   │   └── types.rs      #     syn::Type → RustType conversion
+│       │   ├── codegen/          #   Manifest → TypeScript
+│       │   │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
+│       │   │   └── client.rs     #     RpcClient interface + rpc-client.ts
+│       │   └── watch.rs          #   File watcher with debounce
+│       └── tests/                # Integration tests (117 tests)
+│           ├── common/mod.rs     #   Shared test helpers
+│           ├── commands.rs       #   scan / generate / write_file / bytecount
+│           ├── config.rs         #   Config parsing, discovery, CLI overrides
+│           ├── extract.rs        #   Parser extraction from Rust source
+│           ├── types.rs          #   syn::Type → RustType conversion
+│           ├── typescript.rs     #   TypeScript codegen (type mapping, JSDoc)
+│           └── client.rs         #   Client codegen (RpcClient, overloads)
 ├── demo/                         # SvelteKit demo application + Rust lambdas
 │   ├── api/                      # Rust lambdas (each file = one endpoint)
-│   │   ├── hello.rs              #   GET /api/hello?input="name"
-│   │   └── time.rs               #   GET /api/time
+│   │   ├── hello.rs              #   GET  /api/hello?input="name"
+│   │   ├── time.rs               #   GET  /api/time
+│   │   ├── status.rs             #   GET  /api/status
+│   │   ├── math.rs               #   GET  /api/math?input={a,b,op}
+│   │   ├── stats.rs              #   GET  /api/stats?input=[numbers]
+│   │   └── echo.rs               #   POST /api/echo (mutation)
 │   ├── Cargo.toml                # Rust package for demo lambdas
 │   ├── src/
 │   │   ├── lib/

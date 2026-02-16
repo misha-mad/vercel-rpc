@@ -45,17 +45,28 @@ vercel-rpc/
 ├── crates/
 │   ├── rpc-macro/              # Proc-macro: #[rpc_query] / #[rpc_mutation]
 │   │   └── src/lib.rs
-│   └── rpc-cli/                # CLI binary: scan / generate / watch
-│       └── src/
-│           ├── main.rs         # CLI entry (clap)
-│           ├── model.rs        # Manifest, Procedure, RustType, StructDef, EnumDef
-│           ├── parser/         # Rust source -> Manifest (via syn)
-│           │   ├── extract.rs  # File scanning & procedure extraction
-│           │   └── types.rs    # syn::Type -> RustType conversion
-│           ├── codegen/        # Manifest -> TypeScript
-│           │   ├── typescript.rs  # RustType -> TS type mapping + rpc-types.ts
-│           │   └── client.rs      # RpcClient interface + rpc-client.ts
-│           └── watch.rs        # File watcher with debounce (notify-debouncer-mini)
+│   └── rpc-cli/                # CLI: library + binary (scan / generate / watch)
+│       ├── src/
+│       │   ├── lib.rs          # Library root — public module declarations
+│       │   ├── main.rs         # CLI entry (clap arg parsing)
+│       │   ├── commands.rs     # scan / generate command implementations
+│       │   ├── config.rs       # rpc.config.toml loading & merging
+│       │   ├── model.rs        # Manifest, Procedure, RustType, StructDef, EnumDef
+│       │   ├── parser/         # Rust source -> Manifest (via syn)
+│       │   │   ├── extract.rs  # File scanning & procedure extraction
+│       │   │   └── types.rs    # syn::Type -> RustType conversion
+│       │   ├── codegen/        # Manifest -> TypeScript
+│       │   │   ├── typescript.rs  # RustType -> TS type mapping + rpc-types.ts
+│       │   │   └── client.rs      # RpcClient interface + rpc-client.ts
+│       │   └── watch.rs        # File watcher with debounce (notify-debouncer-mini)
+│       └── tests/              # Integration tests (117 tests)
+│           ├── common/mod.rs   # Shared test helpers
+│           ├── commands.rs     # scan / generate / write_file / bytecount
+│           ├── config.rs       # Config parsing, discovery, CLI overrides
+│           ├── extract.rs      # Parser extraction from Rust source
+│           ├── types.rs        # syn::Type -> RustType conversion
+│           ├── typescript.rs   # TypeScript codegen (type mapping, JSDoc)
+│           └── client.rs       # Client codegen (RpcClient, overloads)
 ├── demo/                       # SvelteKit demo application + Rust lambdas
 │   ├── api/                    # Every file is a standalone Vercel Lambda
 │   │   ├── hello.rs            # #[rpc_query]  — String -> String
