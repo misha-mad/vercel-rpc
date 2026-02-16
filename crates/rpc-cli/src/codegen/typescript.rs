@@ -126,10 +126,10 @@ fn transform_field_name(name: &str, naming: FieldNaming) -> String {
 
 /// Generates a TypeScript interface from a struct definition.
 fn generate_interface(s: &StructDef, preserve_docs: bool, field_naming: FieldNaming, out: &mut String) {
-    if preserve_docs {
-        if let Some(doc) = &s.docs {
-            emit_jsdoc(doc, "", out);
-        }
+    if preserve_docs
+        && let Some(doc) = &s.docs
+    {
+        emit_jsdoc(doc, "", out);
     }
     let _ = writeln!(out, "export interface {} {{", s.name);
     for (name, ty) in &s.fields {
@@ -150,10 +150,10 @@ fn generate_interface(s: &StructDef, preserve_docs: bool, field_naming: FieldNam
 /// If all variants are unit, emits a simple string union.
 /// Otherwise, emits a discriminated union of object types.
 fn generate_enum_type(e: &EnumDef, preserve_docs: bool, field_naming: FieldNaming, out: &mut String) {
-    if preserve_docs {
-        if let Some(doc) = &e.docs {
-            emit_jsdoc(doc, "", out);
-        }
+    if preserve_docs
+        && let Some(doc) = &e.docs
+    {
+        emit_jsdoc(doc, "", out);
     }
     let all_unit = e.variants.iter().all(|v| matches!(v.kind, VariantKind::Unit));
 
@@ -217,10 +217,10 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
     // Queries
     let _ = writeln!(out, "  queries: {{");
     for proc in &queries {
-        if preserve_docs {
-            if let Some(doc) = &proc.docs {
-                emit_jsdoc(doc, "    ", out);
-            }
+        if preserve_docs
+            && let Some(doc) = &proc.docs
+        {
+            emit_jsdoc(doc, "    ", out);
         }
         let input = proc
             .input
@@ -239,10 +239,10 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
     // Mutations
     let _ = writeln!(out, "  mutations: {{");
     for proc in &mutations {
-        if preserve_docs {
-            if let Some(doc) = &proc.docs {
-                emit_jsdoc(doc, "    ", out);
-            }
+        if preserve_docs
+            && let Some(doc) = &proc.docs
+        {
+            emit_jsdoc(doc, "    ", out);
         }
         let input = proc
             .input

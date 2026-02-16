@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 pub const CONFIG_FILE_NAME: &str = "rpc.config.toml";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct RpcConfig {
     pub input: InputConfig,
@@ -37,8 +37,9 @@ pub struct ImportsConfig {
     pub extension: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, clap::ValueEnum)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Deserialize, clap::ValueEnum)]
 pub enum FieldNaming {
+    #[default]
     #[serde(rename = "preserve")]
     #[value(name = "preserve")]
     Preserve,
@@ -47,27 +48,13 @@ pub enum FieldNaming {
     CamelCase,
 }
 
-impl Default for FieldNaming {
-    fn default() -> Self {
-        Self::Preserve
-    }
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct NamingConfig {
     pub fields: FieldNaming,
 }
 
-impl Default for NamingConfig {
-    fn default() -> Self {
-        Self {
-            fields: FieldNaming::default(),
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct CodegenConfig {
     pub preserve_docs: bool,
@@ -79,17 +66,6 @@ pub struct CodegenConfig {
 pub struct WatchConfig {
     pub debounce_ms: u64,
     pub clear_screen: bool,
-}
-
-impl Default for RpcConfig {
-    fn default() -> Self {
-        Self {
-            input: InputConfig::default(),
-            output: OutputConfig::default(),
-            codegen: CodegenConfig::default(),
-            watch: WatchConfig::default(),
-        }
-    }
 }
 
 impl Default for InputConfig {
@@ -125,15 +101,6 @@ impl ImportsConfig {
     /// Returns the full import specifier: `types_path` + `extension`.
     pub fn types_specifier(&self) -> String {
         format!("{}{}", self.types_path, self.extension)
-    }
-}
-
-impl Default for CodegenConfig {
-    fn default() -> Self {
-        Self {
-            preserve_docs: false,
-            naming: NamingConfig::default(),
-        }
     }
 }
 

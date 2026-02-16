@@ -173,10 +173,10 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
 
     // Overload signatures for void-input queries (no input argument required)
     for proc in &void_queries {
-        if preserve_docs {
-            if let Some(doc) = &proc.docs {
-                emit_jsdoc(doc, "  ", out);
-            }
+        if preserve_docs
+            && let Some(doc) = &proc.docs
+        {
+            emit_jsdoc(doc, "  ", out);
         }
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
@@ -188,10 +188,10 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
 
     // Overload signatures for non-void-input queries
     for proc in &non_void_queries {
-        if preserve_docs {
-            if let Some(doc) = &proc.docs {
-                emit_jsdoc(doc, "  ", out);
-            }
+        if preserve_docs
+            && let Some(doc) = &proc.docs
+        {
+            emit_jsdoc(doc, "  ", out);
         }
         let input_ts = proc.input.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
@@ -216,10 +216,10 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
 
     // Overload signatures for void-input mutations
     for proc in &void_mutations {
-        if preserve_docs {
-            if let Some(doc) = &proc.docs {
-                emit_jsdoc(doc, "  ", out);
-            }
+        if preserve_docs
+            && let Some(doc) = &proc.docs
+        {
+            emit_jsdoc(doc, "  ", out);
         }
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
@@ -231,10 +231,10 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
 
     // Overload signatures for non-void-input mutations
     for proc in &non_void_mutations {
-        if preserve_docs {
-            if let Some(doc) = &proc.docs {
-                emit_jsdoc(doc, "  ", out);
-            }
+        if preserve_docs
+            && let Some(doc) = &proc.docs
+        {
+            emit_jsdoc(doc, "  ", out);
         }
         let input_ts = proc.input.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
         let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
