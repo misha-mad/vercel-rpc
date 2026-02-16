@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.1.2...vercel-rpc-cli-v0.1.3) - 2026-02-16
+
+### Added
+
+- *(rpc-cli)* add CLI flags for all config-only options
+- *(rpc-cli)* add `clear_screen` option to watch mode
+- *(rpc-cli)* add [codegen.naming] config with fields option
+- *(rpc-cli)* add preserve_docs option to [codegen] config
+- *(rpc-cli)* add extension field to [output.imports] config
+- *(rpc-cli)* add include/exclude glob patterns to [input] config
+- *(rpc-cli)* add rpc.config.toml support (RFC-2 Phase 1)
+
+### Other
+
+- add test coverage with cargo-tarpaulin and Codecov
+- *(rpc-cli)* update README with `--clear-screen` flag details
+- *(rpc-cli)* document rpc.config.toml support in READMEs
+
 ## [0.1.2](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.1.1...vercel-rpc-cli-v0.1.2) - 2026-02-15
 
 ### Other
