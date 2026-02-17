@@ -466,9 +466,9 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 ## Summary
 
-| Phase | Focus      | Key Deliverables                                                             |
-|-------|------------|------------------------------------------------------------------------------|
-| **1** | Foundation | ~~Config file~~ ✅, serde attributes, expanded type support                  |
+| Phase | Focus      | Key Deliverables                                                               |
+|-------|------------|--------------------------------------------------------------------------------|
+| **1** | Foundation | ~~Config file~~ ✅, serde attributes, expanded type support                     |
 | **2** | Client     | Client config, per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | Svelte hooks, enum representations, generics, branded types, flatten         |
-| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests |
+| **3** | DX         | Svelte hooks, enum representations, generics, branded types, flatten           |
+| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests   |
