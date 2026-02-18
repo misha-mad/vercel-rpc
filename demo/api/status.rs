@@ -1,5 +1,5 @@
 use serde::Serialize;
-use vercel_rpc_macro::rpc_query;
+use vercel_rpc::rpc_query;
 
 /// Overall health of the service.
 #[derive(Debug, PartialEq, Serialize)]

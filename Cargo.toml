@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/rpc-macro", "crates/rpc-cli", "demo"]
+members = ["crates/rpc", "crates/rpc-macro", "crates/rpc-cli", "demo"]
 resolver = "3"
 
 [profile.release]

@@ -1,6 +1,6 @@
 use serde::Serialize;
 use std::time::SystemTime;
-use vercel_rpc_macro::rpc_query;
+use vercel_rpc::rpc_query;
 
 /// Server timestamp with a human-readable message.
 #[derive(Serialize)]
