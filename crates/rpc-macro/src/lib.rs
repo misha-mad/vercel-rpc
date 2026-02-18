@@ -86,7 +86,7 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{FnArg, ItemFn, PatType, ReturnType, Type, parse_macro_input};
+use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 
 /// Generates a Vercel-compatible lambda handler from an async **query** function.
 ///
@@ -162,7 +162,15 @@ use syn::{FnArg, ItemFn, PatType, ReturnType, Type, parse_macro_input};
 /// // error: RPC handlers accept at most one input parameter
 /// ```
 #[proc_macro_attribute]
-pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
+    if !attr.is_empty() {
+        return syn::Error::new_spanned(
+            proc_macro2::TokenStream::from(attr),
+            "rpc_query does not accept any arguments",
+        )
+        .to_compile_error()
+        .into();
+    }
     let input_fn = parse_macro_input!(item as ItemFn);
     build_handler(input_fn, HandlerKind::Query)
         .map(Into::into)
@@ -239,7 +247,15 @@ pub fn rpc_query(_attr: TokenStream, item: TokenStream) -> TokenStream {
 /// // error: RPC handlers accept at most one input parameter
 /// ```
 #[proc_macro_attribute]
-pub fn rpc_mutation(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn rpc_mutation(attr: TokenStream, item: TokenStream) -> TokenStream {
+    if !attr.is_empty() {
+        return syn::Error::new_spanned(
+            proc_macro2::TokenStream::from(attr),
+            "rpc_mutation does not accept any arguments",
+        )
+        .to_compile_error()
+        .into();
+    }
     let input_fn = parse_macro_input!(item as ItemFn);
     build_handler(input_fn, HandlerKind::Mutation)
         .map(Into::into)
@@ -252,40 +268,46 @@ enum HandlerKind {
     Mutation,
 }
 
+/// Transforms a user-defined async function into a complete Vercel lambda handler.
+///
+/// Generates `main()`, CORS helpers, input parsing, and response serialization.
+/// The `kind` parameter determines whether the handler accepts GET (query) or POST (mutation).
 fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenStream, syn::Error> {
+    if func.sig.asyncness.is_none() {
+        return Err(syn::Error::new_spanned(
+            &func.sig.fn_token,
+            "RPC handlers must be async functions",
+        ));
+    }
+
     let fn_name = &func.sig.ident;
     let fn_block = &func.block;
     let fn_output = &func.sig.output;
 
-    let params: Vec<&PatType> = func
-        .sig
-        .inputs
-        .iter()
-        .filter_map(|arg| match arg {
-            FnArg::Typed(pat) => Some(pat),
-            _ => None,
-        })
-        .collect();
+    let mut params = func.sig.inputs.iter().filter_map(|arg| match arg {
+        FnArg::Typed(pat) => Some(pat),
+        _ => None,
+    });
+
+    let first_param = params.next();
 
     // Validate: at most one parameter allowed
-    if params.len() > 1 {
+    if params.next().is_some() {
         return Err(syn::Error::new_spanned(
             &func.sig.inputs,
             "RPC handlers accept at most one input parameter",
         ));
     }
 
-    let has_input = !params.is_empty();
-
-    let input_type = if has_input {
-        let ty = &params[0].ty;
+    let input_type = if let Some(param) = first_param {
+        let ty = &param.ty;
         quote! { #ty }
     } else {
         quote! { () }
     };
 
-    let input_pat = if has_input {
-        let pat = &params[0].pat;
+    let input_pat = if let Some(param) = first_param {
+        let pat = &param.pat;
         quote! { #pat }
     } else {
         quote! { _ }
@@ -294,13 +316,7 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
     // Determine whether the handler returns Result<T, E> or plain T
     let (return_type, returns_result) = match fn_output {
         ReturnType::Default => (quote! { () }, false),
-        ReturnType::Type(_, ty) => {
-            if is_result_type(ty) {
-                (quote! { #ty }, true)
-            } else {
-                (quote! { #ty }, false)
-            }
-        }
+        ReturnType::Type(_, ty) => (quote! { #ty }, is_result_type(ty)),
     };
 
     let expected_method = match kind {
@@ -485,7 +501,12 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
     Ok(expanded)
 }
 
-/// Returns `true` if the type is `Result<T, E>`.
+/// Returns `true` if the type syntactically ends with `Result`
+/// (e.g. `Result<T, E>`, `std::result::Result<T, E>`).
+///
+/// **Limitation:** this is a purely syntactic check. Type aliases (e.g.
+/// `type MyResult<T> = Result<T, MyError>`) will not be detected, and custom
+/// types named `Result` will be falsely identified.
 fn is_result_type(ty: &Type) -> bool {
     if let Type::Path(type_path) = ty
         && let Some(segment) = type_path.path.segments.last()
@@ -595,6 +616,13 @@ mod tests {
         let func = parse_fn("async fn bad(a: String, b: u32) -> String { a }");
         let err = build_handler(func, HandlerKind::Query).unwrap_err();
         assert!(err.to_string().contains("at most one input parameter"));
+    }
+
+    #[test]
+    fn rejects_non_async_function() {
+        let func: ItemFn = syn::parse_str("fn sync_handler() -> String { \"hi\".into() }").unwrap();
+        let err = build_handler(func, HandlerKind::Query).unwrap_err();
+        assert!(err.to_string().contains("must be async"));
     }
 
     #[test]
