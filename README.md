@@ -2,7 +2,7 @@
 
 # ⚡ vercel-rpc
 
-**End-to-end typesafe RPC between Rust lambdas on Vercel and SvelteKit**
+**End-to-end typesafe RPC between Rust lambdas on Vercel and any TypeScript frontend**
 
 [**Live Demo →** svelte-rust-beta.vercel.app](https://svelte-rust-beta.vercel.app)
 
@@ -15,7 +15,7 @@
 [![Vercel](https://img.shields.io/badge/deploy-vercel-black?logo=vercel)](https://vercel.com)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-yellow.svg)](#license)
 
-Write Rust functions → get a fully typed TypeScript client. Zero config, zero boilerplate.
+Write Rust functions → get a fully typed TypeScript client.
 
 </div>
 
@@ -40,10 +40,10 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 │  #[rpc_mut.] │              │  structs    │              │  Typed RpcClient │
 └──────────────┘              └─────────────┘              └──────────────────┘
        │                                                           │
-       │  deploy (vercel)                          import (svelte) │
+       │  deploy (vercel)                             import (ts) │
        ▼                                                           ▼
 ┌──────────────┐              HTTP (GET/POST)              ┌──────────────────┐
-│ Vercel Lambda│ ◀───────────────────────────────────────  │   SvelteKit App  │
+│ Vercel Lambda│ ◀───────────────────────────────────────  │  Your Frontend   │
 │  /api/hello  │                                           │  rpc.query(...)  │
 │  /api/time   │ ───────────────────────────────────────▶  │  fully typed! ✨ │
 └──────────────┘              JSON response                └──────────────────┘
@@ -110,30 +110,18 @@ export interface RpcClient {
 export function createRpcClient(baseUrl: string): RpcClient { /* ... */ }
 ```
 
-### 3. Use in SvelteKit
+### 3. Use in your frontend
+
+The generated client uses standard `fetch()` and works with **any** TypeScript frontend — React, Vue, Svelte, Solid, or vanilla TS.
 
 ```typescript
-// demo/src/lib/client.ts
 import { createRpcClient } from "./rpc-client";
-export const rpc = createRpcClient("/api");
-```
 
-```svelte
-<!-- demo/src/routes/+page.svelte -->
-<script lang="ts">
-  import { rpc } from "$lib/client";
+const rpc = createRpcClient("/api");
 
-  let greeting = $state("");
-
-  async function sayHello() {
-    greeting = await rpc.query("hello", "World");
-    //                  ^ autocomplete ✨
-    //                         ^ typed as string ✨
-  }
-</script>
-
-<button onclick={sayHello}>Say Hello</button>
-<p>{greeting}</p>
+const greeting = await rpc.query("hello", "World");
+//                          ^ autocomplete ✨
+//                                 ^ typed as string ✨
 ```
 
 ### 4. Watch mode (development)
@@ -189,7 +177,7 @@ vercel-rpc/
 │           ├── types.rs          #   syn::Type → RustType conversion
 │           ├── typescript.rs     #   TypeScript codegen (type mapping, JSDoc)
 │           └── client.rs         #   Client codegen (RpcClient, overloads)
-├── demo/                         # SvelteKit demo application + Rust lambdas
+├── demo/                         # Demo application (SvelteKit) + Rust lambdas
 │   ├── api/                      # Rust lambdas (each file = one endpoint)
 │   │   ├── hello.rs              #   GET  /api/hello?input="name"
 │   │   ├── time.rs               #   GET  /api/time
@@ -497,24 +485,17 @@ Detailed testing strategy and commands are described in CONTRIBUTING.md.
 
 ## Deploy to Vercel
 
-Since the SvelteKit demo lives in `demo/`, you need to configure Vercel's **Root Directory**:
-
-1. Go to your Vercel project → **Settings** → **General**
-2. Set **Root Directory** to `demo`
-3. Vercel will auto-detect SvelteKit and run `npm run build` from `demo/`
-4. Rust lambdas in `demo/api/` are compiled as serverless functions automatically
+Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
 
 ```bash
 # Install Vercel CLI
 npm i -g vercel
 
-# Deploy (set root directory on first deploy)
+# Deploy
 vercel
 ```
 
-> **Note:** With Root Directory set to `demo`, Vercel detects `demo/api/` as the serverless functions' directory. So `demo/api/hello.rs` → `/api/hello`.
-
-Each `.rs` file in `api/` becomes a serverless function at `/api/<name>`.
+> **Note:** The demo uses `demo/` as the Vercel Root Directory. In your own project, place `api/` at your project root or configure the Root Directory in Vercel's project settings accordingly.
 
 ## Sponsors
 
