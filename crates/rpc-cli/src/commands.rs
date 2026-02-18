@@ -99,8 +99,7 @@ pub fn write_file(path: &PathBuf, content: &str) -> Result<()> {
         fs::create_dir_all(parent)
             .with_context(|| format!("Failed to create directory {}", parent.display()))?;
     }
-    fs::write(path, content)
-        .with_context(|| format!("Failed to write {}", path.display()))?;
+    fs::write(path, content).with_context(|| format!("Failed to write {}", path.display()))?;
     Ok(())
 }
 

@@ -232,10 +232,12 @@ fn test_include_filters_files() {
     assert_eq!(manifest.procedures.len(), 1);
     assert_eq!(manifest.procedures[0].name, "handler");
     // The file from utils/ should not appear
-    assert!(manifest
-        .procedures
-        .iter()
-        .all(|p| { p.source_file.to_string_lossy().contains("handlers") }));
+    assert!(
+        manifest
+            .procedures
+            .iter()
+            .all(|p| { p.source_file.to_string_lossy().contains("handlers") })
+    );
 }
 
 #[test]
@@ -252,14 +254,18 @@ fn test_exclude_filters_files() {
 
     let manifest = scan_directory(&input).unwrap();
     assert_eq!(manifest.procedures.len(), 1);
-    assert!(manifest.procedures[0]
-        .source_file
-        .to_string_lossy()
-        .contains("hello.rs"));
-    assert!(!manifest.procedures[0]
-        .source_file
-        .to_string_lossy()
-        .contains("test_hello.rs"));
+    assert!(
+        manifest.procedures[0]
+            .source_file
+            .to_string_lossy()
+            .contains("hello.rs")
+    );
+    assert!(
+        !manifest.procedures[0]
+            .source_file
+            .to_string_lossy()
+            .contains("test_hello.rs")
+    );
 }
 
 #[test]
@@ -390,8 +396,10 @@ fn test_exclude_wins_over_include() {
 
     let manifest = scan_directory(&input).unwrap();
     assert_eq!(manifest.procedures.len(), 1);
-    assert!(manifest.procedures[0]
-        .source_file
-        .to_string_lossy()
-        .contains("world.rs"));
+    assert!(
+        manifest.procedures[0]
+            .source_file
+            .to_string_lossy()
+            .contains("world.rs")
+    );
 }

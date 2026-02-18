@@ -40,7 +40,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 │  #[rpc_mut.] │              │  structs    │              │  Typed RpcClient │
 └──────────────┘              └─────────────┘              └──────────────────┘
        │                                                           │
-       │  deploy (vercel)                             import (ts) │
+       │  deploy (vercel)                              import (ts) │
        ▼                                                           ▼
 ┌──────────────┐              HTTP (GET/POST)              ┌──────────────────┐
 │ Vercel Lambda│ ◀───────────────────────────────────────  │  Your Frontend   │

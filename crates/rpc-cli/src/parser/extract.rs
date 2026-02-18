@@ -6,9 +6,11 @@ use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use syn::{Attribute, File, FnArg, Item, ItemFn, ReturnType};
 use walkdir::WalkDir;
 
-use crate::config::InputConfig;
-use crate::model::{EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, StructDef, VariantKind};
 use super::types::{extract_rust_type, extract_struct_fields};
+use crate::config::InputConfig;
+use crate::model::{
+    EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, StructDef, VariantKind,
+};
 
 /// RPC attribute names recognized by the parser.
 const RPC_QUERY_ATTR: &str = "rpc_query";
@@ -24,9 +26,7 @@ fn build_glob_set(patterns: &[String]) -> Result<GlobSet> {
             .with_context(|| format!("Invalid glob pattern: {pattern}"))?;
         builder.add(glob);
     }
-    builder
-        .build()
-        .context("Failed to build glob set")
+    builder.build().context("Failed to build glob set")
 }
 
 /// Scans `.rs` files in the configured directory and extracts RPC metadata.
@@ -53,16 +53,13 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
         .collect();
 
     if entries.is_empty() {
-        anyhow::bail!(
-            "No .rs files found in {}",
-            input.dir.display()
-        );
+        anyhow::bail!("No .rs files found in {}", input.dir.display());
     }
 
     for entry in entries {
         let path = entry.path();
-        let file_manifest = parse_file(path)
-            .with_context(|| format!("Failed to parse {}", path.display()))?;
+        let file_manifest =
+            parse_file(path).with_context(|| format!("Failed to parse {}", path.display()))?;
 
         manifest.procedures.extend(file_manifest.procedures);
         manifest.structs.extend(file_manifest.structs);
@@ -79,11 +76,11 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
 
 /// Parses a single Rust source file and extracts all RPC procedures and struct definitions.
 pub fn parse_file(path: &Path) -> Result<Manifest> {
-    let source = fs::read_to_string(path)
-        .with_context(|| format!("Cannot read {}", path.display()))?;
+    let source =
+        fs::read_to_string(path).with_context(|| format!("Cannot read {}", path.display()))?;
 
-    let syntax: File = syn::parse_file(&source)
-        .with_context(|| format!("Syntax error in {}", path.display()))?;
+    let syntax: File =
+        syn::parse_file(&source).with_context(|| format!("Syntax error in {}", path.display()))?;
 
     let mut manifest = Manifest::default();
 

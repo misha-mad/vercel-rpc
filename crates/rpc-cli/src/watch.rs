@@ -1,12 +1,12 @@
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{mpsc, Arc};
+use std::sync::{Arc, mpsc};
 use std::time::Instant;
 
 use anyhow::{Context, Result};
 use colored::Colorize;
 use notify::RecursiveMode;
-use notify_debouncer_mini::{new_debouncer, DebouncedEventKind};
+use notify_debouncer_mini::{DebouncedEventKind, new_debouncer};
 
 use crate::config::RpcConfig;
 use crate::{codegen, parser};
@@ -40,8 +40,8 @@ pub fn run(config: &RpcConfig) -> Result<()> {
     let (tx, rx) = mpsc::channel();
     let debounce_duration = std::time::Duration::from_millis(config.watch.debounce_ms);
 
-    let mut debouncer = new_debouncer(debounce_duration, tx)
-        .context("Failed to create file watcher")?;
+    let mut debouncer =
+        new_debouncer(debounce_duration, tx).context("Failed to create file watcher")?;
 
     debouncer
         .watcher()
@@ -147,29 +147,16 @@ fn write_file(path: &Path, content: &str) -> Result<()> {
         std::fs::create_dir_all(parent)
             .with_context(|| format!("Failed to create directory {}", parent.display()))?;
     }
-    std::fs::write(path, content)
-        .with_context(|| format!("Failed to write {}", path.display()))?;
+    std::fs::write(path, content).with_context(|| format!("Failed to write {}", path.display()))?;
     Ok(())
 }
 
 #[cfg(not(tarpaulin_include))]
 fn print_banner(config: &RpcConfig) {
     println!();
-    println!(
-        "  {} {}",
-        "vercel-rpc".bold(),
-        "watch mode".cyan(),
-    );
-    println!(
-        "  {} {}",
-        "api dir:".dimmed(),
-        config.input.dir.display(),
-    );
-    println!(
-        "  {} {}",
-        "types:".dimmed(),
-        config.output.types.display(),
-    );
+    println!("  {} {}", "vercel-rpc".bold(), "watch mode".cyan(),);
+    println!("  {} {}", "api dir:".dimmed(), config.input.dir.display(),);
+    println!("  {} {}", "types:".dimmed(), config.output.types.display(),);
     println!(
         "  {} {}",
         "client:".dimmed(),
@@ -181,7 +168,10 @@ fn print_banner(config: &RpcConfig) {
 #[cfg(not(tarpaulin_include))]
 fn print_change(paths: &[&Path]) {
     for p in paths {
-        let name = p.file_name().map(|n| n.to_string_lossy()).unwrap_or_default();
+        let name = p
+            .file_name()
+            .map(|n| n.to_string_lossy())
+            .unwrap_or_default();
         println!("\n  {} {}", "↻".yellow().bold(), name);
     }
 }

@@ -153,9 +153,7 @@ fn complex_types_in_overloads() {
         )),
     )]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
-    assert!(
-        output.contains("query(key: \"search\", input: SearchQuery): Promise<SearchResult[]>")
-    );
+    assert!(output.contains("query(key: \"search\", input: SearchQuery): Promise<SearchResult[]>"));
 }
 
 #[test]
@@ -260,10 +258,12 @@ fn test_jsdoc_on_overload() {
         },
     ]);
     let output = generate_client_file(&manifest, "./rpc-types", true);
-    assert!(output
-        .contains("  /** Say hello. */\n  query(key: \"hello\", input: string): Promise<string>;"));
-    assert!(output
-        .contains("  /** Reset state. */\n  mutate(key: \"reset\"): Promise<boolean>;"));
+    assert!(
+        output.contains(
+            "  /** Say hello. */\n  query(key: \"hello\", input: string): Promise<string>;"
+        )
+    );
+    assert!(output.contains("  /** Reset state. */\n  mutate(key: \"reset\"): Promise<boolean>;"));
 }
 
 #[test]
@@ -277,8 +277,7 @@ fn test_jsdoc_on_void_query_overload() {
         docs: Some("Get version.".to_string()),
     }]);
     let output = generate_client_file(&manifest, "./rpc-types", true);
-    assert!(output
-        .contains("  /** Get version. */\n  query(key: \"version\"): Promise<string>;"));
+    assert!(output.contains("  /** Get version. */\n  query(key: \"version\"): Promise<string>;"));
 }
 
 #[test]
