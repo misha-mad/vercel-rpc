@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.1.3...vercel-rpc-cli-v0.1.4) - 2026-02-18
+
+### Fixed
+
+- resolve all clippy warnings across workspace
+- *(rpc-cli)* remove flaky config tests using set_current_dir
+
+### Other
+
+- *(rpc-cli)* apply best practices from code audit
+- *(rpc-cli)* reformat and align code for improved readability
+- *(rpc-cli)* move inline tests to integration tests
+- *(rpc-cli)* replace mod.rs with named module files (Rust 2018 style)
+- center sponsor line, remove codecov badges from crate READMEs
+- *(rpc-cli)* remove dead-code branches, exclude rpc-macro from coverage
+- *(rpc-cli)* cover remaining uncovered lines across all modules
+- *(rpc-cli)* exclude untestable code from tarpaulin coverage
+- *(rpc-cli)* add unit tests for main.rs functions
+
 ## [0.1.3](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.1.2...vercel-rpc-cli-v0.1.3) - 2026-02-16
 
 ### Added
