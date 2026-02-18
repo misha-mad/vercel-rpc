@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
 	import { RpcError } from '$lib/rpc-client';
-	import type { MathResult, Stats, ServiceStatus, EchoOutput } from '$lib/rpc-client';
+	import type { MathResult, Stats, ServiceStatus, EchoOutput, UserProfile } from '$lib/rpc-client';
 	import { onMount } from 'svelte';
 
 	// --- Hello (simple query with string input) ---
@@ -116,6 +116,25 @@
 		}
 	}
 
+	// --- Profile (serde attributes demo) ---
+	let profileId = $state(1);
+	let profileResult = $state<UserProfile | null>(null);
+	let profileLoading = $state(false);
+	let profileError = $state('');
+
+	async function fetchProfile() {
+		profileLoading = true;
+		profileError = '';
+		profileResult = null;
+		try {
+			profileResult = await rpc.query('profile', profileId);
+		} catch (e) {
+			profileError = `${e}`;
+		} finally {
+			profileLoading = false;
+		}
+	}
+
 	// --- Raw JSON viewer ---
 	let rawEndpoint = $state('/api/time');
 	let rawResponse = $state('');
@@ -180,7 +199,7 @@
 						><td><code>Vec&lt;T&gt;</code></td><td><code>T[]</code></td><td>stats (number[])</td
 						></tr
 					>
-					<tr><td><code>Option&lt;T&gt;</code></td><td><code>T | null</code></td><td>—</td></tr>
+					<tr><td><code>Option&lt;T&gt;</code></td><td><code>T | null</code></td><td>profile (avatarUrl)</td></tr>
 					<tr
 						><td><code>HashMap&lt;K, V&gt;</code></td><td><code>Record&lt;K, V&gt;</code></td><td
 							>stats (frequencies)</td
@@ -199,6 +218,26 @@
 						><td><code>enum</code> (unit)</td><td><code>"A" | "B"</code></td><td
 							>HealthStatus, Operation</td
 						></tr
+					>
+					<tr
+						><td><code>serde(rename_all)</code></td><td>field/variant names transformed</td><td
+							>profile (camelCase, snake_case, kebab-case)</td
+						></tr
+					>
+					<tr
+						><td><code>serde(rename)</code></td><td>exact name override</td><td
+							>profile (profile_url, "anonymous")</td
+						></tr
+					>
+					<tr
+						><td><code>serde(skip)</code></td><td>field omitted</td><td
+							>profile (internal_score)</td
+						></tr
+					>
+					<tr
+						><td><code>serde(default)</code> + <code>Option&lt;T&gt;</code></td><td
+							><code>field?: T | null</code></td
+						><td>profile (avatarUrl)</td></tr
 					>
 				</tbody>
 			</table>
@@ -610,6 +649,101 @@ const result = await rpc.mutate("echo", {
 		{/if}
 	</section>
 
+	<!-- Profile: Serde attributes demo -->
+	<section class="card highlight">
+		<h2>🏷️ Profile — Serde Attributes</h2>
+		<p class="desc">
+			Demonstrates <code>#[serde(rename_all, rename, skip, default)]</code> on structs and enums.
+			The generated TypeScript matches actual JSON serialization — camelCase fields, renamed variants,
+			skipped internals, and optional fields.
+		</p>
+		<div class="row">
+			<label>User ID: <input type="number" bind:value={profileId} class="num" /></label>
+			<button onclick={fetchProfile} disabled={profileLoading}>
+				{profileLoading ? '...' : 'Fetch Profile'}
+			</button>
+		</div>
+		{#if profileResult}
+			<div class="result success">
+				<div class="grid">
+					<span class="label">userId:</span><span>{profileResult.userId}</span>
+					<span class="label">displayName:</span><span>{profileResult.displayName}</span>
+					<span class="label">emailAddress:</span><span>{profileResult.emailAddress}</span>
+					<span class="label">role:</span><span class="badge">{profileResult.role}</span>
+					<span class="label">lastEvent:</span><span class="badge">{profileResult.lastEvent}</span>
+					<span class="label">profile_url:</span><span>{profileResult.profile_url}</span>
+					<span class="label">avatarUrl:</span><span>{profileResult.avatarUrl ?? '(null)'}</span>
+				</div>
+			</div>
+		{/if}
+		{#if profileError}
+			<div class="result error">{profileError}</div>
+		{/if}
+		<pre class="code">rpc.query("profile", {profileId}) → UserProfile</pre>
+		<button class="toggle-code" onclick={() => toggleCode('profile')}>
+			{openCode['profile'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['profile']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/profile.rs</span>
+					<pre class="code rust">{`#[derive(Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UserRole {
+    Admin,                        // → "admin"
+    PowerUser,                    // → "power_user"
+    #[serde(rename = "anonymous")]
+    Guest,                        // → "anonymous" (override)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum EventKind {
+    SignIn,                       // → "sign-in"
+    SignOut,                      // → "sign-out"
+    PasswordReset,                // → "password-reset"
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserProfile {
+    pub user_id: u64,             // → userId
+    pub display_name: String,     // → displayName
+
+    #[serde(rename = "profile_url")]
+    pub profile_url: String,      // → profile_url (override)
+
+    #[serde(skip)]
+    pub internal_score: f64,      // → omitted from JSON
+
+    #[serde(default)]
+    pub avatar_url: Option<String>, // → avatarUrl?: string | null
+}`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`// rename_all = "snake_case" + variant rename
+export type UserRole = "admin" | "power_user" | "anonymous";
+
+// rename_all = "kebab-case"
+export type EventKind = "sign-in" | "sign-out" | "password-reset";
+
+// rename_all = "camelCase" + field overrides
+export interface UserProfile {
+  userId: number;           // rename_all applied
+  displayName: string;
+  emailAddress: string;
+  role: UserRole;
+  lastEvent: EventKind;
+  profile_url: string;      // #[serde(rename)] wins
+  // internal_score omitted  — #[serde(skip)]
+  avatarUrl?: string | null; // #[serde(default)] + Option<T>
+}`}</pre>
+				</div>
+			</div>
+		{/if}
+	</section>
+
 	<!-- JSDoc: Doc comments preserved -->
 	<section class="card highlight">
 		<h2>📝 JSDoc — Doc Comments Preserved</h2>
@@ -779,6 +913,7 @@ create_item  → create_item    // procedure names — NOT affected`}</pre>
 					>GET /api/math (10÷0) — error!</option
 				>
 				<option value="/api/stats?input=%5B1,2,3,4,5%5D">GET /api/stats ([1,2,3,4,5])</option>
+				<option value="/api/profile?input=1">GET /api/profile (serde attrs)</option>
 			</select>
 			<button onclick={fetchRaw} disabled={rawLoading}>
 				{rawLoading ? '...' : 'Fetch'}
