@@ -1,4 +1,4 @@
-# RFC-1: VRS-RPC (Vercel-Rust-SvelteKit RPC)
+# RFC-1: Vercel-RPC
 
 - **Status:** Implemented
 - **Author:** OSS Maintainer / Lead Architect
@@ -7,9 +7,9 @@
 
 ## 1. Executive Summary
 
-VRS-RPC is a lightweight, zero-overhead RPC framework designed specifically for projects using SvelteKit and Rust Lambdas hosted on Vercel.
+Vercel-RPC is a lightweight, zero-overhead RPC framework for projects using Rust Lambdas hosted on Vercel with any TypeScript frontend.
 
-Unlike monolithic RPC solutions (like rspc), VRS-RPC treats every Rust file in the `api/` directory as an independent serverless function. It provides a seamless Developer Experience (DX) by using static analysis to synchronize Rust types with a TypeScript client in real-time.
+Unlike monolithic RPC solutions (like rspc), Vercel-RPC treats every Rust file in the `api/` directory as an independent serverless function. It provides a seamless Developer Experience (DX) by using static analysis to synchronize Rust types with a TypeScript client in real-time.
 
 ## 2. Motivation
 
@@ -17,7 +17,7 @@ The current implementation using rspc introduces several bottlenecks:
 
 - **Monolithic Router:** All requests hit a single lambda, increasing cold start impact and complicating Vercel's routing.
 - **Runtime Overhead:** Heavy dependency on a centralized router logic.
-- **DX Friction:** Lack of a native "watch-and-generate" mode that fits perfectly into the SvelteKit/Vite ecosystem without full Rust recompilation.
+- **DX Friction:** Lack of a native "watch-and-generate" mode that fits perfectly into the Vite ecosystem without full Rust recompilation.
 
 ## 3. Architecture & Components
 
@@ -67,7 +67,7 @@ vercel-rpc/
 │           ├── types.rs        # syn::Type -> RustType conversion
 │           ├── typescript.rs   # TypeScript codegen (type mapping, JSDoc)
 │           └── client.rs       # Client codegen (RpcClient, overloads)
-├── demo/                       # SvelteKit demo application + Rust lambdas
+├── demo/                       # Demo application (SvelteKit) + Rust lambdas
 │   ├── api/                    # Every file is a standalone Vercel Lambda
 │   │   ├── hello.rs            # #[rpc_query]  — String -> String
 │   │   ├── time.rs             # #[rpc_query]  — () -> TimeResponse
@@ -80,12 +80,12 @@ vercel-rpc/
 │   │   │   ├── rpc-types.ts    # AUTO-GENERATED: Type definitions
 │   │   │   ├── rpc-client.ts   # AUTO-GENERATED: Typed fetch client + RpcError
 │   │   │   └── client.ts       # MANUAL: RpcClient instance configuration
-│   │   └── routes/             # SvelteKit pages
+│   │   └── routes/             # Frontend pages
 │   ├── tests/
 │   │   ├── integration/        # Vitest: codegen pipeline tests
 │   │   └── e2e/                # Playwright: UI + API tests
 │   ├── Cargo.toml              # Rust package for demo lambdas
-│   └── package.json            # Vite/SvelteKit scripts
+│   └── package.json            # Node scripts
 ├── Cargo.toml                  # Workspace root (members: rpc-macro, rpc-cli, demo)
 └── vercel.json                 # Vercel deployment config
 ```
@@ -117,8 +117,8 @@ export type Procedures = {
 export class RpcError extends Error { ... }
 export function createRpcClient(baseUrl: string): RpcClient;
 
-// Usage in SvelteKit component
-import { rpc } from '$lib/client';
+// Usage in any TypeScript frontend
+import { rpc } from './client';
 const res = await rpc.query("hello", "World");
 ```
 

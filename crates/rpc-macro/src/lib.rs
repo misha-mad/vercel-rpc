@@ -2,7 +2,7 @@
 //! [Vercel](https://vercel.com) serverless lambda handlers.
 //!
 //! Part of the [`vercel-rpc`](https://github.com/misha-mad/vercel-rpc) project
-//! — end-to-end typesafe RPC between Rust lambdas on Vercel and SvelteKit.
+//! — end-to-end typesafe RPC between Rust lambdas on Vercel and any TypeScript frontend.
 //!
 //! # Quick Start
 //!
@@ -82,12 +82,11 @@
 //!
 //! [`vercel-rpc-cli`](https://crates.io/crates/vercel-rpc-cli) scans your
 //! `#[rpc_query]` / `#[rpc_mutation]` functions and generates TypeScript type
-//! definitions and a fully typed RPC client for use in SvelteKit (or any
-//! TypeScript frontend).
+//! definitions and a fully typed RPC client for use in any TypeScript frontend.
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, FnArg, ItemFn, PatType, ReturnType, Type};
+use syn::{FnArg, ItemFn, PatType, ReturnType, Type, parse_macro_input};
 
 /// Generates a Vercel-compatible lambda handler from an async **query** function.
 ///
@@ -553,9 +552,8 @@ mod tests {
 
     #[test]
     fn query_returns_result() {
-        let func = parse_fn(
-            "async fn fetch(id: u32) -> Result<String, String> { Ok(\"ok\".into()) }",
-        );
+        let func =
+            parse_fn("async fn fetch(id: u32) -> Result<String, String> { Ok(\"ok\".into()) }");
         let tokens = build_handler(func, HandlerKind::Query).unwrap();
         let code = tokens.to_string();
         assert!(code.contains("__rpc_error_response (400"));
@@ -601,10 +599,8 @@ mod tests {
 
     #[test]
     fn self_receiver_ignored() {
-        let func: ItemFn = syn::parse_str(
-            "async fn method(self, name: String) -> String { name }",
-        )
-        .unwrap();
+        let func: ItemFn =
+            syn::parse_str("async fn method(self, name: String) -> String { name }").unwrap();
         let tokens = build_handler(func, HandlerKind::Query).unwrap();
         let code = tokens.to_string();
         // `self` is filtered out, only `name: String` remains as input

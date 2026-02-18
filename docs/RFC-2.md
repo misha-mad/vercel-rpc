@@ -59,7 +59,7 @@ clear_screen = false                 # clear terminal before regeneration
 ### Minimal Example
 
 ```toml
-# Typical SvelteKit project — only override what differs from defaults
+# Typical project — only override what differs from defaults
 
 [output]
 types = "src/lib/generated/rpc-types.ts"
@@ -466,4 +466,4 @@ Pros: no extra file. Cons: couples to Node.js, not accessible from pure Rust con
 
 ### `Cargo.toml` `[metadata.rpc]`
 
-Pros: no extra file, Rust-native. Cons: `Cargo.toml` lives at crate root, not project root. In monorepos the Rust workspace and the SvelteKit project may be at different levels. A dedicated file avoids this ambiguity. Rejected.
+Pros: no extra file, Rust-native. Cons: `Cargo.toml` lives at crate root, not project root. In monorepos the Rust workspace and the frontend project may be at different levels. A dedicated file avoids this ambiguity. Rejected.
