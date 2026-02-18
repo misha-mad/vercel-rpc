@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.3...vercel-rpc-macro-v0.1.4) - 2026-02-18
+
+### Added
+
+- *(rpc)* add vercel-rpc facade crate
+
+### Fixed
+
+- *(rpc-macro)* apply best practices from code audit
+- *(rpc-macro)* remove needless borrow in new_spanned call
+- resolve all clippy warnings across workspace
+- *(rpc-macro)* remove invalid tarpaulin skip attribute
+
+### Other
+
+- *(rpc)* add README for facade crate, update rpc-macro README
+- *(rpc-macro)* apply best practices from code audit
+- remove SvelteKit coupling from rustdoc, RFCs, and roadmap
+- center sponsor line, remove codecov badges from crate READMEs
+- *(rpc-macro)* skip proc-macro entry points from tarpaulin coverage
+- *(rpc-macro)* inline generate_handler into proc-macro entry points
+- *(rpc-macro)* cover FnArg::Receiver filter branch
+- *(rpc-macro)* extract build_handler for testable code generation
+- *(rpc-macro)* add unit tests for proc-macro code generation
+
 ## [0.1.3](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.2...vercel-rpc-macro-v0.1.3) - 2026-02-16
 
 ### Other
