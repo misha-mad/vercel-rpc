@@ -1,19 +1,16 @@
-# vercel-rpc-macro
+# vercel-rpc
 
-[![Crates.io](https://img.shields.io/crates/v/vercel-rpc-macro.svg)](https://crates.io/crates/vercel-rpc-macro)
-[![docs.rs](https://docs.rs/vercel-rpc-macro/badge.svg)](https://docs.rs/vercel-rpc-macro)
-[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/vercel-rpc-macro.svg)](https://github.com/misha-mad/vercel-rpc/blob/main/LICENSE-MIT)
+[![Crates.io](https://img.shields.io/crates/v/vercel-rpc.svg)](https://crates.io/crates/vercel-rpc)
+[![docs.rs](https://docs.rs/vercel-rpc/badge.svg)](https://docs.rs/vercel-rpc)
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/vercel-rpc.svg)](https://github.com/misha-mad/vercel-rpc/blob/main/LICENSE-MIT)
 
-Procedural macros that turn plain async Rust functions into
-[Vercel](https://vercel.com) serverless lambda handlers with JSON serialization,
-CORS, and error handling — all in one attribute.
+End-to-end typesafe RPC between Rust lambdas on Vercel and any TypeScript frontend.
 
-Part of the [vercel-rpc](https://github.com/misha-mad/vercel-rpc) project.
+This is the main entry point for the project — a facade crate that re-exports
+the [`vercel-rpc-macro`](https://crates.io/crates/vercel-rpc-macro) proc macros
+together with all runtime dependencies they need.
 
 ## Installation
-
-Use the [`vercel-rpc`](https://crates.io/crates/vercel-rpc) facade crate which
-re-exports these macros together with all runtime dependencies:
 
 ```toml
 [dependencies]
@@ -21,9 +18,12 @@ vercel-rpc = "0.1"
 serde = { version = "1", features = ["derive"] }
 ```
 
+That's it — no need to add `vercel_runtime`, `serde_json`, `tokio`, `url`, or
+`http-body-util` manually.
+
 ## Usage
 
-### Simple query (GET)
+### Query (GET)
 
 ```rust
 use vercel_rpc::rpc_query;
@@ -51,9 +51,6 @@ async fn version() -> String {
 }
 ```
 
-When there are no parameters, the handler does not require the `input` query
-parameter.
-
 ### Mutation (POST)
 
 ```rust
@@ -72,8 +69,7 @@ async fn create_user(input: CreateUserInput) -> String {
 }
 ```
 
-Mutations read input from the **JSON request body** instead of query parameters,
-and only accept **POST** requests.
+Mutations read input from the **JSON request body** and only accept **POST**.
 
 ### Returning `Result`
 
@@ -90,9 +86,8 @@ async fn find_user(id: u32) -> Result<String, String> {
 }
 ```
 
-When the function returns `Result<T, E>`:
-- `Ok(value)` is serialized as a normal success response (HTTP 200)
-- `Err(error)` is serialized as a JSON error response (HTTP 400)
+- `Ok(value)` → HTTP 200 success response
+- `Err(error)` → HTTP 400 error response
 
 ## Response format
 
@@ -119,16 +114,22 @@ When the function returns `Result<T, E>`:
 ## Constraints
 
 - Functions **must** be `async`.
-- Each function accepts **at most one** parameter. More than one parameter
-  produces a compile error.
+- Each function accepts **at most one** parameter.
 - Input types must implement `serde::Deserialize`.
 - Output types (and `Ok` types in `Result`) must implement `serde::Serialize`.
 
+## Re-exports
+
+For convenience, the crate re-exports `serde::{Serialize, Deserialize}`, so you
+can write `use vercel_rpc::Serialize;` if you prefer.
+
 ## Related crates
 
+- [`vercel-rpc-macro`](https://crates.io/crates/vercel-rpc-macro) — the proc
+  macros themselves (re-exported by this crate).
 - [`vercel-rpc-cli`](https://crates.io/crates/vercel-rpc-cli) — CLI that scans
-  `#[rpc_query]` / `#[rpc_mutation]` functions and generates TypeScript types
-  and a typed client.
+  your `#[rpc_query]` / `#[rpc_mutation]` functions and generates TypeScript
+  types and a typed client.
 
 ## License
 

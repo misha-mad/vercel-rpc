@@ -55,7 +55,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 
 ```rust
 // api/hello.rs
-use vercel_rpc_macro::rpc_query;
+use vercel_rpc::rpc_query;
 
 #[rpc_query]
 async fn hello(name: String) -> String {
@@ -153,6 +153,8 @@ This runs the RPC watcher and Vite dev server in parallel. Every time you save a
 ```
 vercel-rpc/
 ├── crates/
+│   ├── rpc/                      # Facade crate (re-exports macros + runtime deps)
+│   │   └── src/lib.rs            #   pub use vercel_rpc_macro::{rpc_query, rpc_mutation}
 │   ├── rpc-macro/                # Proc-macro crate
 │   │   └── src/lib.rs            #   #[rpc_query] / #[rpc_mutation]
 │   └── rpc-cli/                  # CLI crate (library + binary: `rpc`)
@@ -365,7 +367,7 @@ The transform also applies to struct variant fields in enums. Enum variant *name
 ### `#[rpc_query]` — GET endpoint
 
 ```rust
-use vercel_rpc_macro::rpc_query;
+use vercel_rpc::rpc_query;
 
 // No input
 #[rpc_query]
@@ -395,7 +397,7 @@ async fn risky(id: u32) -> Result<Item, String> {
 ### `#[rpc_mutation]` — POST endpoint
 
 ```rust
-use vercel_rpc_macro::rpc_mutation;
+use vercel_rpc::rpc_mutation;
 
 #[rpc_mutation]
 async fn create_item(input: CreateInput) -> Item {

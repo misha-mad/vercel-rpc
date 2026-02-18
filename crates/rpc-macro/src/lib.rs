@@ -6,24 +6,19 @@
 //!
 //! # Quick Start
 //!
-//! Add the macro crate **and** its runtime dependencies to your `Cargo.toml`
-//! (the generated code uses these crates directly, so they must be present):
+//! Use the [`vercel-rpc`](https://crates.io/crates/vercel-rpc) facade crate
+//! which re-exports these macros together with all runtime dependencies:
 //!
 //! ```toml
 //! [dependencies]
-//! vercel-rpc-macro = "0.1"
-//! vercel_runtime   = "1"
-//! serde            = { version = "1", features = ["derive"] }
-//! serde_json       = "1"
-//! tokio            = { version = "1", features = ["macros"] }
-//! url              = "2"
-//! http-body-util   = "0.1"
+//! vercel-rpc = "0.1"
+//! serde      = { version = "1", features = ["derive"] }
 //! ```
 //!
 //! Then annotate an async function:
 //!
 //! ```rust,ignore
-//! use vercel_rpc_macro::rpc_query;
+//! use vercel_rpc::rpc_query;
 //!
 //! #[rpc_query]
 //! async fn hello(name: String) -> String {
@@ -38,7 +33,7 @@
 //!
 //! Each macro invocation produces:
 //!
-//! - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+//! - A `main()` entry point with a single-threaded tokio runtime that calls `vercel_runtime::run`.
 //! - An `OPTIONS` handler that returns `204` with CORS headers.
 //! - HTTP method validation (`GET` for queries, `POST` for mutations).
 //! - Input deserialization — from the `?input=<JSON>` query parameter (queries)
@@ -94,7 +89,7 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// `?input=<JSON>` query parameter and the return value is serialized as JSON.
 ///
 /// The macro generates:
-/// - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+/// - A `main()` entry point with a single-threaded tokio runtime that calls `vercel_runtime::run`.
 /// - Automatic JSON deserialization of the `input` query parameter.
 /// - Automatic JSON serialization of the return value.
 /// - CORS headers on every response (including `OPTIONS` preflight → `204`).
@@ -183,7 +178,7 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Input is read from the **JSON request body** instead of query parameters.
 ///
 /// The macro generates:
-/// - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+/// - A `main()` entry point with a single-threaded tokio runtime that calls `vercel_runtime::run`.
 /// - Automatic JSON deserialization of the request body.
 /// - Automatic JSON serialization of the return value.
 /// - CORS headers on every response (including `OPTIONS` preflight → `204`).
@@ -327,7 +322,7 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
     let parse_input = match kind {
         HandlerKind::Query => quote! {
             let __input: #input_type = {
-                let __url = match ::url::Url::parse(
+                let __url = match ::vercel_rpc::__private::url::Url::parse(
                     &format!("http://localhost{}", __req.uri())
                 ) {
                     Ok(u) => u,
@@ -340,12 +335,12 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
                     .map(|(_, v)| v.into_owned());
 
                 match __raw {
-                    Some(ref __s) => match ::serde_json::from_str(__s) {
+                    Some(ref __s) => match ::vercel_rpc::__private::serde_json::from_str(__s) {
                         Ok(v) => v,
                         Err(e) => return __rpc_error_response(400,
                             &format!("Failed to deserialize input: {}", e)),
                     },
-                    None => match ::serde_json::from_value(::serde_json::Value::Null) {
+                    None => match ::vercel_rpc::__private::serde_json::from_value(::vercel_rpc::__private::serde_json::Value::Null) {
                         Ok(v) => v,
                         Err(e) => return __rpc_error_response(400,
                             &format!("Missing required input parameter: {}", e)),
@@ -355,21 +350,21 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         },
         HandlerKind::Mutation => quote! {
             let __input: #input_type = {
-                use ::http_body_util::BodyExt as _;
+                use ::vercel_rpc::__private::http_body_util::BodyExt as _;
                 let __collected = __req.into_body().collect().await
-                    .map_err(|e| ::vercel_runtime::Error::from(
+                    .map_err(|e| ::vercel_rpc::__private::vercel_runtime::Error::from(
                         format!("Failed to read request body: {}", e)
                     ))?;
                 let __bytes = __collected.to_bytes();
 
                 if __bytes.is_empty() {
-                    match ::serde_json::from_value(::serde_json::Value::Null) {
+                    match ::vercel_rpc::__private::serde_json::from_value(::vercel_rpc::__private::serde_json::Value::Null) {
                         Ok(v) => v,
                         Err(e) => return __rpc_error_response(400,
                             &format!("Missing required request body: {}", e)),
                     }
                 } else {
-                    match ::serde_json::from_slice(&__bytes) {
+                    match ::vercel_rpc::__private::serde_json::from_slice(&__bytes) {
                         Ok(v) => v,
                         Err(e) => return __rpc_error_response(400,
                             &format!("Failed to deserialize request body: {}", e)),
@@ -384,8 +379,8 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         quote! {
             match __raw_result {
                 Ok(__val) => {
-                    let __data = ::serde_json::to_value(&__val)
-                        .map_err(|e| ::vercel_runtime::Error::from(
+                    let __data = ::vercel_rpc::__private::serde_json::to_value(&__val)
+                        .map_err(|e| ::vercel_rpc::__private::vercel_runtime::Error::from(
                             format!("Failed to serialize response: {}", e)
                         ))?;
                     __rpc_ok_response(__data)
@@ -397,8 +392,8 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         }
     } else {
         quote! {
-            let __data = ::serde_json::to_value(&__raw_result)
-                .map_err(|e| ::vercel_runtime::Error::from(
+            let __data = ::vercel_rpc::__private::serde_json::to_value(&__raw_result)
+                .map_err(|e| ::vercel_rpc::__private::vercel_runtime::Error::from(
                     format!("Failed to serialize response: {}", e)
                 ))?;
             __rpc_ok_response(__data)
@@ -406,9 +401,18 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
     };
 
     let expanded = quote! {
-        #[tokio::main]
-        async fn main() -> Result<(), ::vercel_runtime::Error> {
-            ::vercel_runtime::run(::vercel_runtime::service_fn(__rpc_handler)).await
+        fn main() -> Result<(), ::vercel_rpc::__private::vercel_runtime::Error> {
+            ::vercel_rpc::__private::tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .map_err(|e| ::vercel_rpc::__private::vercel_runtime::Error::from(
+                    format!("Failed to build tokio runtime: {}", e)
+                ))?
+                .block_on(async {
+                    ::vercel_rpc::__private::vercel_runtime::run(
+                        ::vercel_rpc::__private::vercel_runtime::service_fn(__rpc_handler),
+                    ).await
+                })
         }
 
         // Shared CORS headers applied to every response.
@@ -423,9 +427,9 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
 
         // Builds a successful JSON response with CORS headers.
         fn __rpc_ok_response(
-            data: ::serde_json::Value,
-        ) -> Result<::vercel_runtime::Response<::serde_json::Value>, ::vercel_runtime::Error> {
-            let mut builder = ::vercel_runtime::Response::builder()
+            data: ::vercel_rpc::__private::serde_json::Value,
+        ) -> Result<::vercel_rpc::__private::vercel_runtime::Response<::vercel_rpc::__private::serde_json::Value>, ::vercel_rpc::__private::vercel_runtime::Error> {
+            let mut builder = ::vercel_rpc::__private::vercel_runtime::Response::builder()
                 .status(200)
                 .header("Content-Type", "application/json");
 
@@ -433,7 +437,7 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
                 builder = builder.header(k, v);
             }
 
-            Ok(builder.body(::serde_json::json!({
+            Ok(builder.body(::vercel_rpc::__private::serde_json::json!({
                 "result": {
                     "type": "response",
                     "data": data
@@ -445,8 +449,8 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         fn __rpc_error_response(
             status: u16,
             message: &str,
-        ) -> Result<::vercel_runtime::Response<::serde_json::Value>, ::vercel_runtime::Error> {
-            let mut builder = ::vercel_runtime::Response::builder()
+        ) -> Result<::vercel_rpc::__private::vercel_runtime::Response<::vercel_rpc::__private::serde_json::Value>, ::vercel_rpc::__private::vercel_runtime::Error> {
+            let mut builder = ::vercel_rpc::__private::vercel_runtime::Response::builder()
                 .status(status)
                 .header("Content-Type", "application/json");
 
@@ -454,7 +458,7 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
                 builder = builder.header(k, v);
             }
 
-            Ok(builder.body(::serde_json::json!({
+            Ok(builder.body(::vercel_rpc::__private::serde_json::json!({
                 "error": {
                     "type": "error",
                     "message": message
@@ -463,16 +467,16 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         }
 
         async fn __rpc_handler(
-            __req: ::vercel_runtime::Request,
-        ) -> Result<::vercel_runtime::Response<::serde_json::Value>, ::vercel_runtime::Error> {
+            __req: ::vercel_rpc::__private::vercel_runtime::Request,
+        ) -> Result<::vercel_rpc::__private::vercel_runtime::Response<::vercel_rpc::__private::serde_json::Value>, ::vercel_rpc::__private::vercel_runtime::Error> {
             // Handle CORS preflight
             if __req.method() == "OPTIONS" {
-                let mut builder = ::vercel_runtime::Response::builder()
+                let mut builder = ::vercel_rpc::__private::vercel_runtime::Response::builder()
                     .status(204);
                 for (k, v) in __rpc_cors_headers() {
                     builder = builder.header(k, v);
                 }
-                return Ok(builder.body(::serde_json::Value::Null)?);
+                return Ok(builder.body(::vercel_rpc::__private::serde_json::Value::Null)?);
             }
 
             // Validate HTTP method
@@ -652,6 +656,14 @@ mod tests {
         let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
         assert!(code.contains("\"OPTIONS\""));
         assert!(code.contains("204"));
+    }
+
+    #[test]
+    fn generates_current_thread_runtime() {
+        let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
+        let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
+        assert!(code.contains("new_current_thread"));
+        assert!(!code.contains("tokio :: main"));
     }
 
     #[test]

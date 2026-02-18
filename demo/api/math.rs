@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use vercel_rpc_macro::rpc_query;
+use vercel_rpc::rpc_query;
 
 /// Arithmetic operation to perform.
 #[derive(Deserialize, Serialize)]

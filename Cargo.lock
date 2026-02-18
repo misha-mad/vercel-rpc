@@ -1338,6 +1338,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
+name = "vercel-rpc"
+version = "0.1.0"
+dependencies = [
+ "http-body-util",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+ "vercel-rpc-macro",
+ "vercel_runtime",
+]
+
+[[package]]
 name = "vercel-rpc-cli"
 version = "0.1.3"
 dependencies = [
@@ -1362,13 +1375,8 @@ dependencies = [
 name = "vercel-rpc-demo"
 version = "0.1.0"
 dependencies = [
- "http-body-util",
  "serde",
- "serde_json",
- "tokio",
- "url",
- "vercel-rpc-macro",
- "vercel_runtime",
+ "vercel-rpc",
 ]
 
 [[package]]
