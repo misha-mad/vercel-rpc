@@ -205,14 +205,11 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
 
 /// Generates query overload signatures for the RpcClient interface.
 fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut String) {
-    let queries: Vec<&Procedure> = manifest
+    let (void_queries, non_void_queries): (Vec<_>, Vec<_>) = manifest
         .procedures
         .iter()
         .filter(|p| p.kind == ProcedureKind::Query)
-        .collect();
-
-    let void_queries: Vec<&&Procedure> = queries.iter().filter(|p| is_void_input(p)).collect();
-    let non_void_queries: Vec<&&Procedure> = queries.iter().filter(|p| !is_void_input(p)).collect();
+        .partition(|p| is_void_input(p));
 
     // Overload signatures for void-input queries (no input argument required)
     for proc in &void_queries {
@@ -256,15 +253,11 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
 
 /// Generates mutation overload signatures for the RpcClient interface.
 fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut String) {
-    let mutations: Vec<&Procedure> = manifest
+    let (void_mutations, non_void_mutations): (Vec<_>, Vec<_>) = manifest
         .procedures
         .iter()
         .filter(|p| p.kind == ProcedureKind::Mutation)
-        .collect();
-
-    let void_mutations: Vec<&&Procedure> = mutations.iter().filter(|p| is_void_input(p)).collect();
-    let non_void_mutations: Vec<&&Procedure> =
-        mutations.iter().filter(|p| !is_void_input(p)).collect();
+        .partition(|p| is_void_input(p));
 
     // Overload signatures for void-input mutations
     for proc in &void_mutations {
@@ -308,8 +301,5 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
 
 /// Returns `true` if the procedure takes no input (void).
 fn is_void_input(proc: &Procedure) -> bool {
-    match &proc.input {
-        None => true,
-        Some(ty) => ty.name == "()",
-    }
+    proc.input.as_ref().is_none_or(|ty| ty.name == "()")
 }

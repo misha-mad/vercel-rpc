@@ -1,5 +1,7 @@
-use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
 
 /// The kind of RPC procedure, determined by the macro attribute.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -22,6 +24,7 @@ pub struct RustType {
 }
 
 impl RustType {
+    /// Creates a simple type with no generic parameters (e.g. `String`, `i32`).
     pub fn simple(name: impl Into<String>) -> Self {
         Self {
             name: name.into(),
@@ -29,21 +32,29 @@ impl RustType {
         }
     }
 
+    /// Creates a generic type with the given type parameters (e.g. `Vec<String>`).
     pub fn with_generics(name: impl Into<String>, generics: Vec<RustType>) -> Self {
         Self {
             name: name.into(),
             generics,
         }
     }
+}
 
-    /// Returns a human-readable representation matching Rust syntax.
-    pub fn display(&self) -> String {
-        if self.generics.is_empty() {
-            self.name.clone()
-        } else {
-            let inner: Vec<String> = self.generics.iter().map(|g| g.display()).collect();
-            format!("{}<{}>", self.name, inner.join(", "))
+impl fmt::Display for RustType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)?;
+        if !self.generics.is_empty() {
+            write!(f, "<")?;
+            for (i, g) in self.generics.iter().enumerate() {
+                if i > 0 {
+                    write!(f, ", ")?;
+                }
+                write!(f, "{g}")?;
+            }
+            write!(f, ">")?;
         }
+        Ok(())
     }
 }
 

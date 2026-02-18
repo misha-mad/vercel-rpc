@@ -89,12 +89,11 @@ pub fn rust_type_to_ts(ty: &RustType) -> String {
 
 /// Emits a JSDoc comment block from a doc string.
 pub fn emit_jsdoc(doc: &str, indent: &str, out: &mut String) {
-    let lines: Vec<&str> = doc.lines().collect();
-    if lines.len() == 1 {
-        let _ = writeln!(out, "{indent}/** {} */", lines[0]);
+    if !doc.contains('\n') {
+        let _ = writeln!(out, "{indent}/** {doc} */");
     } else {
         let _ = writeln!(out, "{indent}/**");
-        for line in &lines {
+        for line in doc.lines() {
             let _ = writeln!(out, "{indent} * {line}");
         }
         let _ = writeln!(out, "{indent} */");
@@ -225,14 +224,9 @@ fn generate_enum_type(
 /// Generates the `Procedures` type that maps procedure names to their input/output types,
 /// grouped by kind (queries / mutations).
 fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: &mut String) {
-    let queries: Vec<&Procedure> = procedures
+    let (queries, mutations): (Vec<_>, Vec<_>) = procedures
         .iter()
-        .filter(|p| p.kind == ProcedureKind::Query)
-        .collect();
-    let mutations: Vec<&Procedure> = procedures
-        .iter()
-        .filter(|p| p.kind == ProcedureKind::Mutation)
-        .collect();
+        .partition(|p| p.kind == ProcedureKind::Query);
 
     let _ = writeln!(out, "export type Procedures = {{");
 

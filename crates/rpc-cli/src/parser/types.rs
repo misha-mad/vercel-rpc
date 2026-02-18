@@ -9,8 +9,11 @@ use crate::model::RustType;
 pub fn extract_rust_type(ty: &Type) -> RustType {
     match ty {
         Type::Path(type_path) => {
-            // A parsed Type::Path always has at least one segment
-            let segment = &type_path.path.segments[type_path.path.segments.len() - 1];
+            let segment = type_path
+                .path
+                .segments
+                .last()
+                .expect("Type::Path always has at least one segment");
             let name = segment.ident.to_string();
             let generics = extract_generic_args(&segment.arguments);
 

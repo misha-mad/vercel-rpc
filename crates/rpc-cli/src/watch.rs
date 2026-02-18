@@ -8,6 +8,7 @@ use colored::Colorize;
 use notify::RecursiveMode;
 use notify_debouncer_mini::{DebouncedEventKind, new_debouncer};
 
+use crate::commands::write_file;
 use crate::config::RpcConfig;
 use crate::{codegen, parser};
 
@@ -31,9 +32,8 @@ pub fn run(config: &RpcConfig) -> Result<()> {
     print_banner(config);
 
     // Initial generation
-    match generate(config) {
-        Ok(()) => {}
-        Err(e) => print_error(&e),
+    if let Err(e) = generate(config) {
+        print_error(&e);
     }
 
     // Set up file watcher with debouncing
@@ -76,9 +76,8 @@ pub fn run(config: &RpcConfig) -> Result<()> {
 
                     print_change(&changed);
 
-                    match generate(config) {
-                        Ok(()) => {}
-                        Err(e) => print_error(&e),
+                    if let Err(e) = generate(config) {
+                        print_error(&e);
                     }
                 }
             }
@@ -137,17 +136,6 @@ fn generate(config: &RpcConfig) -> Result<()> {
         config.output.client.display().to_string().dimmed(),
     );
 
-    Ok(())
-}
-
-/// Writes content to a file, creating parent directories as needed.
-#[cfg(not(tarpaulin_include))]
-fn write_file(path: &Path, content: &str) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .with_context(|| format!("Failed to create directory {}", parent.display()))?;
-    }
-    std::fs::write(path, content).with_context(|| format!("Failed to write {}", path.display()))?;
     Ok(())
 }
 
