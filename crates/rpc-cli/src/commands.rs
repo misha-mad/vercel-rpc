@@ -1,11 +1,13 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 
 use anyhow::{Context, Result};
 
 use crate::config::RpcConfig;
 use crate::{codegen, parser};
 
+/// Scans the configured directory and prints discovered RPC procedures, structs,
+/// and enums to stdout, followed by a JSON manifest.
 pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
     let manifest = parser::scan_directory(&config.input)?;
 
@@ -20,12 +22,12 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
         let input_str = proc
             .input
             .as_ref()
-            .map(|t| t.display())
+            .map(|t| t.to_string())
             .unwrap_or_else(|| "()".to_string());
         let output_str = proc
             .output
             .as_ref()
-            .map(|t| t.display())
+            .map(|t| t.to_string())
             .unwrap_or_else(|| "()".to_string());
 
         println!(
@@ -41,7 +43,7 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
     for s in &manifest.structs {
         println!("\n  struct {} {{", s.name);
         for (name, ty) in &s.fields {
-            println!("    {}: {},", name, ty.display());
+            println!("    {}: {},", name, ty);
         }
         println!("  }}");
     }
@@ -58,6 +60,8 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
     Ok(())
 }
 
+/// Generates TypeScript type definitions and a typed RPC client from the
+/// configured directory, writing the results to the configured output paths.
 pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
     let manifest = parser::scan_directory(&config.input)?;
 
@@ -94,7 +98,7 @@ pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
 }
 
 /// Writes content to a file, creating parent directories as needed.
-pub fn write_file(path: &PathBuf, content: &str) -> Result<()> {
+pub fn write_file(path: &Path, content: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)
             .with_context(|| format!("Failed to create directory {}", parent.display()))?;

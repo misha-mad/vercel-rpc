@@ -112,7 +112,7 @@ fn extract_tuple_struct_fields() {
 #[test]
 fn display_format() {
     let ty = RustType::with_generics("Vec", vec![RustType::simple("String")]);
-    assert_eq!(ty.display(), "Vec<String>");
+    assert_eq!(ty.to_string(), "Vec<String>");
 
     let nested = RustType::with_generics(
         "HashMap",
@@ -121,5 +121,5 @@ fn display_format() {
             RustType::with_generics("Vec", vec![RustType::simple("i32")]),
         ],
     );
-    assert_eq!(nested.display(), "HashMap<String, Vec<i32>>");
+    assert_eq!(nested.to_string(), "HashMap<String, Vec<i32>>");
 }

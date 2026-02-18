@@ -42,6 +42,8 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
 
     let entries: Vec<_> = WalkDir::new(&input.dir)
         .into_iter()
+        // Skip unreadable entries (e.g. permission denied); the scan should
+        // not abort because a single directory entry is inaccessible.
         .filter_map(|e| e.ok())
         .filter(|e| {
             if e.path().extension().is_none_or(|ext| ext != "rs") {
