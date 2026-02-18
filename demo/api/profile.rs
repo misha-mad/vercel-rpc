@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use vercel_rpc::rpc_query;
 
 /// User role with snake_case serialization.
