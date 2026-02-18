@@ -275,7 +275,7 @@ enum HandlerKind {
 fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenStream, syn::Error> {
     if func.sig.asyncness.is_none() {
         return Err(syn::Error::new_spanned(
-            &func.sig.fn_token,
+            func.sig.fn_token,
             "RPC handlers must be async functions",
         ));
     }
