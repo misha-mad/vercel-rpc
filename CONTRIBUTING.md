@@ -69,6 +69,7 @@ The project is a Cargo workspace with two main crates and a SvelteKit demo:
 
 | Path                | Description                                          |
 |---------------------|------------------------------------------------------|
+| `crates/rpc/`       | Facade crate — re-exports macros + all runtime deps  |
 | `crates/rpc-macro/` | Proc-macro crate (`#[rpc_query]`, `#[rpc_mutation]`) |
 | `crates/rpc-cli/`   | CLI binary — `scan`, `generate`, `watch` commands    |
 | `demo/`             | SvelteKit demo app with Rust lambdas in `demo/api/`  |
@@ -228,6 +229,7 @@ git config core.hooksPath .githooks
 
 | Scope       | Crate              |
 |-------------|---------------------|
+| `rpc`       | `vercel-rpc`        |
 | `rpc-macro` | `vercel-rpc-macro`  |
 | `rpc-cli`   | `vercel-rpc-cli`    |
 

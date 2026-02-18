@@ -43,6 +43,8 @@ A CLI tool written in Rust that bridges the gap between the Backend and Frontend
 ```
 vercel-rpc/
 ├── crates/
+│   ├── rpc/                    # Facade crate (re-exports macros + runtime deps)
+│   │   └── src/lib.rs
 │   ├── rpc-macro/              # Proc-macro: #[rpc_query] / #[rpc_mutation]
 │   │   └── src/lib.rs
 │   └── rpc-cli/                # CLI: library + binary (scan / generate / watch)
@@ -86,7 +88,7 @@ vercel-rpc/
 │   │   └── e2e/                # Playwright: UI + API tests
 │   ├── Cargo.toml              # Rust package for demo lambdas
 │   └── package.json            # Node scripts
-├── Cargo.toml                  # Workspace root (members: rpc-macro, rpc-cli, demo)
+├── Cargo.toml                  # Workspace root (members: rpc, rpc-macro, rpc-cli, demo)
 └── vercel.json                 # Vercel deployment config
 ```
 
@@ -94,7 +96,7 @@ vercel-rpc/
 
 ```rust
 // api/hello.rs
-use vercel_rpc_macro::rpc_query;
+use vercel_rpc::rpc_query;
 
 #[rpc_query]
 async fn hello(name: String) -> String {
