@@ -6,6 +6,7 @@ use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use syn::{Attribute, File, FnArg, Item, ItemFn, ReturnType};
 use walkdir::WalkDir;
 
+use super::serde as serde_attr;
 use super::types::{extract_rust_type, extract_struct_fields};
 use crate::config::InputConfig;
 use crate::model::{
@@ -97,16 +98,19 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
                 if has_serde_derive(&item_struct.attrs) {
                     let fields = extract_struct_fields(&item_struct.fields);
                     let docs = extract_docs(&item_struct.attrs);
+                    let rename_all = serde_attr::parse_rename_all(&item_struct.attrs);
                     manifest.structs.push(StructDef {
                         name: item_struct.ident.to_string(),
                         fields,
                         source_file: path.to_path_buf(),
                         docs,
+                        rename_all,
                     });
                 }
             }
             Item::Enum(item_enum) => {
                 if has_serde_derive(&item_enum.attrs) {
+                    let rename_all = serde_attr::parse_rename_all(&item_enum.attrs);
                     let variants = extract_enum_variants(item_enum);
                     let docs = extract_docs(&item_enum.attrs);
                     manifest.enums.push(EnumDef {
@@ -114,6 +118,7 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
                         variants,
                         source_file: path.to_path_buf(),
                         docs,
+                        rename_all,
                     });
                 }
             }
@@ -210,6 +215,7 @@ fn extract_enum_variants(item_enum: &syn::ItemEnum) -> Vec<EnumVariant> {
         .iter()
         .map(|v| {
             let name = v.ident.to_string();
+            let rename = serde_attr::parse_rename(&v.attrs);
             let kind = match &v.fields {
                 syn::Fields::Unit => VariantKind::Unit,
                 syn::Fields::Unnamed(fields) => {
@@ -220,20 +226,12 @@ fn extract_enum_variants(item_enum: &syn::ItemEnum) -> Vec<EnumVariant> {
                         .collect();
                     VariantKind::Tuple(types)
                 }
-                syn::Fields::Named(fields) => {
-                    let named = fields
-                        .named
-                        .iter()
-                        .filter_map(|f| {
-                            let field_name = f.ident.as_ref()?.to_string();
-                            let ty = extract_rust_type(&f.ty);
-                            Some((field_name, ty))
-                        })
-                        .collect();
-                    VariantKind::Struct(named)
+                syn::Fields::Named(_) => {
+                    let fields = extract_struct_fields(&v.fields);
+                    VariantKind::Struct(fields)
                 }
             };
-            EnumVariant { name, kind }
+            EnumVariant { name, kind, rename }
         })
         .collect()
 }

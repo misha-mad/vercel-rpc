@@ -218,9 +218,10 @@ fn imports_referenced_structs() {
         )],
         structs: vec![StructDef {
             name: "TimeResponse".to_string(),
-            fields: vec![("timestamp".to_string(), RustType::simple("u64"))],
+            fields: vec![common::field("timestamp", RustType::simple("u64"))],
             source_file: PathBuf::from("api/time.rs"),
             docs: None,
+            rename_all: None,
         }],
         enums: vec![],
     };

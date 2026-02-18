@@ -1,5 +1,6 @@
 use std::fmt;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +10,137 @@ use serde::{Deserialize, Serialize};
 pub enum ProcedureKind {
     Query,
     Mutation,
+}
+
+/// Serde `rename_all` naming convention.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RenameRule {
+    #[serde(rename = "camelCase")]
+    CamelCase,
+    #[serde(rename = "snake_case")]
+    SnakeCase,
+    #[serde(rename = "PascalCase")]
+    PascalCase,
+    #[serde(rename = "SCREAMING_SNAKE_CASE")]
+    ScreamingSnakeCase,
+    #[serde(rename = "kebab-case")]
+    KebabCase,
+    #[serde(rename = "SCREAMING-KEBAB-CASE")]
+    ScreamingKebabCase,
+    #[serde(rename = "lowercase")]
+    Lowercase,
+    #[serde(rename = "UPPERCASE")]
+    Uppercase,
+}
+
+impl RenameRule {
+    /// Transforms a name according to this rename rule.
+    pub fn apply(&self, input: &str) -> String {
+        if input.is_empty() {
+            return String::new();
+        }
+        let words = split_words(input);
+        match self {
+            RenameRule::CamelCase => {
+                let mut result = String::new();
+                for (i, word) in words.iter().enumerate() {
+                    if i == 0 {
+                        result.push_str(&word.to_lowercase());
+                    } else {
+                        let mut chars = word.chars();
+                        if let Some(first) = chars.next() {
+                            result.extend(first.to_uppercase());
+                            result.push_str(&chars.as_str().to_lowercase());
+                        }
+                    }
+                }
+                result
+            }
+            RenameRule::SnakeCase => words
+                .iter()
+                .map(|w| w.to_lowercase())
+                .collect::<Vec<_>>()
+                .join("_"),
+            RenameRule::PascalCase => {
+                let mut result = String::new();
+                for word in &words {
+                    let mut chars = word.chars();
+                    if let Some(first) = chars.next() {
+                        result.extend(first.to_uppercase());
+                        result.push_str(&chars.as_str().to_lowercase());
+                    }
+                }
+                result
+            }
+            RenameRule::ScreamingSnakeCase => words
+                .iter()
+                .map(|w| w.to_uppercase())
+                .collect::<Vec<_>>()
+                .join("_"),
+            RenameRule::KebabCase => words
+                .iter()
+                .map(|w| w.to_lowercase())
+                .collect::<Vec<_>>()
+                .join("-"),
+            RenameRule::ScreamingKebabCase => words
+                .iter()
+                .map(|w| w.to_uppercase())
+                .collect::<Vec<_>>()
+                .join("-"),
+            RenameRule::Lowercase => words
+                .iter()
+                .map(|w| w.to_lowercase())
+                .collect::<Vec<_>>()
+                .join(""),
+            RenameRule::Uppercase => words
+                .iter()
+                .map(|w| w.to_uppercase())
+                .collect::<Vec<_>>()
+                .join(""),
+        }
+    }
+}
+
+/// Splits a name into words, handling both snake_case and PascalCase inputs.
+fn split_words(input: &str) -> Vec<String> {
+    let mut words = Vec::new();
+    // First split by underscores
+    for segment in input.split('_') {
+        if segment.is_empty() {
+            continue;
+        }
+        // Then split by uppercase boundaries (PascalCase)
+        let mut current = String::new();
+        for ch in segment.chars() {
+            if ch.is_uppercase() && !current.is_empty() {
+                words.push(current);
+                current = String::new();
+            }
+            current.push(ch);
+        }
+        if !current.is_empty() {
+            words.push(current);
+        }
+    }
+    words
+}
+
+impl FromStr for RenameRule {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "camelCase" => Ok(RenameRule::CamelCase),
+            "snake_case" => Ok(RenameRule::SnakeCase),
+            "PascalCase" => Ok(RenameRule::PascalCase),
+            "SCREAMING_SNAKE_CASE" => Ok(RenameRule::ScreamingSnakeCase),
+            "kebab-case" => Ok(RenameRule::KebabCase),
+            "SCREAMING-KEBAB-CASE" => Ok(RenameRule::ScreamingKebabCase),
+            "lowercase" => Ok(RenameRule::Lowercase),
+            "UPPERCASE" => Ok(RenameRule::Uppercase),
+            _ => Err(format!("Unknown rename_all rule: {s}")),
+        }
+    }
 }
 
 /// A single Rust type reference extracted from source code.
@@ -58,6 +190,19 @@ impl fmt::Display for RustType {
     }
 }
 
+/// A single field in a struct or struct variant.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FieldDef {
+    pub name: String,
+    pub ty: RustType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rename: Option<String>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub skip: bool,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub has_default: bool,
+}
+
 /// Metadata for a single RPC procedure extracted from a source file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Procedure {
@@ -83,12 +228,15 @@ pub struct StructDef {
     /// Struct name
     pub name: String,
     /// Named fields with their types
-    pub fields: Vec<(String, RustType)>,
+    pub fields: Vec<FieldDef>,
     /// Source file this struct was defined in
     pub source_file: PathBuf,
     /// Doc comment extracted from `///` lines
     #[serde(skip_serializing_if = "Option::is_none")]
     pub docs: Option<String>,
+    /// Container-level `#[serde(rename_all = "...")]`
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rename_all: Option<RenameRule>,
 }
 
 /// A single variant of a Rust enum.
@@ -98,6 +246,9 @@ pub struct EnumVariant {
     pub name: String,
     /// Variant kind determines TypeScript representation
     pub kind: VariantKind,
+    /// Field-level `#[serde(rename = "...")]`
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rename: Option<String>,
 }
 
 /// The shape of an enum variant's data.
@@ -108,7 +259,7 @@ pub enum VariantKind {
     /// Tuple variant with a single unnamed field: `Error(String)` → `{ Error: string }`
     Tuple(Vec<RustType>),
     /// Struct variant with named fields: `User { name: String }` → `{ User: { name: string } }`
-    Struct(Vec<(String, RustType)>),
+    Struct(Vec<FieldDef>),
 }
 
 /// All user-defined enum types found in the scanned source files.
@@ -124,6 +275,9 @@ pub struct EnumDef {
     /// Doc comment extracted from `///` lines
     #[serde(skip_serializing_if = "Option::is_none")]
     pub docs: Option<String>,
+    /// Container-level `#[serde(rename_all = "...")]`
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rename_all: Option<RenameRule>,
 }
 
 /// Complete manifest of all discovered RPC metadata from a scan.
