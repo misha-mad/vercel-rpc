@@ -427,8 +427,9 @@ fn test_jsdoc_on_mutation_procedure() {
         enums: vec![],
     };
     let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
-    assert!(output
-        .contains("    /** Update item. */\n    update: { input: string; output: boolean };"));
+    assert!(
+        output.contains("    /** Update item. */\n    update: { input: string; output: boolean };")
+    );
 }
 
 #[test]

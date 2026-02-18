@@ -154,7 +154,7 @@ export function createRpcClient(config: RpcClientConfig | string): RpcClient;
 ```
 
 Key use cases:
-- **SSR in SvelteKit** — pass `fetch` from the `load` function so cookies and headers are forwarded.
+- **SSR** — pass a custom `fetch` from the server-side load function (SvelteKit, Next.js, Nuxt, etc.) so cookies and headers are forwarded.
 - **Authentication** — dynamic `headers` callback that reads the current token.
 - **Observability** — `onRequest`/`onResponse` hooks for logging, metrics, tracing.
 - **Resilience** — automatic retries with exponential backoff for transient failures.
@@ -222,9 +222,9 @@ Implementation: `syn` already exposes doc attributes as `#[doc = "..."]`. Collec
 
 ## Phase 3 — Developer Experience
 
-### Svelte Reactive Wrappers
+### Framework Reactive Wrappers
 
-Generate an optional `rpc-svelte.ts` file with reactive primitives built on Svelte 5 runes:
+Generate optional framework-specific wrapper files with reactive primitives. Example for Svelte 5 (`rpc-svelte.ts`):
 
 ```typescript
 import type { RpcClient } from './rpc-client';
@@ -470,5 +470,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|--------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, serde attributes, expanded type support                     |
 | **2** | Client     | Client config, per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | Svelte hooks, enum representations, generics, branded types, flatten           |
+| **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests   |

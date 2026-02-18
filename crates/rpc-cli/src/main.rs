@@ -7,7 +7,10 @@ use vercel_rpc_cli::config::FieldNaming;
 use vercel_rpc_cli::{commands, config, watch};
 
 #[derive(Parser)]
-#[command(name = "rpc", about = "Vercel RPC CLI — parse Rust lambdas and generate TypeScript bindings")]
+#[command(
+    name = "rpc",
+    about = "Vercel RPC CLI — parse Rust lambdas and generate TypeScript bindings"
+)]
 struct Cli {
     /// Path to the config file (default: auto-discover rpc.config.toml)
     #[arg(long, global = true)]
@@ -130,7 +133,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Scan { dir, include, exclude } => {
+        Command::Scan {
+            dir,
+            include,
+            exclude,
+        } => {
             let cfg = config::resolve(&config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
@@ -149,8 +156,15 @@ fn main() -> Result<()> {
             commands::cmd_scan(&cfg)
         }
         Command::Generate {
-            dir, include, exclude, output, client_output,
-            types_import, extension, preserve_docs, fields,
+            dir,
+            include,
+            exclude,
+            output,
+            client_output,
+            types_import,
+            extension,
+            preserve_docs,
+            fields,
         } => {
             let cfg = config::resolve(&config::CliOverrides {
                 config: cli.config,
@@ -170,9 +184,17 @@ fn main() -> Result<()> {
             commands::cmd_generate(&cfg)
         }
         Command::Watch {
-            dir, include, exclude, output, client_output,
-            types_import, extension, preserve_docs, fields,
-            debounce_ms, clear_screen,
+            dir,
+            include,
+            exclude,
+            output,
+            client_output,
+            types_import,
+            extension,
+            preserve_docs,
+            fields,
+            debounce_ms,
+            clear_screen,
         } => {
             let cfg = config::resolve(&config::CliOverrides {
                 config: cli.config,

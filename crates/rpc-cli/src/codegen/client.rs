@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
-use crate::model::{Manifest, Procedure, ProcedureKind};
 use super::typescript::{emit_jsdoc, rust_type_to_ts};
+use crate::model::{Manifest, Procedure, ProcedureKind};
 
 // Header comment included at the top of every generated client file.
 const GENERATED_HEADER: &str = "\
@@ -67,7 +67,11 @@ const FETCH_HELPER: &str = r#"async function rpcFetch(
 /// 3. `RpcError` class for structured error handling
 /// 4. Internal `rpcFetch` helper
 /// 5. `createRpcClient` factory function with fully typed `query` / `mutate` methods
-pub fn generate_client_file(manifest: &Manifest, types_import_path: &str, preserve_docs: bool) -> String {
+pub fn generate_client_file(
+    manifest: &Manifest,
+    types_import_path: &str,
+    preserve_docs: bool,
+) -> String {
     let mut out = String::with_capacity(2048);
 
     // Header
@@ -84,11 +88,17 @@ pub fn generate_client_file(manifest: &Manifest, types_import_path: &str, preser
 
     // Import Procedures type (and any referenced types) from the types file
     if type_names.is_empty() {
-        let _ = writeln!(out, "import type {{ Procedures }} from \"{types_import_path}\";\n");
+        let _ = writeln!(
+            out,
+            "import type {{ Procedures }} from \"{types_import_path}\";\n"
+        );
         let _ = writeln!(out, "export type {{ Procedures }};\n");
     } else {
         let types_csv = type_names.join(", ");
-        let _ = writeln!(out, "import type {{ Procedures, {types_csv} }} from \"{types_import_path}\";\n");
+        let _ = writeln!(
+            out,
+            "import type {{ Procedures, {types_csv} }} from \"{types_import_path}\";\n"
+        );
         let _ = writeln!(out, "export type {{ Procedures, {types_csv} }};\n");
     }
 
@@ -112,16 +122,34 @@ pub fn generate_client_file(manifest: &Manifest, types_import_path: &str, preser
 fn generate_type_helpers(out: &mut String) {
     let _ = writeln!(out, "type QueryKey = keyof Procedures[\"queries\"];");
     let _ = writeln!(out, "type MutationKey = keyof Procedures[\"mutations\"];");
-    let _ = writeln!(out, "type QueryInput<K extends QueryKey> = Procedures[\"queries\"][K][\"input\"];");
-    let _ = writeln!(out, "type QueryOutput<K extends QueryKey> = Procedures[\"queries\"][K][\"output\"];");
-    let _ = writeln!(out, "type MutationInput<K extends MutationKey> = Procedures[\"mutations\"][K][\"input\"];");
-    let _ = writeln!(out, "type MutationOutput<K extends MutationKey> = Procedures[\"mutations\"][K][\"output\"];");
+    let _ = writeln!(
+        out,
+        "type QueryInput<K extends QueryKey> = Procedures[\"queries\"][K][\"input\"];"
+    );
+    let _ = writeln!(
+        out,
+        "type QueryOutput<K extends QueryKey> = Procedures[\"queries\"][K][\"output\"];"
+    );
+    let _ = writeln!(
+        out,
+        "type MutationInput<K extends MutationKey> = Procedures[\"mutations\"][K][\"input\"];"
+    );
+    let _ = writeln!(
+        out,
+        "type MutationOutput<K extends MutationKey> = Procedures[\"mutations\"][K][\"output\"];"
+    );
 }
 
 /// Generates the `createRpcClient` factory using an interface for typed overloads.
 fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut String) {
-    let has_queries = manifest.procedures.iter().any(|p| p.kind == ProcedureKind::Query);
-    let has_mutations = manifest.procedures.iter().any(|p| p.kind == ProcedureKind::Mutation);
+    let has_queries = manifest
+        .procedures
+        .iter()
+        .any(|p| p.kind == ProcedureKind::Query);
+    let has_mutations = manifest
+        .procedures
+        .iter()
+        .any(|p| p.kind == ProcedureKind::Mutation);
 
     // Emit the RpcClient interface with overloaded method signatures
     let _ = writeln!(out, "export interface RpcClient {{");
@@ -141,18 +169,33 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
     out.push('\n');
 
     // Emit the factory function
-    let _ = writeln!(out, "export function createRpcClient(baseUrl: string): RpcClient {{");
+    let _ = writeln!(
+        out,
+        "export function createRpcClient(baseUrl: string): RpcClient {{"
+    );
     let _ = writeln!(out, "  return {{");
 
     if has_queries {
-        let _ = writeln!(out, "    query(key: QueryKey, ...args: unknown[]): Promise<unknown> {{");
-        let _ = writeln!(out, "      return rpcFetch(baseUrl, \"GET\", key, args[0]);");
+        let _ = writeln!(
+            out,
+            "    query(key: QueryKey, ...args: unknown[]): Promise<unknown> {{"
+        );
+        let _ = writeln!(
+            out,
+            "      return rpcFetch(baseUrl, \"GET\", key, args[0]);"
+        );
         let _ = writeln!(out, "    }},");
     }
 
     if has_mutations {
-        let _ = writeln!(out, "    mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {{");
-        let _ = writeln!(out, "      return rpcFetch(baseUrl, \"POST\", key, args[0]);");
+        let _ = writeln!(
+            out,
+            "    mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {{"
+        );
+        let _ = writeln!(
+            out,
+            "      return rpcFetch(baseUrl, \"POST\", key, args[0]);"
+        );
         let _ = writeln!(out, "    }},");
     }
 
@@ -173,12 +216,14 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
 
     // Overload signatures for void-input queries (no input argument required)
     for proc in &void_queries {
-        if preserve_docs
-            && let Some(doc) = &proc.docs
-        {
+        if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "  ", out);
         }
-        let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
+        let output_ts = proc
+            .output
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
             out,
             "  query(key: \"{}\"): Promise<{}>;",
@@ -188,13 +233,19 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
 
     // Overload signatures for non-void-input queries
     for proc in &non_void_queries {
-        if preserve_docs
-            && let Some(doc) = &proc.docs
-        {
+        if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "  ", out);
         }
-        let input_ts = proc.input.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
-        let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
+        let input_ts = proc
+            .input
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
+        let output_ts = proc
+            .output
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
             out,
             "  query(key: \"{}\", input: {}): Promise<{}>;",
@@ -212,16 +263,19 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
         .collect();
 
     let void_mutations: Vec<&&Procedure> = mutations.iter().filter(|p| is_void_input(p)).collect();
-    let non_void_mutations: Vec<&&Procedure> = mutations.iter().filter(|p| !is_void_input(p)).collect();
+    let non_void_mutations: Vec<&&Procedure> =
+        mutations.iter().filter(|p| !is_void_input(p)).collect();
 
     // Overload signatures for void-input mutations
     for proc in &void_mutations {
-        if preserve_docs
-            && let Some(doc) = &proc.docs
-        {
+        if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "  ", out);
         }
-        let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
+        let output_ts = proc
+            .output
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
             out,
             "  mutate(key: \"{}\"): Promise<{}>;",
@@ -231,13 +285,19 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
 
     // Overload signatures for non-void-input mutations
     for proc in &non_void_mutations {
-        if preserve_docs
-            && let Some(doc) = &proc.docs
-        {
+        if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "  ", out);
         }
-        let input_ts = proc.input.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
-        let output_ts = proc.output.as_ref().map(rust_type_to_ts).unwrap_or_else(|| "void".to_string());
+        let input_ts = proc
+            .input
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
+        let output_ts = proc
+            .output
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
         let _ = writeln!(
             out,
             "  mutate(key: \"{}\", input: {}): Promise<{}>;",

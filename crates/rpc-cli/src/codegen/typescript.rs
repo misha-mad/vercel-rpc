@@ -33,8 +33,8 @@ pub fn rust_type_to_ts(ty: &RustType) -> String {
         "bool" => "boolean".to_string(),
 
         // Numeric types
-        "i8" | "i16" | "i32" | "i64" | "i128" | "u8" | "u16" | "u32" | "u64" | "u128"
-        | "f32" | "f64" | "isize" | "usize" => "number".to_string(),
+        "i8" | "i16" | "i32" | "i64" | "i128" | "u8" | "u16" | "u32" | "u64" | "u128" | "f32"
+        | "f64" | "isize" | "usize" => "number".to_string(),
 
         // Vec / Array → T[]
         "Vec" | "Array" => {
@@ -125,10 +125,13 @@ fn transform_field_name(name: &str, naming: FieldNaming) -> String {
 }
 
 /// Generates a TypeScript interface from a struct definition.
-fn generate_interface(s: &StructDef, preserve_docs: bool, field_naming: FieldNaming, out: &mut String) {
-    if preserve_docs
-        && let Some(doc) = &s.docs
-    {
+fn generate_interface(
+    s: &StructDef,
+    preserve_docs: bool,
+    field_naming: FieldNaming,
+    out: &mut String,
+) {
+    if preserve_docs && let Some(doc) = &s.docs {
         emit_jsdoc(doc, "", out);
     }
     let _ = writeln!(out, "export interface {} {{", s.name);
@@ -149,17 +152,27 @@ fn generate_interface(s: &StructDef, preserve_docs: bool, field_naming: FieldNam
 ///
 /// If all variants are unit, emits a simple string union.
 /// Otherwise, emits a discriminated union of object types.
-fn generate_enum_type(e: &EnumDef, preserve_docs: bool, field_naming: FieldNaming, out: &mut String) {
-    if preserve_docs
-        && let Some(doc) = &e.docs
-    {
+fn generate_enum_type(
+    e: &EnumDef,
+    preserve_docs: bool,
+    field_naming: FieldNaming,
+    out: &mut String,
+) {
+    if preserve_docs && let Some(doc) = &e.docs {
         emit_jsdoc(doc, "", out);
     }
-    let all_unit = e.variants.iter().all(|v| matches!(v.kind, VariantKind::Unit));
+    let all_unit = e
+        .variants
+        .iter()
+        .all(|v| matches!(v.kind, VariantKind::Unit));
 
     if all_unit {
         // Simple string literal union
-        let variants: Vec<String> = e.variants.iter().map(|v| format!("\"{}\"" , v.name)).collect();
+        let variants: Vec<String> = e
+            .variants
+            .iter()
+            .map(|v| format!("\"{}\"", v.name))
+            .collect();
         if variants.is_empty() {
             let _ = writeln!(out, "export type {} = never;", e.name);
         } else {
@@ -172,7 +185,7 @@ fn generate_enum_type(e: &EnumDef, preserve_docs: bool, field_naming: FieldNamin
         for v in &e.variants {
             match &v.kind {
                 VariantKind::Unit => {
-                    variant_types.push(format!("\"{}\"" , v.name));
+                    variant_types.push(format!("\"{}\"", v.name));
                 }
                 VariantKind::Tuple(types) => {
                     let inner = if types.len() == 1 {
@@ -191,12 +204,21 @@ fn generate_enum_type(e: &EnumDef, preserve_docs: bool, field_naming: FieldNamin
                             format!("{}: {}", field_name, rust_type_to_ts(ty))
                         })
                         .collect();
-                    variant_types.push(format!("{{ {}: {{ {} }} }}", v.name, field_strs.join("; ")));
+                    variant_types.push(format!(
+                        "{{ {}: {{ {} }} }}",
+                        v.name,
+                        field_strs.join("; ")
+                    ));
                 }
             }
         }
 
-        let _ = writeln!(out, "export type {} = {};", e.name, variant_types.join(" | "));
+        let _ = writeln!(
+            out,
+            "export type {} = {};",
+            e.name,
+            variant_types.join(" | ")
+        );
     }
 }
 
@@ -217,9 +239,7 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
     // Queries
     let _ = writeln!(out, "  queries: {{");
     for proc in &queries {
-        if preserve_docs
-            && let Some(doc) = &proc.docs
-        {
+        if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "    ", out);
         }
         let input = proc
@@ -232,16 +252,18 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(out, "    {}: {{ input: {input}; output: {output} }};", proc.name);
+        let _ = writeln!(
+            out,
+            "    {}: {{ input: {input}; output: {output} }};",
+            proc.name
+        );
     }
     let _ = writeln!(out, "  }};");
 
     // Mutations
     let _ = writeln!(out, "  mutations: {{");
     for proc in &mutations {
-        if preserve_docs
-            && let Some(doc) = &proc.docs
-        {
+        if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "    ", out);
         }
         let input = proc
@@ -254,7 +276,11 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(out, "    {}: {{ input: {input}; output: {output} }};", proc.name);
+        let _ = writeln!(
+            out,
+            "    {}: {{ input: {input}; output: {output} }};",
+            proc.name
+        );
     }
     let _ = writeln!(out, "  }};");
 
@@ -267,7 +293,11 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
 /// 1. Auto-generation header
 /// 2. TypeScript interfaces for all referenced structs
 /// 3. The `Procedures` type mapping
-pub fn generate_types_file(manifest: &Manifest, preserve_docs: bool, field_naming: FieldNaming) -> String {
+pub fn generate_types_file(
+    manifest: &Manifest,
+    preserve_docs: bool,
+    field_naming: FieldNaming,
+) -> String {
     let mut out = String::with_capacity(1024);
 
     // Header

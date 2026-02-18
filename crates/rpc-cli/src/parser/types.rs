@@ -1,4 +1,4 @@
-use syn::{Type, Fields, FieldsNamed};
+use syn::{Fields, FieldsNamed, Type};
 
 use crate::model::RustType;
 
