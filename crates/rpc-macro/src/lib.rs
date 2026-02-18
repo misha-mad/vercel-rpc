@@ -33,7 +33,7 @@
 //!
 //! Each macro invocation produces:
 //!
-//! - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+//! - A `main()` entry point with a single-threaded tokio runtime that calls `vercel_runtime::run`.
 //! - An `OPTIONS` handler that returns `204` with CORS headers.
 //! - HTTP method validation (`GET` for queries, `POST` for mutations).
 //! - Input deserialization — from the `?input=<JSON>` query parameter (queries)
@@ -89,7 +89,7 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// `?input=<JSON>` query parameter and the return value is serialized as JSON.
 ///
 /// The macro generates:
-/// - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+/// - A `main()` entry point with a single-threaded tokio runtime that calls `vercel_runtime::run`.
 /// - Automatic JSON deserialization of the `input` query parameter.
 /// - Automatic JSON serialization of the return value.
 /// - CORS headers on every response (including `OPTIONS` preflight → `204`).
@@ -178,7 +178,7 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Input is read from the **JSON request body** instead of query parameters.
 ///
 /// The macro generates:
-/// - A `#[tokio::main]` entry point that calls `vercel_runtime::run`.
+/// - A `main()` entry point with a single-threaded tokio runtime that calls `vercel_runtime::run`.
 /// - Automatic JSON deserialization of the request body.
 /// - Automatic JSON serialization of the return value.
 /// - CORS headers on every response (including `OPTIONS` preflight → `204`).
@@ -405,7 +405,9 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
             ::vercel_rpc::__private::tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
-                .expect("Failed building the Runtime")
+                .map_err(|e| ::vercel_rpc::__private::vercel_runtime::Error::from(
+                    format!("Failed to build tokio runtime: {}", e)
+                ))?
                 .block_on(async {
                     ::vercel_rpc::__private::vercel_runtime::run(
                         ::vercel_rpc::__private::vercel_runtime::service_fn(__rpc_handler),
@@ -654,6 +656,14 @@ mod tests {
         let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
         assert!(code.contains("\"OPTIONS\""));
         assert!(code.contains("204"));
+    }
+
+    #[test]
+    fn generates_current_thread_runtime() {
+        let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
+        let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
+        assert!(code.contains("new_current_thread"));
+        assert!(!code.contains("tokio :: main"));
     }
 
     #[test]
