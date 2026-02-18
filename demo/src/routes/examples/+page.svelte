@@ -199,7 +199,11 @@
 						><td><code>Vec&lt;T&gt;</code></td><td><code>T[]</code></td><td>stats (number[])</td
 						></tr
 					>
-					<tr><td><code>Option&lt;T&gt;</code></td><td><code>T | null</code></td><td>profile (avatarUrl)</td></tr>
+					<tr
+						><td><code>Option&lt;T&gt;</code></td><td><code>T | null</code></td><td
+							>profile (avatarUrl)</td
+						></tr
+					>
 					<tr
 						><td><code>HashMap&lt;K, V&gt;</code></td><td><code>Record&lt;K, V&gt;</code></td><td
 							>stats (frequencies)</td
@@ -230,8 +234,7 @@
 						></tr
 					>
 					<tr
-						><td><code>serde(skip)</code></td><td>field omitted</td><td
-							>profile (internal_score)</td
+						><td><code>serde(skip)</code></td><td>field omitted</td><td>profile (internal_score)</td
 						></tr
 					>
 					<tr
@@ -653,9 +656,9 @@ const result = await rpc.mutate("echo", {
 	<section class="card highlight">
 		<h2>🏷️ Profile — Serde Attributes</h2>
 		<p class="desc">
-			Demonstrates <code>#[serde(rename_all, rename, skip, default)]</code> on structs and enums.
-			The generated TypeScript matches actual JSON serialization — camelCase fields, renamed variants,
-			skipped internals, and optional fields.
+			Demonstrates <code>#[serde(rename_all, rename, skip, default)]</code> on structs and enums. The
+			generated TypeScript matches actual JSON serialization — camelCase fields, renamed variants, skipped
+			internals, and optional fields.
 		</p>
 		<div class="row">
 			<label>User ID: <input type="number" bind:value={profileId} class="num" /></label>
