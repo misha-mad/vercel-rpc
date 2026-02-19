@@ -22,15 +22,27 @@ const ERROR_CLASS: &str = r#"export class RpcError extends Error {
   }
 }"#;
 
+/// Configuration interface for the RPC client.
+const CONFIG_INTERFACE: &str = r#"export interface RpcClientConfig {
+  baseUrl: string;
+  fetch?: typeof globalThis.fetch;
+  headers?:
+    | Record<string, string>
+    | (() => Record<string, string> | Promise<Record<string, string>>);
+}"#;
+
 /// Internal fetch helper shared by query and mutate methods.
 const FETCH_HELPER: &str = r#"async function rpcFetch(
-  baseUrl: string,
+  config: RpcClientConfig,
   method: "GET" | "POST",
   procedure: string,
   input?: unknown,
 ): Promise<unknown> {
-  let url = `${baseUrl}/${procedure}`;
-  const init: RequestInit = { method, headers: {} };
+  let url = `${config.baseUrl}/${procedure}`;
+  const customHeaders = typeof config.headers === "function"
+    ? await config.headers()
+    : config.headers;
+  const init: RequestInit = { method, headers: { ...customHeaders } };
 
   if (method === "GET" && input !== undefined) {
     url += `?input=${encodeURIComponent(JSON.stringify(input))}`;
@@ -39,7 +51,8 @@ const FETCH_HELPER: &str = r#"async function rpcFetch(
     (init.headers as Record<string, string>)["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(url, init);
+  const fetchFn = config.fetch ?? globalThis.fetch;
+  const res = await fetchFn(url, init);
 
   if (!res.ok) {
     let data: unknown;
@@ -104,6 +117,9 @@ pub fn generate_client_file(
 
     // Error class
     let _ = writeln!(out, "{ERROR_CLASS}\n");
+
+    // Client config interface
+    let _ = writeln!(out, "{CONFIG_INTERFACE}\n");
 
     // Internal fetch helper
     let _ = writeln!(out, "{FETCH_HELPER}\n");
@@ -171,7 +187,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
     // Emit the factory function
     let _ = writeln!(
         out,
-        "export function createRpcClient(baseUrl: string): RpcClient {{"
+        "export function createRpcClient(config: RpcClientConfig): RpcClient {{"
     );
     let _ = writeln!(out, "  return {{");
 
@@ -182,7 +198,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
         );
         let _ = writeln!(
             out,
-            "      return rpcFetch(baseUrl, \"GET\", key, args[0]);"
+            "      return rpcFetch(config, \"GET\", key, args[0]);"
         );
         let _ = writeln!(out, "    }},");
     }
@@ -194,7 +210,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
         );
         let _ = writeln!(
             out,
-            "      return rpcFetch(baseUrl, \"POST\", key, args[0]);"
+            "      return rpcFetch(config, \"POST\", key, args[0]);"
         );
         let _ = writeln!(out, "    }},");
     }

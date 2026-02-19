@@ -17,14 +17,25 @@ export class RpcError extends Error {
   }
 }
 
+export interface RpcClientConfig {
+  baseUrl: string;
+  fetch?: typeof globalThis.fetch;
+  headers?:
+    | Record<string, string>
+    | (() => Record<string, string> | Promise<Record<string, string>>);
+}
+
 async function rpcFetch(
-  baseUrl: string,
+  config: RpcClientConfig,
   method: "GET" | "POST",
   procedure: string,
   input?: unknown,
 ): Promise<unknown> {
-  let url = `${baseUrl}/${procedure}`;
-  const init: RequestInit = { method, headers: {} };
+  let url = `${config.baseUrl}/${procedure}`;
+  const customHeaders = typeof config.headers === "function"
+    ? await config.headers()
+    : config.headers;
+  const init: RequestInit = { method, headers: { ...customHeaders } };
 
   if (method === "GET" && input !== undefined) {
     url += `?input=${encodeURIComponent(JSON.stringify(input))}`;
@@ -33,7 +44,8 @@ async function rpcFetch(
     (init.headers as Record<string, string>)["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(url, init);
+  const fetchFn = config.fetch ?? globalThis.fetch;
+  const res = await fetchFn(url, init);
 
   if (!res.ok) {
     let data: unknown;
@@ -94,13 +106,13 @@ export interface RpcClient {
   mutate(key: "echo", input: EchoInput): Promise<EchoOutput>;
 }
 
-export function createRpcClient(baseUrl: string): RpcClient {
+export function createRpcClient(config: RpcClientConfig): RpcClient {
   return {
     query(key: QueryKey, ...args: unknown[]): Promise<unknown> {
-      return rpcFetch(baseUrl, "GET", key, args[0]);
+      return rpcFetch(config, "GET", key, args[0]);
     },
     mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {
-      return rpcFetch(baseUrl, "POST", key, args[0]);
+      return rpcFetch(config, "POST", key, args[0]);
     },
   } as RpcClient;
 }
