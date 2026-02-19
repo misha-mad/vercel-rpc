@@ -252,6 +252,8 @@ fn generate_enum_type(
                     variant_types.push(format!("{{ {variant_name}: {inner} }}"));
                 }
                 VariantKind::Struct(fields) => {
+                    // Serde applies the container-level rename_all to struct variant
+                    // fields as well, so we pass e.rename_all here intentionally.
                     let field_strs: Vec<String> = fields
                         .iter()
                         .filter(|f| !f.skip)

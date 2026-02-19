@@ -720,3 +720,29 @@ fn test_serde_rename_all_takes_priority_over_config_naming() {
     let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
     assert!(output.contains("  MY_FIELD: string;"));
 }
+
+#[test]
+fn test_serde_default_on_non_option_field_is_not_optional() {
+    // `#[serde(default)]` on a non-Option field should NOT produce `?:` syntax.
+    // Only `default + Option<T>` makes a field optional in TypeScript.
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Config".to_string(),
+            fields: vec![FieldDef {
+                name: "retries".to_string(),
+                ty: RustType::simple("u32"),
+                rename: None,
+                skip: false,
+                has_default: true,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("  retries: number;"));
+    assert!(!output.contains("retries?"));
+}

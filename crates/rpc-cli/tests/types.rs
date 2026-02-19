@@ -254,3 +254,17 @@ fn rename_rule_from_str() {
     );
     assert!("unknown".parse::<RenameRule>().is_err());
 }
+
+#[test]
+fn rename_rule_acronyms() {
+    // Consecutive uppercase chars should stay grouped as one word
+    assert_eq!(RenameRule::SnakeCase.apply("HTTPSPort"), "https_port");
+    assert_eq!(RenameRule::SnakeCase.apply("IOError"), "io_error");
+    assert_eq!(RenameRule::CamelCase.apply("HTTPSPort"), "httpsPort");
+    assert_eq!(RenameRule::CamelCase.apply("IOError"), "ioError");
+    assert_eq!(RenameRule::KebabCase.apply("HTMLParser"), "html-parser");
+    assert_eq!(
+        RenameRule::ScreamingSnakeCase.apply("XMLHttpRequest"),
+        "XML_HTTP_REQUEST"
+    );
+}

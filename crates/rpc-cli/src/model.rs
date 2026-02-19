@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 /// The kind of RPC procedure, determined by the macro attribute.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,74 +48,75 @@ impl RenameRule {
                     if i == 0 {
                         result.push_str(&word.to_lowercase());
                     } else {
-                        let mut chars = word.chars();
-                        if let Some(first) = chars.next() {
-                            result.extend(first.to_uppercase());
-                            result.push_str(&chars.as_str().to_lowercase());
-                        }
+                        capitalize_into(word, &mut result);
                     }
                 }
                 result
             }
-            RenameRule::SnakeCase => words
-                .iter()
-                .map(|w| w.to_lowercase())
-                .collect::<Vec<_>>()
-                .join("_"),
             RenameRule::PascalCase => {
                 let mut result = String::new();
                 for word in &words {
-                    let mut chars = word.chars();
-                    if let Some(first) = chars.next() {
-                        result.extend(first.to_uppercase());
-                        result.push_str(&chars.as_str().to_lowercase());
-                    }
+                    capitalize_into(word, &mut result);
                 }
                 result
             }
-            RenameRule::ScreamingSnakeCase => words
-                .iter()
-                .map(|w| w.to_uppercase())
-                .collect::<Vec<_>>()
-                .join("_"),
-            RenameRule::KebabCase => words
-                .iter()
-                .map(|w| w.to_lowercase())
-                .collect::<Vec<_>>()
-                .join("-"),
-            RenameRule::ScreamingKebabCase => words
-                .iter()
-                .map(|w| w.to_uppercase())
-                .collect::<Vec<_>>()
-                .join("-"),
-            RenameRule::Lowercase => words
-                .iter()
-                .map(|w| w.to_lowercase())
-                .collect::<Vec<_>>()
-                .join(""),
-            RenameRule::Uppercase => words
-                .iter()
-                .map(|w| w.to_uppercase())
-                .collect::<Vec<_>>()
-                .join(""),
+            RenameRule::SnakeCase => join_mapped(&words, "_", str::to_lowercase),
+            RenameRule::ScreamingSnakeCase => join_mapped(&words, "_", str::to_uppercase),
+            RenameRule::KebabCase => join_mapped(&words, "-", str::to_lowercase),
+            RenameRule::ScreamingKebabCase => join_mapped(&words, "-", str::to_uppercase),
+            RenameRule::Lowercase => join_mapped(&words, "", str::to_lowercase),
+            RenameRule::Uppercase => join_mapped(&words, "", str::to_uppercase),
         }
     }
 }
 
-/// Splits a name into words, handling both snake_case and PascalCase inputs.
+/// Joins words with a separator, applying a transform to each word without intermediate allocation.
+fn join_mapped(words: &[String], sep: &str, f: fn(&str) -> String) -> String {
+    let mut out = String::new();
+    for (i, w) in words.iter().enumerate() {
+        if i > 0 {
+            out.push_str(sep);
+        }
+        out.push_str(&f(w));
+    }
+    out
+}
+
+/// Pushes a word capitalized (first char uppercase, rest lowercase) into `out`.
+fn capitalize_into(word: &str, out: &mut String) {
+    let mut chars = word.chars();
+    if let Some(first) = chars.next() {
+        out.extend(first.to_uppercase());
+        out.push_str(&chars.as_str().to_lowercase());
+    }
+}
+
+/// Splits a name into words, handling snake_case, PascalCase, and acronyms.
+///
+/// Examples:
+/// - `"first_name"` → `["first", "name"]`
+/// - `"MyVariant"` → `["My", "Variant"]`
+/// - `"HTTPSPort"` → `["HTTPS", "Port"]`
+/// - `"IOError"` → `["IO", "Error"]`
 fn split_words(input: &str) -> Vec<String> {
     let mut words = Vec::new();
-    // First split by underscores
     for segment in input.split('_') {
         if segment.is_empty() {
             continue;
         }
-        // Then split by uppercase boundaries (PascalCase)
+        let chars: Vec<char> = segment.chars().collect();
         let mut current = String::new();
-        for ch in segment.chars() {
+        for i in 0..chars.len() {
+            let ch = chars[i];
             if ch.is_uppercase() && !current.is_empty() {
-                words.push(current);
-                current = String::new();
+                let prev_lower = current.chars().last().is_some_and(|c| c.is_lowercase());
+                let next_lower = chars.get(i + 1).is_some_and(|c| c.is_lowercase());
+                // Split when: previous char was lowercase (camelCase boundary),
+                // or next char is lowercase (end of acronym, e.g. "S" in "HTTPSPort")
+                if prev_lower || next_lower {
+                    words.push(current);
+                    current = String::new();
+                }
             }
             current.push(ch);
         }
@@ -125,8 +127,13 @@ fn split_words(input: &str) -> Vec<String> {
     words
 }
 
+/// Error returned when parsing an unknown `rename_all` rule string.
+#[derive(Debug, Error)]
+#[error("unknown rename_all rule: `{0}`")]
+pub struct UnknownRenameRule(String);
+
 impl FromStr for RenameRule {
-    type Err = String;
+    type Err = UnknownRenameRule;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -138,7 +145,7 @@ impl FromStr for RenameRule {
             "SCREAMING-KEBAB-CASE" => Ok(RenameRule::ScreamingKebabCase),
             "lowercase" => Ok(RenameRule::Lowercase),
             "UPPERCASE" => Ok(RenameRule::Uppercase),
-            _ => Err(format!("Unknown rename_all rule: {s}")),
+            _ => Err(UnknownRenameRule(s.to_owned())),
         }
     }
 }
@@ -191,7 +198,7 @@ impl fmt::Display for RustType {
 }
 
 /// A single field in a struct or struct variant.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FieldDef {
     pub name: String,
     pub ty: RustType,
