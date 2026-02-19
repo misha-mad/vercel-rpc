@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
 	import { RpcError } from '$lib/rpc-client';
-	import type { MathResult, Stats, ServiceStatus, EchoOutput, UserProfile } from '$lib/rpc-client';
+	import type {
+		MathResult,
+		Stats,
+		ServiceStatus,
+		EchoOutput,
+		UserProfile,
+		TypeShowcase
+	} from '$lib/rpc-client';
 	import { onMount } from 'svelte';
 
 	// --- Hello (simple query with string input) ---
@@ -135,6 +142,25 @@
 		}
 	}
 
+	// --- Types (expanded type mappings demo) ---
+	let typesCategory = $state('demo');
+	let typesResult = $state<TypeShowcase | null>(null);
+	let typesLoading = $state(false);
+	let typesError = $state('');
+
+	async function fetchTypes() {
+		typesLoading = true;
+		typesError = '';
+		typesResult = null;
+		try {
+			typesResult = await rpc.query('types', typesCategory);
+		} catch (e) {
+			typesError = `${e}`;
+		} finally {
+			typesLoading = false;
+		}
+	}
+
 	// --- Raw JSON viewer ---
 	let rawEndpoint = $state('/api/time');
 	let rawResponse = $state('');
@@ -196,8 +222,10 @@
 					<tr><td><code>()</code> (no input)</td><td><code>void</code></td><td>time, status</td></tr
 					>
 					<tr
-						><td><code>Vec&lt;T&gt;</code></td><td><code>T[]</code></td><td>stats (number[])</td
-						></tr
+						><td
+							><code>Vec&lt;T&gt;</code>, <code>HashSet&lt;T&gt;</code>,
+							<code>BTreeSet&lt;T&gt;</code></td
+						><td><code>T[]</code></td><td>stats, types (tags, sorted_ids)</td></tr
 					>
 					<tr
 						><td><code>Option&lt;T&gt;</code></td><td><code>T | null</code></td><td
@@ -208,6 +236,11 @@
 						><td><code>HashMap&lt;K, V&gt;</code></td><td><code>Record&lt;K, V&gt;</code></td><td
 							>stats (frequencies)</td
 						></tr
+					>
+					<tr
+						><td><code>Box&lt;T&gt;</code>, <code>Cow&lt;T&gt;</code></td><td
+							><code>T</code> (transparent)</td
+						><td>types (boxed_label, cow_message)</td></tr
 					>
 					<tr
 						><td><code>Result&lt;T, E&gt;</code></td><td><code>T</code> (error at runtime)</td><td
@@ -652,6 +685,86 @@ const result = await rpc.mutate("echo", {
 		{/if}
 	</section>
 
+	<!-- Types: Expanded type mappings demo -->
+	<section class="card highlight">
+		<h2>📦 Types — Expanded Type Mappings</h2>
+		<p class="desc">
+			Demonstrates expanded type support: <code>HashSet&lt;T&gt;</code> and
+			<code>BTreeSet&lt;T&gt;</code> map to <code>T[]</code>, while <code>Box&lt;T&gt;</code> and
+			<code>Cow&lt;T&gt;</code> unwrap transparently to <code>T</code>. The generated TypeScript
+			matches the actual JSON serialization.
+		</p>
+		<div class="row">
+			<input type="text" bind:value={typesCategory} placeholder="Enter category" />
+			<button onclick={fetchTypes} disabled={typesLoading}>
+				{typesLoading ? '...' : 'Fetch Types'}
+			</button>
+		</div>
+		{#if typesResult}
+			<div class="result success">
+				<div class="grid">
+					<span class="label">tags:</span><span>{JSON.stringify(typesResult.tags)}</span>
+					<span class="label">sorted_ids:</span><span>{JSON.stringify(typesResult.sorted_ids)}</span
+					>
+					<span class="label">boxed_label:</span><span>{typesResult.boxed_label}</span>
+					<span class="label">cow_message:</span><span>{typesResult.cow_message}</span>
+				</div>
+			</div>
+		{/if}
+		{#if typesError}
+			<div class="result error">{typesError}</div>
+		{/if}
+		<pre class="code">rpc.query("types", "{typesCategory}") → TypeShowcase</pre>
+		<button class="toggle-code" onclick={() => toggleCode('types')}>
+			{openCode['types'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['types']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/types.rs</span>
+					<pre class="code rust">{`use std::collections::{HashSet, BTreeSet};
+use std::borrow::Cow;
+
+#[derive(Serialize)]
+pub struct TypeShowcase {
+    pub tags: HashSet<String>,         // → string[]
+    pub sorted_ids: BTreeSet<i32>,     // → number[]
+    pub boxed_label: Box<String>,      // → string
+    pub cow_message: Cow<'static, str>, // → string
+}
+
+#[rpc_query]
+async fn types(category: String) -> TypeShowcase {
+    TypeShowcase {
+        tags: HashSet::from(["rust", "typescript", "rpc"]),
+        sorted_ids: BTreeSet::from([3, 1, 2]),
+        boxed_label: Box::new(format!("Category: {}", category)),
+        cow_message: Cow::Borrowed("Hello from Cow!"),
+    }
+}`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 Generated TypeScript</span>
+					<pre class="code ts">{`// HashSet<String> → string[], BTreeSet<i32> → number[]
+// Box<String> → string, Cow<str> → string
+export interface TypeShowcase {
+  tags: string[];        // HashSet<String> → string[]
+  sorted_ids: number[];  // BTreeSet<i32> → number[]
+  boxed_label: string;   // Box<String> → string
+  cow_message: string;   // Cow<str> → string
+}
+
+// Usage
+const res = await rpc.query("types", "demo");
+res.tags       // string[] — not HashSet<string>!
+res.sorted_ids // number[] — sorted in JSON output
+res.boxed_label // string — Box unwrapped
+res.cow_message // string — Cow unwrapped`}</pre>
+				</div>
+			</div>
+		{/if}
+	</section>
+
 	<!-- Profile: Serde attributes demo -->
 	<section class="card highlight">
 		<h2>🏷️ Profile — Serde Attributes</h2>
@@ -916,6 +1029,7 @@ create_item  → create_item    // procedure names — NOT affected`}</pre>
 					>GET /api/math (10÷0) — error!</option
 				>
 				<option value="/api/stats?input=%5B1,2,3,4,5%5D">GET /api/stats ([1,2,3,4,5])</option>
+				<option value="/api/types?input=%22demo%22">GET /api/types (expanded types)</option>
 				<option value="/api/profile?input=1">GET /api/profile (serde attrs)</option>
 			</select>
 			<button onclick={fetchRaw} disabled={rawLoading}>
@@ -988,6 +1102,14 @@ export type HealthStatus = "Healthy" | "Degraded" | "Down";
 /** Arithmetic operation to perform. */
 export type Operation = "Add" | "Subtract" | "Multiply" | "Divide";
 
+// Expanded type mappings (HashSet, BTreeSet, Box, Cow)
+export interface TypeShowcase {
+  tags: string[];        // HashSet<String>
+  sorted_ids: number[];  // BTreeSet<i32>
+  boxed_label: string;   // Box<String>
+  cow_message: string;   // Cow<str>
+}
+
 export type Procedures = {
   queries: {
     /** Greet a user by name. Returns a personalized greeting string. */
@@ -1000,6 +1122,8 @@ export type Procedures = {
     status: { input: void; output: ServiceStatus };
     /** Returns the current server time as a Unix timestamp. */
     time: { input: void; output: TimeResponse };
+    /** Return a type showcase demonstrating expanded type mappings. */
+    types: { input: string; output: TypeShowcase };
   };
   mutations: {
     /** Echo a message back, optionally transforming it to uppercase. */
@@ -1021,6 +1145,8 @@ export type Procedures = {
   query(key: "math", input: MathInput): Promise<MathResult>;
   /** Compute descriptive statistics for a list of numbers. */
   query(key: "stats", input: number[]): Promise<Stats>;
+  /** Return a type showcase demonstrating expanded type mappings. */
+  query(key: "types", input: string): Promise<TypeShowcase>;
 
   /** Echo a message back, optionally transforming it to uppercase. */
   mutate(key: "echo", input: EchoInput): Promise<EchoOutput>;

@@ -52,6 +52,19 @@ export interface TimeResponse {
 }
 
 /**
+ * Showcases expanded type mappings: sets, smart pointers, and Cow.
+ * 
+ * All wrapper types serialize transparently — `Box<T>` and `Cow<T>` become `T`,
+ * while `HashSet<T>` and `BTreeSet<T>` become `T[]`.
+ */
+export interface TypeShowcase {
+  tags: string[];
+  sorted_ids: number[];
+  boxed_label: string;
+  cow_message: string;
+}
+
+/**
  * A user profile with camelCase fields in JSON.
  * 
  * Demonstrates `rename_all`, per-field `rename`, `skip`, and `default`.
@@ -106,6 +119,14 @@ export type Procedures = {
     status: { input: void; output: ServiceStatus };
     /** Returns the current server time as a Unix timestamp. */
     time: { input: void; output: TimeResponse };
+    /**
+     * Return a type showcase demonstrating expanded type mappings.
+     * 
+     * Accepts a category name and returns a `TypeShowcase` struct using
+     * `HashSet`, `BTreeSet`, `Box`, and `Cow` — all mapped to their
+     * natural TypeScript equivalents.
+     */
+    types: { input: string; output: TypeShowcase };
   };
   mutations: {
     /** Echo a message back, optionally transforming it to uppercase. */
