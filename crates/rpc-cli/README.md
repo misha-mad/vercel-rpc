@@ -337,10 +337,12 @@ The parser recognizes:
 | `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number`                         |
 | `bool`                                   | `boolean`                        |
 | `()`                                     | `void`                           |
-| `Vec<T>`                                 | `T[]`                            |
+| `Vec<T>`, `HashSet<T>`, `BTreeSet<T>`    | `T[]`                            |
 | `Option<T>`                              | `T \| null`                      |
 | `HashMap<K, V>`, `BTreeMap<K, V>`        | `Record<K, V>`                   |
+| `Box<T>`, `Arc<T>`, `Rc<T>`, `Cow<T>`    | `T` (transparent wrappers)       |
 | `(A, B, C)`                              | `[A, B, C]`                      |
+| `[T; N]`                                 | `T[]`                            |
 | `Result<T, E>`                           | `T` (error handled at runtime)   |
 | Custom structs                           | `interface` with same fields     |
 | Enums (unit variants)                    | `"A" \| "B"`                     |

@@ -368,12 +368,12 @@ The transform also applies to struct variant fields in enums. Enum variant *name
 
 The codegen respects `#[serde(...)]` attributes so that generated TypeScript matches the actual JSON output. Supported attributes:
 
-| Attribute | Level | Effect |
-|-----------|-------|--------|
-| `rename_all = "..."` | struct / enum | Transforms all field or variant names (`camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `lowercase`, `UPPERCASE`) |
-| `rename = "..."` | field / variant | Overrides the name of a single field or variant |
-| `skip` / `skip_serializing` | field | Omits the field from the generated TypeScript interface |
-| `default` | field | Makes `Option<T>` fields optional: `field?: T \| null` |
+| Attribute                   | Level           | Effect                                                                                                                                                                  |
+|-----------------------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `rename_all = "..."`        | struct / enum   | Transforms all field or variant names (`camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `lowercase`, `UPPERCASE`) |
+| `rename = "..."`            | field / variant | Overrides the name of a single field or variant                                                                                                                         |
+| `skip` / `skip_serializing` | field           | Omits the field from the generated TypeScript interface                                                                                                                 |
+| `default`                   | field           | Makes `Option<T>` fields optional: `field?: T \| null`                                                                                                                  |
 
 **Priority:** field-level `rename` > container-level `rename_all` > `codegen.naming.fields` config > original name.
 
@@ -507,10 +507,12 @@ Every macro-annotated function automatically gets:
 | `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number`                                         |
 | `bool`                                   | `boolean`                                        |
 | `()`                                     | `void`                                           |
-| `Vec<T>`                                 | `T[]`                                            |
+| `Vec<T>`, `HashSet<T>`, `BTreeSet<T>`    | `T[]`                                            |
 | `Option<T>`                              | `T \| null`                                      |
 | `HashMap<K, V>`, `BTreeMap<K, V>`        | `Record<K, V>`                                   |
+| `Box<T>`, `Arc<T>`, `Rc<T>`, `Cow<T>`    | `T` (transparent wrappers)                       |
 | `(A, B, C)`                              | `[A, B, C]`                                      |
+| `[T; N]`                                 | `T[]`                                            |
 | `Result<T, E>`                           | `T` (error handled at runtime)                   |
 | Custom structs                           | `interface` with same fields                     |
 | Enums (unit variants)                    | `"A" \| "B" \| "C"` (string union)               |

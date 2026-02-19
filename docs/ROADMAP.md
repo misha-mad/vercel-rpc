@@ -8,57 +8,20 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in [RFC-2](./RFC-2.md). Full config file with CLI flag parity.
 
-Replace CLI-only configuration with a project-level config file. The CLI flags remain as overrides.
-
-```toml
-# rpc.config.toml
-
-[input]
-dir = "api"
-include = ["**/*.rs"]
-exclude = ["**/mod.rs", "**/lib.rs", "**/_*.rs"]
-
-[output]
-types = "src/lib/generated/rpc-types.ts"
-client = "src/lib/generated/rpc-client.ts"
-
-[output.types_import]
-path = "./rpc-types"
-extension = ".js"                # ESM-compatible imports: "./rpc-types.js"
-
-[codegen]
-client_style = "factory"         # "class" | "factory" | "hooks"
-preserve_docs = true             # forward Rust doc-comments as JSDoc
-barrel_export = true             # generate index.ts re-exporting everything
-
-[codegen.naming]
-types = "PascalCase"
-fields = "camelCase"             # snake_case → camelCase in generated TS
-procedures = "camelCase"
-
-[watch]
-debounce_ms = 200
-clear_screen = true
-```
-
-**Resolution order:** CLI flags > `rpc.config.toml` > built-in defaults.
-
-Parse with the `toml` crate. Discover the config by walking up from `--dir` to the workspace root.
-
 ### ~~Serde Attribute Support~~ ✅
 
 > Implemented in [RFC-3](./RFC-3.md). Supports `rename_all`, `rename`, `skip`/`skip_serializing`, and `default` on structs, enums, fields, and variants.
 
-### Expanded Primitive and Wrapper Types
+### ~~Expanded Primitive and Wrapper Types~~ ✅
 
-| Rust                        | TypeScript               | Notes                                      |
-|-----------------------------|--------------------------|--------------------------------------------|
-| `HashSet<T>`, `BTreeSet<T>` | `T[]`                    | serde serializes sets as arrays            |
-| `Box<T>`, `Arc<T>`, `Rc<T>` | `T`                      | transparent wrappers, unwrap to inner type |
-| `Cow<'_, T>`                | `T`                      |                                            |
-| `[T; N]` (fixed-size array) | `[T, T, ..., T]` (tuple) | alternatively `T[]` via config             |
+> Implemented in [PR #41](https://github.com/misha-mad/vercel-rpc/pull/41). Sets map to `T[]`, smart pointers and `Cow` unwrap to inner type, fixed-size arrays already map to `T[]`.
 
-Implementation: extend `RustType` enum and the `syn::Type → RustType` conversion in `parser/types.rs`, then update the TS emitter in `codegen/typescript.rs`.
+| Rust                        | TypeScript | Notes                                      |
+|-----------------------------|------------|--------------------------------------------|
+| `HashSet<T>`, `BTreeSet<T>` | `T[]`      | serde serializes sets as arrays            |
+| `Box<T>`, `Arc<T>`, `Rc<T>` | `T`        | transparent wrappers, unwrap to inner type |
+| `Cow<'_, T>`                | `T`        | lifetime stripped, unwraps to inner type   |
+| `[T; N]` (fixed-size array) | `T[]`      | already handled via `Array` parse path     |
 
 ---
 
@@ -419,9 +382,9 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 ## Summary
 
-| Phase | Focus      | Key Deliverables                                                               |
-|-------|------------|--------------------------------------------------------------------------------|
-| **1** | Foundation | ~~Config file~~ ✅, serde attributes, expanded type support                     |
-| **2** | Client     | Client config, per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
+| Phase | Focus      | Key Deliverables                                                                    |
+|-------|------------|-------------------------------------------------------------------------------------|
+| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅              |
+| **2** | Client     | Client config, per-call options, request deduplication, ~~JSDoc generation~~ ✅      |
 | **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten |
-| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests   |
+| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests        |
