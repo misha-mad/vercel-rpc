@@ -19,9 +19,10 @@ const GENERATED_HEADER: &str = "\
 /// - Numeric types (`i8`..`i128`, `u8`..`u128`, `f32`, `f64`, `isize`, `usize`) → `number`
 /// - `bool` → `boolean`
 /// - `()` → `void`
-/// - `Vec<T>`, `Array<T>` → `T[]`
+/// - `Vec<T>`, `Array<T>`, `HashSet<T>`, `BTreeSet<T>` → `T[]`
 /// - `Option<T>` → `T | null`
 /// - `HashMap<K, V>`, `BTreeMap<K, V>` → `Record<K, V>`
+/// - `Box<T>`, `Arc<T>`, `Rc<T>`, `Cow<T>` → `T` (transparent wrappers)
 /// - `tuple(A, B, ...)` → `[A, B, ...]`
 /// - Everything else (user-defined structs) → kept as-is
 pub fn rust_type_to_ts(ty: &RustType) -> String {
@@ -39,8 +40,8 @@ pub fn rust_type_to_ts(ty: &RustType) -> String {
         "i8" | "i16" | "i32" | "i64" | "i128" | "u8" | "u16" | "u32" | "u64" | "u128" | "f32"
         | "f64" | "isize" | "usize" => "number".to_string(),
 
-        // Vec / Array → T[]
-        "Vec" | "Array" => {
+        // Vec / Array / Set types → T[]
+        "Vec" | "Array" | "HashSet" | "BTreeSet" => {
             let inner = ty
                 .generics
                 .first()
@@ -78,6 +79,13 @@ pub fn rust_type_to_ts(ty: &RustType) -> String {
                 .unwrap_or_else(|| "unknown".to_string());
             format!("Record<{key}, {value}>")
         }
+
+        // Smart pointers / wrappers → unwrap to inner type
+        "Box" | "Arc" | "Rc" | "Cow" => ty
+            .generics
+            .first()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "unknown".to_string()),
 
         // Tuple → [A, B, ...]
         "tuple" => {
