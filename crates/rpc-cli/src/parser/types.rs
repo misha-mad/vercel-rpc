@@ -1,6 +1,7 @@
 use syn::{Fields, FieldsNamed, Type};
 
-use crate::model::RustType;
+use super::serde as serde_attr;
+use crate::model::{FieldDef, RustType};
 
 /// Converts a `syn::Type` into our `RustType` representation.
 ///
@@ -67,15 +68,25 @@ fn extract_generic_args(arguments: &syn::PathArguments) -> Vec<RustType> {
     }
 }
 
-/// Extracts named fields from a struct definition into `(name, RustType)` pairs.
-pub fn extract_struct_fields(fields: &Fields) -> Vec<(String, RustType)> {
+/// Extracts named fields from a struct/variant into `FieldDef` values,
+/// including serde attributes (`rename`, `skip`, `default`).
+pub fn extract_struct_fields(fields: &Fields) -> Vec<FieldDef> {
     match fields {
         Fields::Named(FieldsNamed { named, .. }) => named
             .iter()
             .filter_map(|f| {
                 let name = f.ident.as_ref()?.to_string();
                 let ty = extract_rust_type(&f.ty);
-                Some((name, ty))
+                let rename = serde_attr::parse_rename(&f.attrs);
+                let skip = serde_attr::is_skipped(&f.attrs);
+                let has_default = serde_attr::has_default(&f.attrs);
+                Some(FieldDef {
+                    name,
+                    ty,
+                    rename,
+                    skip,
+                    has_default,
+                })
             })
             .collect(),
         _ => vec![],

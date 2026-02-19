@@ -1,8 +1,9 @@
 # RFC-3: Serde Attribute Support
 
-- **Status:** Proposed
+- **Status:** Implemented
 - **Topic:** Parse serde attributes for accurate TypeScript codegen
 - **Date:** February 2026
+- **PR:** [#40](https://github.com/misha-mad/vercel-rpc/pull/40)
 
 ## 1. Summary
 

@@ -6,6 +6,8 @@ use vercel_rpc_cli::codegen::typescript::{generate_types_file, rust_type_to_ts, 
 use vercel_rpc_cli::config::FieldNaming;
 use vercel_rpc_cli::model::*;
 
+use common::field;
+
 // --- rust_type_to_ts ---
 
 #[test]
@@ -205,18 +207,22 @@ fn generates_unit_enum_as_string_union() {
                 EnumVariant {
                     name: "Active".to_string(),
                     kind: VariantKind::Unit,
+                    rename: None,
                 },
                 EnumVariant {
                     name: "Inactive".to_string(),
                     kind: VariantKind::Unit,
+                    rename: None,
                 },
                 EnumVariant {
                     name: "Banned".to_string(),
                     kind: VariantKind::Unit,
+                    rename: None,
                 },
             ],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -234,14 +240,17 @@ fn generates_tuple_enum_as_tagged_union() {
                 EnumVariant {
                     name: "Ok".to_string(),
                     kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
                 },
                 EnumVariant {
                     name: "Error".to_string(),
                     kind: VariantKind::Tuple(vec![RustType::simple("i32")]),
+                    rename: None,
                 },
             ],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -258,12 +267,14 @@ fn generates_struct_enum_as_tagged_union() {
             variants: vec![EnumVariant {
                 name: "Click".to_string(),
                 kind: VariantKind::Struct(vec![
-                    ("x".to_string(), RustType::simple("i32")),
-                    ("y".to_string(), RustType::simple("i32")),
+                    field("x", RustType::simple("i32")),
+                    field("y", RustType::simple("i32")),
                 ]),
+                rename: None,
             }],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -281,21 +292,25 @@ fn generates_mixed_enum() {
                 EnumVariant {
                     name: "Circle".to_string(),
                     kind: VariantKind::Tuple(vec![RustType::simple("f64")]),
+                    rename: None,
                 },
                 EnumVariant {
                     name: "Rect".to_string(),
                     kind: VariantKind::Struct(vec![
-                        ("w".to_string(), RustType::simple("f64")),
-                        ("h".to_string(), RustType::simple("f64")),
+                        field("w", RustType::simple("f64")),
+                        field("h", RustType::simple("f64")),
                     ]),
+                    rename: None,
                 },
                 EnumVariant {
                     name: "Unknown".to_string(),
                     kind: VariantKind::Unit,
+                    rename: None,
                 },
             ],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -314,6 +329,7 @@ fn generates_empty_enum_as_never() {
             variants: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -330,9 +346,11 @@ fn generates_multi_field_tuple_variant() {
             variants: vec![EnumVariant {
                 name: "Both".to_string(),
                 kind: VariantKind::Tuple(vec![RustType::simple("String"), RustType::simple("i32")]),
+                rename: None,
             }],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -347,9 +365,10 @@ fn test_jsdoc_on_struct() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Foo".to_string(),
-            fields: vec![("x".to_string(), RustType::simple("i32"))],
+            fields: vec![field("x", RustType::simple("i32"))],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("A foo struct.".to_string()),
+            rename_all: None,
         }],
         enums: vec![],
     };
@@ -366,6 +385,7 @@ fn test_jsdoc_on_struct_multiline() {
             fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("Line one.\nLine two.".to_string()),
+            rename_all: None,
         }],
         enums: vec![],
     };
@@ -383,9 +403,11 @@ fn test_jsdoc_on_enum() {
             variants: vec![EnumVariant {
                 name: "Active".to_string(),
                 kind: VariantKind::Unit,
+                rename: None,
             }],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("Entity status.".to_string()),
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
@@ -448,6 +470,7 @@ fn test_no_jsdoc_when_disabled() {
             fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("A foo.".to_string()),
+            rename_all: None,
         }],
         enums: vec![],
     };
@@ -475,12 +498,13 @@ fn test_camel_case_fields() {
         structs: vec![StructDef {
             name: "ServerInfo".to_string(),
             fields: vec![
-                ("uptime_secs".to_string(), RustType::simple("u64")),
-                ("user_id".to_string(), RustType::simple("String")),
-                ("message".to_string(), RustType::simple("String")),
+                field("uptime_secs", RustType::simple("u64")),
+                field("user_id", RustType::simple("String")),
+                field("message", RustType::simple("String")),
             ],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
         enums: vec![],
     };
@@ -500,14 +524,225 @@ fn test_camel_case_enum_struct_variant() {
             variants: vec![EnumVariant {
                 name: "Click".to_string(),
                 kind: VariantKind::Struct(vec![
-                    ("page_x".to_string(), RustType::simple("i32")),
-                    ("page_y".to_string(), RustType::simple("i32")),
+                    field("page_x", RustType::simple("i32")),
+                    field("page_y", RustType::simple("i32")),
                 ]),
+                rename: None,
             }],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            rename_all: None,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
     assert!(output.contains("{ Click: { pageX: number; pageY: number } }"));
+}
+
+// --- Serde codegen tests ---
+
+#[test]
+fn test_serde_rename_all_camel_case_on_struct() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "UserProfile".to_string(),
+            fields: vec![
+                field("first_name", RustType::simple("String")),
+                field("last_name", RustType::simple("String")),
+                field("created_at", RustType::simple("u64")),
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::CamelCase),
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("  firstName: string;"));
+    assert!(output.contains("  lastName: string;"));
+    assert!(output.contains("  createdAt: number;"));
+}
+
+#[test]
+fn test_serde_field_rename_overrides_rename_all() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Config".to_string(),
+            fields: vec![
+                FieldDef {
+                    name: "api_key".to_string(),
+                    ty: RustType::simple("String"),
+                    rename: Some("API_KEY".to_string()),
+                    skip: false,
+                    has_default: false,
+                },
+                field("host_name", RustType::simple("String")),
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::CamelCase),
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("  API_KEY: string;"));
+    assert!(output.contains("  hostName: string;"));
+}
+
+#[test]
+fn test_serde_skip_field_omitted() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Session".to_string(),
+            fields: vec![
+                field("token", RustType::simple("String")),
+                FieldDef {
+                    name: "internal_id".to_string(),
+                    ty: RustType::simple("u64"),
+                    rename: None,
+                    skip: true,
+                    has_default: false,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("  token: string;"));
+    assert!(!output.contains("internal_id"));
+}
+
+#[test]
+fn test_serde_default_option_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Params".to_string(),
+            fields: vec![
+                field("required", RustType::simple("String")),
+                FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("  required: string;"));
+    assert!(output.contains("  label?: string | null;"));
+}
+
+#[test]
+fn test_serde_rename_all_on_enum() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "EventKind".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "UserLogin".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "UserLogout".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::SnakeCase),
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type EventKind = \"user_login\" | \"user_logout\";"));
+}
+
+#[test]
+fn test_serde_variant_rename_override() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Status".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Active".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: Some("enabled".to_string()),
+                },
+                EnumVariant {
+                    name: "Inactive".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::SnakeCase),
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    // rename overrides rename_all for the first variant
+    assert!(output.contains("\"enabled\""));
+    // rename_all applies to the second variant
+    assert!(output.contains("\"inactive\""));
+}
+
+#[test]
+fn test_serde_rename_all_takes_priority_over_config_naming() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Data".to_string(),
+            fields: vec![field("my_field", RustType::simple("String"))],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::ScreamingSnakeCase),
+        }],
+        enums: vec![],
+    };
+    // Even with CamelCase config, serde rename_all wins
+    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+    assert!(output.contains("  MY_FIELD: string;"));
+}
+
+#[test]
+fn test_serde_default_on_non_option_field_is_not_optional() {
+    // `#[serde(default)]` on a non-Option field should NOT produce `?:` syntax.
+    // Only `default + Option<T>` makes a field optional in TypeScript.
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Config".to_string(),
+            fields: vec![FieldDef {
+                name: "retries".to_string(),
+                ty: RustType::simple("u32"),
+                rename: None,
+                skip: false,
+                has_default: true,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("  retries: number;"));
+    assert!(!output.contains("retries?"));
 }

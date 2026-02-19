@@ -42,8 +42,8 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
 
     for s in &manifest.structs {
         println!("\n  struct {} {{", s.name);
-        for (name, ty) in &s.fields {
-            println!("    {}: {},", name, ty);
+        for field in &s.fields {
+            println!("    {}: {},", field.name, field.ty);
         }
         println!("  }}");
     }

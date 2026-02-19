@@ -45,56 +45,9 @@ clear_screen = true
 
 Parse with the `toml` crate. Discover the config by walking up from `--dir` to the workspace root.
 
-### Serde Attribute Support
+### ~~Serde Attribute Support~~ ✅
 
-The parser currently ignores serde attributes. This leads to a mismatch between what Rust serializes at runtime and what the generated TypeScript types describe.
-
-#### `rename_all` on structs and enums
-
-```rust
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct UserProfile {
-    first_name: String,       // → firstName: string
-    last_name: String,        // → lastName: string
-}
-```
-
-Supported `rename_all` values: `camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`.
-
-#### `rename` on fields and variants
-
-```rust
-#[derive(Serialize)]
-struct Config {
-    #[serde(rename = "apiKey")]
-    api_key: String,          // → apiKey: string
-}
-```
-
-#### `skip` and `skip_serializing`
-
-```rust
-#[derive(Serialize)]
-struct Internal {
-    pub name: String,
-    #[serde(skip)]
-    secret: String,           // omitted from generated TS interface
-}
-```
-
-#### `default` on fields
-
-Fields with `#[serde(default)]` that are also `Option<T>` become optional in TypeScript:
-
-```rust
-#[derive(Serialize, Deserialize)]
-struct Params {
-    query: String,
-    #[serde(default)]
-    page: Option<u32>,        // → page?: number | null
-}
-```
+> Implemented in [RFC-3](./RFC-3.md). Supports `rename_all`, `rename`, `skip`/`skip_serializing`, and `default` on structs, enums, fields, and variants.
 
 ### Expanded Primitive and Wrapper Types
 

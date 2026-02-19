@@ -163,21 +163,22 @@ vercel-rpc/
 │       │   ├── main.rs           #   CLI entry (clap arg parsing)
 │       │   ├── commands.rs       #   scan / generate command implementations
 │       │   ├── config.rs         #   rpc.config.toml loading & merging
-│       │   ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef
+│       │   ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef, FieldDef
 │       │   ├── parser/           #   Rust source → Manifest (via syn)
 │       │   │   ├── extract.rs    #     File scanning & procedure extraction
+│       │   │   ├── serde.rs      #     #[serde(...)] attribute parsing
 │       │   │   └── types.rs      #     syn::Type → RustType conversion
 │       │   ├── codegen/          #   Manifest → TypeScript
 │       │   │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
 │       │   │   └── client.rs     #     RpcClient interface + rpc-client.ts
 │       │   └── watch.rs          #   File watcher with debounce
-│       └── tests/                # Integration tests (117 tests)
+│       └── tests/                # Integration tests (145 tests)
 │           ├── common/mod.rs     #   Shared test helpers
 │           ├── commands.rs       #   scan / generate / write_file / bytecount
 │           ├── config.rs         #   Config parsing, discovery, CLI overrides
 │           ├── extract.rs        #   Parser extraction from Rust source
-│           ├── types.rs          #   syn::Type → RustType conversion
-│           ├── typescript.rs     #   TypeScript codegen (type mapping, JSDoc)
+│           ├── types.rs          #   syn::Type → RustType + RenameRule conversion
+│           ├── typescript.rs     #   TypeScript codegen (type mapping, JSDoc, serde)
 │           └── client.rs         #   Client codegen (RpcClient, overloads)
 ├── demo/                         # Demo application (SvelteKit) + Rust lambdas
 │   ├── api/                      # Rust lambdas (each file = one endpoint)
@@ -186,7 +187,8 @@ vercel-rpc/
 │   │   ├── status.rs             #   GET  /api/status
 │   │   ├── math.rs               #   GET  /api/math?input={a,b,op}
 │   │   ├── stats.rs              #   GET  /api/stats?input=[numbers]
-│   │   └── echo.rs               #   POST /api/echo (mutation)
+│   │   ├── echo.rs               #   POST /api/echo (mutation)
+│   │   └── profile.rs            #   GET  /api/profile?input=id (serde attrs demo)
 │   ├── Cargo.toml                # Rust package for demo lambdas
 │   ├── src/
 │   │   ├── lib/
@@ -361,6 +363,45 @@ export interface ServiceStatus {
 ```
 
 The transform also applies to struct variant fields in enums. Enum variant *names* and procedure names are not affected.
+
+### Serde attribute support
+
+The codegen respects `#[serde(...)]` attributes so that generated TypeScript matches the actual JSON output. Supported attributes:
+
+| Attribute | Level | Effect |
+|-----------|-------|--------|
+| `rename_all = "..."` | struct / enum | Transforms all field or variant names (`camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `lowercase`, `UPPERCASE`) |
+| `rename = "..."` | field / variant | Overrides the name of a single field or variant |
+| `skip` / `skip_serializing` | field | Omits the field from the generated TypeScript interface |
+| `default` | field | Makes `Option<T>` fields optional: `field?: T \| null` |
+
+**Priority:** field-level `rename` > container-level `rename_all` > `codegen.naming.fields` config > original name.
+
+```rust
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UserProfile {
+    display_name: String,        // → displayName: string
+    #[serde(rename = "profile_url")]
+    profile_url: String,         // → profile_url: string  (rename overrides rename_all)
+    #[serde(skip)]
+    internal_score: f64,         // omitted from TypeScript
+    #[serde(default)]
+    avatar_url: Option<String>,  // → avatarUrl?: string | null
+}
+```
+
+Generated TypeScript:
+
+```typescript
+export interface UserProfile {
+  displayName: string;
+  profile_url: string;
+  avatarUrl?: string | null;
+}
+```
+
+Serde attributes on enums work the same way — `rename_all` transforms variant names, and per-variant `rename` overrides individual names.
 
 ## Rust Macros
 
