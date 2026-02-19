@@ -31,3 +31,7 @@ path = "api/stats.rs"
 [[bin]]
 name = "status"
 path = "api/status.rs"
+
+[[bin]]
+name = "profile"
+path = "api/profile.rs"

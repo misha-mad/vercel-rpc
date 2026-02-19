@@ -10,6 +10,7 @@
 //! [`Manifest`](crate::model::Manifest) containing all discovered metadata.
 
 pub mod extract;
+pub mod serde;
 pub mod types;
 
 pub use extract::scan_directory;

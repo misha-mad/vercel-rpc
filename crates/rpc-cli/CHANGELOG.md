@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.1.4...vercel-rpc-cli-v0.2.0) - 2026-02-19
+
+### Added
+
+- *(rpc-cli)* support serde attributes in codegen (RFC-3)
+
+### Other
+
+- *(rpc-cli)* address PR review findings
+
 ## [0.1.4](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.1.3...vercel-rpc-cli-v0.1.4) - 2026-02-18
 
 ### Fixed

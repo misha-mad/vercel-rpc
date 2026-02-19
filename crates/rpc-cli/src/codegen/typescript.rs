@@ -1,7 +1,10 @@
 use std::fmt::Write;
 
 use crate::config::FieldNaming;
-use crate::model::{EnumDef, Manifest, Procedure, ProcedureKind, RustType, StructDef, VariantKind};
+use crate::model::{
+    EnumDef, EnumVariant, FieldDef, Manifest, Procedure, ProcedureKind, RenameRule, RustType,
+    StructDef, VariantKind,
+};
 
 // Header comment included at the top of every generated file.
 const GENERATED_HEADER: &str = "\
@@ -131,6 +134,45 @@ fn transform_field_name(name: &str, naming: FieldNaming) -> String {
     }
 }
 
+/// Resolves the final output name for a struct/variant field.
+///
+/// Priority: field `rename` > container `rename_all` > config `field_naming` > original name.
+fn resolve_field_name(
+    field: &FieldDef,
+    container_rename_all: Option<RenameRule>,
+    config_naming: FieldNaming,
+) -> String {
+    if let Some(rename) = &field.rename {
+        return rename.clone();
+    }
+    if let Some(rule) = container_rename_all {
+        return rule.apply(&field.name);
+    }
+    transform_field_name(&field.name, config_naming)
+}
+
+/// Resolves the final output name for an enum variant.
+///
+/// Priority: variant `rename` > container `rename_all` > original name.
+fn resolve_variant_name(variant: &EnumVariant, container_rename_all: Option<RenameRule>) -> String {
+    if let Some(rename) = &variant.rename {
+        return rename.clone();
+    }
+    if let Some(rule) = container_rename_all {
+        return rule.apply(&variant.name);
+    }
+    variant.name.clone()
+}
+
+/// Returns the inner type of `Option<T>`, or `None` if not an Option.
+fn option_inner_type(ty: &RustType) -> Option<&RustType> {
+    if ty.name == "Option" {
+        ty.generics.first()
+    } else {
+        None
+    }
+}
+
 /// Generates a TypeScript interface from a struct definition.
 fn generate_interface(
     s: &StructDef,
@@ -142,9 +184,19 @@ fn generate_interface(
         emit_jsdoc(doc, "", out);
     }
     let _ = writeln!(out, "export interface {} {{", s.name);
-    for (name, ty) in &s.fields {
-        let ts_type = rust_type_to_ts(ty);
-        let field_name = transform_field_name(name, field_naming);
+    for field in &s.fields {
+        if field.skip {
+            continue;
+        }
+        let field_name = resolve_field_name(field, s.rename_all, field_naming);
+        if field.has_default
+            && let Some(inner) = option_inner_type(&field.ty)
+        {
+            let ts_type = rust_type_to_ts(inner);
+            let _ = writeln!(out, "  {field_name}?: {ts_type} | null;");
+            continue;
+        }
+        let ts_type = rust_type_to_ts(&field.ty);
         let _ = writeln!(out, "  {field_name}: {ts_type};");
     }
     let _ = writeln!(out, "}}");
@@ -178,7 +230,10 @@ fn generate_enum_type(
         let variants: Vec<String> = e
             .variants
             .iter()
-            .map(|v| format!("\"{}\"", v.name))
+            .map(|v| {
+                let name = resolve_variant_name(v, e.rename_all);
+                format!("\"{name}\"")
+            })
             .collect();
         if variants.is_empty() {
             let _ = writeln!(out, "export type {} = never;", e.name);
@@ -190,9 +245,10 @@ fn generate_enum_type(
         let mut variant_types: Vec<String> = Vec::new();
 
         for v in &e.variants {
+            let variant_name = resolve_variant_name(v, e.rename_all);
             match &v.kind {
                 VariantKind::Unit => {
-                    variant_types.push(format!("\"{}\"", v.name));
+                    variant_types.push(format!("\"{variant_name}\""));
                 }
                 VariantKind::Tuple(types) => {
                     let inner = if types.len() == 1 {
@@ -201,19 +257,21 @@ fn generate_enum_type(
                         let elems: Vec<String> = types.iter().map(rust_type_to_ts).collect();
                         format!("[{}]", elems.join(", "))
                     };
-                    variant_types.push(format!("{{ {}: {} }}", v.name, inner));
+                    variant_types.push(format!("{{ {variant_name}: {inner} }}"));
                 }
                 VariantKind::Struct(fields) => {
+                    // Serde applies the container-level rename_all to struct variant
+                    // fields as well, so we pass e.rename_all here intentionally.
                     let field_strs: Vec<String> = fields
                         .iter()
-                        .map(|(name, ty)| {
-                            let field_name = transform_field_name(name, field_naming);
-                            format!("{}: {}", field_name, rust_type_to_ts(ty))
+                        .filter(|f| !f.skip)
+                        .map(|field| {
+                            let field_name = resolve_field_name(field, e.rename_all, field_naming);
+                            format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
                         })
                         .collect();
                     variant_types.push(format!(
-                        "{{ {}: {{ {} }} }}",
-                        v.name,
+                        "{{ {variant_name}: {{ {} }} }}",
                         field_strs.join("; ")
                     ));
                 }

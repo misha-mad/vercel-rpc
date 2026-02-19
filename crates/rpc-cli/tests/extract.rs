@@ -86,7 +86,7 @@ fn extracts_serde_structs() {
     assert_eq!(manifest.structs.len(), 1);
     assert_eq!(manifest.structs[0].name, "UserInput");
     assert_eq!(manifest.structs[0].fields.len(), 2);
-    assert_eq!(manifest.structs[0].fields[0].0, "name");
+    assert_eq!(manifest.structs[0].fields[0].name, "name");
 }
 
 #[test]
@@ -170,8 +170,8 @@ fn extracts_struct_enum() {
     match &e.variants[0].kind {
         VariantKind::Struct(fields) => {
             assert_eq!(fields.len(), 2);
-            assert_eq!(fields[0].0, "x");
-            assert_eq!(fields[1].0, "y");
+            assert_eq!(fields[0].name, "x");
+            assert_eq!(fields[1].name, "y");
         }
         _ => panic!("expected Struct variant"),
     }
@@ -402,4 +402,136 @@ fn test_exclude_wins_over_include() {
             .to_string_lossy()
             .contains("world.rs")
     );
+}
+
+// --- Serde attribute extraction tests ---
+
+#[test]
+fn extracts_struct_rename_all() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            #[serde(rename_all = "camelCase")]
+            struct UserProfile {
+                first_name: String,
+                last_name: String,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    assert_eq!(manifest.structs[0].rename_all, Some(RenameRule::CamelCase),);
+}
+
+#[test]
+fn extracts_field_rename() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Config {
+                #[serde(rename = "apiKey")]
+                api_key: String,
+                host: String,
+            }
+            "#,
+    );
+    let fields = &manifest.structs[0].fields;
+    assert_eq!(fields[0].rename.as_deref(), Some("apiKey"));
+    assert_eq!(fields[1].rename, None);
+}
+
+#[test]
+fn extracts_field_skip() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Session {
+                token: String,
+                #[serde(skip)]
+                internal_id: u64,
+            }
+            "#,
+    );
+    let fields = &manifest.structs[0].fields;
+    assert!(!fields[0].skip);
+    assert!(fields[1].skip);
+}
+
+#[test]
+fn extracts_field_skip_serializing() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Data {
+                visible: String,
+                #[serde(skip_serializing)]
+                secret: String,
+            }
+            "#,
+    );
+    assert!(manifest.structs[0].fields[1].skip);
+}
+
+#[test]
+fn extracts_field_default() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Options {
+                #[serde(default)]
+                verbose: bool,
+                name: String,
+            }
+            "#,
+    );
+    let fields = &manifest.structs[0].fields;
+    assert!(fields[0].has_default);
+    assert!(!fields[1].has_default);
+}
+
+#[test]
+fn extracts_enum_rename_all() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            #[serde(rename_all = "snake_case")]
+            enum EventKind {
+                UserLogin,
+                UserLogout,
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums[0].rename_all, Some(RenameRule::SnakeCase));
+}
+
+#[test]
+fn extracts_variant_rename() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            enum Status {
+                #[serde(rename = "ok")]
+                Active,
+                Inactive,
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums[0].variants[0].rename.as_deref(), Some("ok"));
+    assert_eq!(manifest.enums[0].variants[1].rename, None);
+}
+
+#[test]
+fn no_serde_attrs_returns_defaults() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Plain {
+                value: String,
+            }
+            "#,
+    );
+    let s = &manifest.structs[0];
+    assert_eq!(s.rename_all, None);
+    assert_eq!(s.fields[0].rename, None);
+    assert!(!s.fields[0].skip);
+    assert!(!s.fields[0].has_default);
 }

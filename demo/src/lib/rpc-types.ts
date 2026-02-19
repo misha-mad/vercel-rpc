@@ -51,11 +51,38 @@ export interface TimeResponse {
   message: string;
 }
 
+/**
+ * A user profile with camelCase fields in JSON.
+ * 
+ * Demonstrates `rename_all`, per-field `rename`, `skip`, and `default`.
+ */
+export interface UserProfile {
+  userId: number;
+  displayName: string;
+  emailAddress: string;
+  role: UserRole;
+  lastEvent: EventKind;
+  profile_url: string;
+  avatarUrl?: string | null;
+}
+
+/**
+ * Account event kind with kebab-case serialization.
+ * Produces: `"sign-in"`, `"sign-out"`, `"password-reset"`.
+ */
+export type EventKind = "sign-in" | "sign-out" | "password-reset";
+
 /** Overall health of the service. */
 export type HealthStatus = "Healthy" | "Degraded" | "Down";
 
 /** Arithmetic operation to perform. */
 export type Operation = "Add" | "Subtract" | "Multiply" | "Divide";
+
+/**
+ * User role with snake_case serialization.
+ * Produces: `"admin"`, `"power_user"`, `"guest"`.
+ */
+export type UserRole = "admin" | "power_user" | "anonymous";
 
 export type Procedures = {
   queries: {
@@ -66,6 +93,13 @@ export type Procedures = {
     hello: { input: string; output: string };
     /** Perform a math operation. Returns an error on division by zero. */
     math: { input: MathInput; output: MathResult };
+    /**
+     * Look up a user profile by ID.
+     * 
+     * Showcases serde attributes: `rename_all`, `rename`, `skip`, `default`
+     * on structs and enums to demonstrate TypeScript codegen fidelity.
+     */
+    profile: { input: number; output: UserProfile };
     /** Compute descriptive statistics for a list of numbers. */
     stats: { input: number[]; output: Stats };
     /** Returns current service health, uptime, and version. */

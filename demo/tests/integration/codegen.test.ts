@@ -74,8 +74,8 @@ describe('codegen pipeline: scan → generate → validate', () => {
 		expect(timeResp).toBeDefined();
 		expect(timeResp.fields).toEqual(
 			expect.arrayContaining([
-				['timestamp', { name: 'u64', generics: [] }],
-				['message', { name: 'String', generics: [] }]
+				{ name: 'timestamp', ty: { name: 'u64', generics: [] } },
+				{ name: 'message', ty: { name: 'String', generics: [] } }
 			])
 		);
 	});

@@ -8,6 +8,17 @@ use tempfile::NamedTempFile;
 use vercel_rpc_cli::model::*;
 use vercel_rpc_cli::parser::extract::parse_file;
 
+/// Shorthand to create a `FieldDef` with no serde overrides.
+pub fn field(name: &str, ty: RustType) -> FieldDef {
+    FieldDef {
+        name: name.to_string(),
+        ty,
+        rename: None,
+        skip: false,
+        has_default: false,
+    }
+}
+
 pub fn parse_source(source: &str) -> Manifest {
     let mut tmp = NamedTempFile::new().unwrap();
     write!(tmp, "{}", source).unwrap();
@@ -91,33 +102,36 @@ pub fn make_test_manifest() -> Manifest {
             StructDef {
                 name: "TimeResponse".to_string(),
                 fields: vec![
-                    ("timestamp".to_string(), RustType::simple("u64")),
-                    ("message".to_string(), RustType::simple("String")),
+                    field("timestamp", RustType::simple("u64")),
+                    field("message", RustType::simple("String")),
                 ],
                 source_file: PathBuf::from("api/time.rs"),
                 docs: None,
+                rename_all: None,
             },
             StructDef {
                 name: "CreateInput".to_string(),
                 fields: vec![
-                    ("title".to_string(), RustType::simple("String")),
-                    ("count".to_string(), RustType::simple("i32")),
+                    field("title", RustType::simple("String")),
+                    field("count", RustType::simple("i32")),
                 ],
                 source_file: PathBuf::from("api/create_item.rs"),
                 docs: None,
+                rename_all: None,
             },
             StructDef {
                 name: "Item".to_string(),
                 fields: vec![
-                    ("id".to_string(), RustType::simple("u64")),
-                    ("title".to_string(), RustType::simple("String")),
-                    (
-                        "tags".to_string(),
+                    field("id", RustType::simple("u64")),
+                    field("title", RustType::simple("String")),
+                    field(
+                        "tags",
                         RustType::with_generics("Vec", vec![RustType::simple("String")]),
                     ),
                 ],
                 source_file: PathBuf::from("api/create_item.rs"),
                 docs: None,
+                rename_all: None,
             },
         ],
         enums: vec![],
