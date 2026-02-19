@@ -85,6 +85,56 @@ fn maps_tuple() {
 }
 
 #[test]
+fn maps_hashset() {
+    let ty = RustType::with_generics("HashSet", vec![RustType::simple("String")]);
+    assert_eq!(rust_type_to_ts(&ty), "string[]");
+}
+
+#[test]
+fn maps_btreeset() {
+    let ty = RustType::with_generics("BTreeSet", vec![RustType::simple("i32")]);
+    assert_eq!(rust_type_to_ts(&ty), "number[]");
+}
+
+#[test]
+fn maps_box() {
+    let ty = RustType::with_generics("Box", vec![RustType::simple("String")]);
+    assert_eq!(rust_type_to_ts(&ty), "string");
+}
+
+#[test]
+fn maps_arc() {
+    let ty = RustType::with_generics("Arc", vec![RustType::simple("MyStruct")]);
+    assert_eq!(rust_type_to_ts(&ty), "MyStruct");
+}
+
+#[test]
+fn maps_rc() {
+    let ty = RustType::with_generics("Rc", vec![RustType::simple("i32")]);
+    assert_eq!(rust_type_to_ts(&ty), "number");
+}
+
+#[test]
+fn maps_cow() {
+    let ty = RustType::with_generics("Cow", vec![RustType::simple("str")]);
+    assert_eq!(rust_type_to_ts(&ty), "string");
+}
+
+#[test]
+fn maps_hashset_of_option() {
+    let inner = RustType::with_generics("Option", vec![RustType::simple("i32")]);
+    let ty = RustType::with_generics("HashSet", vec![inner]);
+    assert_eq!(rust_type_to_ts(&ty), "(number | null)[]");
+}
+
+#[test]
+fn maps_box_of_vec() {
+    let inner = RustType::with_generics("Vec", vec![RustType::simple("String")]);
+    let ty = RustType::with_generics("Box", vec![inner]);
+    assert_eq!(rust_type_to_ts(&ty), "string[]");
+}
+
+#[test]
 fn maps_custom_struct() {
     assert_eq!(
         rust_type_to_ts(&RustType::simple("TimeResponse")),
