@@ -80,7 +80,7 @@ export interface RpcClient {
   query(key: "hello", input: string): Promise<string>;
 }
 
-export function createRpcClient(baseUrl: string): RpcClient;
+export function createRpcClient(config: RpcClientConfig): RpcClient;
 ```
 
 ### `rpc watch`
@@ -355,7 +355,7 @@ The generated `rpc-client.ts` includes:
 
 - **`RpcClient` interface** with typed overloads for every procedure — full
   autocomplete and type checking.
-- **`createRpcClient(baseUrl)`** factory function.
+- **`createRpcClient(config)`** factory function accepting `RpcClientConfig` with `baseUrl`, optional `fetch`, and optional `headers`.
 - **`RpcError` class** with `status` and `data` fields for structured error
   handling.
 - **`rpcFetch` helper** — uses `GET` with `?input=<JSON>` for queries and

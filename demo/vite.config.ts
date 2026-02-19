@@ -133,6 +133,28 @@ function apiMock(): Plugin {
 				})
 			);
 		});
+
+		middlewares.use('/api/secret', (req, res) => {
+			res.setHeader('Content-Type', 'application/json');
+			const auth = req.headers['authorization'];
+			if (auth !== 'Bearer secret-token-123') {
+				res.statusCode = 401;
+				res.end(
+					JSON.stringify({
+						error: { type: 'error', message: 'Unauthorized: invalid or missing token' }
+					})
+				);
+				return;
+			}
+			res.end(
+				JSON.stringify({
+					result: {
+						type: 'response',
+						data: 'Top secret: the cake is a lie.'
+					}
+				})
+			);
+		});
 	}
 
 	return {

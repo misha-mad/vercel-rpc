@@ -132,7 +132,7 @@ describe('codegen pipeline: scan → generate → validate', () => {
 		expect(content).toContain('mutate(key: "echo"');
 
 		// Factory function
-		expect(content).toContain('export function createRpcClient(baseUrl: string): RpcClient');
+		expect(content).toContain('export function createRpcClient(config: RpcClientConfig): RpcClient');
 	});
 
 	// --- Phase 4: TypeScript compilation ---

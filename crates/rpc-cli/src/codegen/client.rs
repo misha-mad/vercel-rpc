@@ -196,10 +196,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             out,
             "    query(key: QueryKey, ...args: unknown[]): Promise<unknown> {{"
         );
-        let _ = writeln!(
-            out,
-            "      return rpcFetch(config, \"GET\", key, args[0]);"
-        );
+        let _ = writeln!(out, "      return rpcFetch(config, \"GET\", key, args[0]);");
         let _ = writeln!(out, "    }},");
     }
 

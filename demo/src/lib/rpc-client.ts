@@ -73,6 +73,11 @@ type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
 export interface RpcClient {
+  /**
+   * Access a protected secret.
+   * Requires a valid Bearer token in the Authorization header.
+   */
+  query(key: "secret"): Promise<string>;
   /** Returns current service health, uptime, and version. */
   query(key: "status"): Promise<ServiceStatus>;
   /** Returns the current server time as a Unix timestamp. */
