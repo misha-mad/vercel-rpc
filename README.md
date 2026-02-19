@@ -107,7 +107,7 @@ export interface RpcClient {
   query(key: "hello", input: string): Promise<string>;
 }
 
-export function createRpcClient(baseUrl: string): RpcClient { /* ... */ }
+export function createRpcClient(config: RpcClientConfig): RpcClient { /* ... */ }
 ```
 
 ### 3. Use in your frontend
@@ -117,7 +117,7 @@ The generated client uses standard `fetch()` and works with **any** TypeScript f
 ```typescript
 import { createRpcClient } from "./rpc-client";
 
-const rpc = createRpcClient("/api");
+const rpc = createRpcClient({ baseUrl: "/api" });
 
 const greeting = await rpc.query("hello", "World");
 //                          ^ autocomplete ✨
@@ -402,6 +402,44 @@ export interface UserProfile {
 ```
 
 Serde attributes on enums work the same way — `rename_all` transforms variant names, and per-variant `rename` overrides individual names.
+
+### Client configuration
+
+The generated `createRpcClient` accepts an `RpcClientConfig` object:
+
+```typescript
+import { createRpcClient } from "./rpc-client";
+
+// Minimal — just a base URL
+const rpc = createRpcClient({ baseUrl: "/api" });
+
+// Custom fetch (e.g. SvelteKit SSR)
+const rpc = createRpcClient({
+  baseUrl: "/api",
+  fetch: event.fetch,
+});
+
+// Static headers
+const rpc = createRpcClient({
+  baseUrl: "/api",
+  headers: { Authorization: `Bearer ${token}` },
+});
+
+// Dynamic/async headers (e.g. rotating tokens)
+const rpc = createRpcClient({
+  baseUrl: "/api",
+  headers: async () => {
+    const token = await getAccessToken();
+    return { Authorization: `Bearer ${token}` };
+  },
+});
+```
+
+| Option    | Type                                                                     | Description                           |
+|-----------|--------------------------------------------------------------------------|---------------------------------------|
+| `baseUrl` | `string`                                                                 | Required. Base URL for RPC endpoints  |
+| `fetch`   | `typeof globalThis.fetch`                                                | Custom fetch function (SSR, testing)  |
+| `headers` | `Record<string, string> \| () => Record<string, string> \| Promise<...>` | Static or async headers (auth tokens) |
 
 ## Rust Macros
 
