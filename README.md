@@ -201,7 +201,7 @@ vercel-rpc/
 │   │   └── e2e/                  # Playwright: UI + API tests
 │   ├── package.json              # Node scripts
 │   ├── svelte.config.js          # SvelteKit config
-│   ├── vite.config.ts            # Vite config + API mock plugin
+│   ├── vite.config.ts            # Vite config
 │   └── tsconfig.json             # TypeScript config
 ├── Cargo.toml                    # Rust workspace (crates + demo)
 ├── vercel.json                   # Vercel config

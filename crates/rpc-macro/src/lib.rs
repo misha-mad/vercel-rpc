@@ -279,34 +279,47 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
     let fn_block = &func.block;
     let fn_output = &func.sig.output;
 
-    let mut params = func.sig.inputs.iter().filter_map(|arg| match arg {
-        FnArg::Typed(pat) => Some(pat),
-        _ => None,
-    });
+    // Separate typed parameters into input params and an optional Headers param.
+    let typed_params: Vec<_> = func
+        .sig
+        .inputs
+        .iter()
+        .filter_map(|arg| match arg {
+            FnArg::Typed(pat) => Some(pat),
+            _ => None,
+        })
+        .collect();
 
-    let first_param = params.next();
+    let mut input_param = None;
+    let mut headers_param = None;
 
-    // Validate: at most one parameter allowed
-    if params.next().is_some() {
-        return Err(syn::Error::new_spanned(
-            &func.sig.inputs,
-            "RPC handlers accept at most one input parameter",
-        ));
+    for param in &typed_params {
+        if is_headers_type(&param.ty) {
+            if headers_param.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &func.sig.inputs,
+                    "RPC handlers accept at most one Headers parameter",
+                ));
+            }
+            headers_param = Some(*param);
+        } else {
+            if input_param.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &func.sig.inputs,
+                    "RPC handlers accept at most one input parameter",
+                ));
+            }
+            input_param = Some(*param);
+        }
     }
 
-    let input_type = if let Some(param) = first_param {
+    let input_type = if let Some(param) = input_param {
         let ty = &param.ty;
         quote! { #ty }
     } else {
         quote! { () }
     };
 
-    let input_pat = if let Some(param) = first_param {
-        let pat = &param.pat;
-        quote! { #pat }
-    } else {
-        quote! { _ }
-    };
 
     // Determine whether the handler returns Result<T, E> or plain T
     let (return_type, returns_result) = match fn_output {
@@ -400,6 +413,34 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         }
     };
 
+    // Generate headers extraction and function parameters based on Headers presence.
+    let extract_headers = if headers_param.is_some() {
+        quote! { let __headers = __req.headers().clone(); }
+    } else {
+        quote! {}
+    };
+
+    // Build the inner function parameters and call arguments preserving original order.
+    let inner_fn_params: Vec<_> = typed_params
+        .iter()
+        .map(|param| {
+            let pat = &param.pat;
+            let ty = &param.ty;
+            quote! { #pat: #ty }
+        })
+        .collect();
+
+    let call_args: Vec<_> = typed_params
+        .iter()
+        .map(|param| {
+            if is_headers_type(&param.ty) {
+                quote! { __headers }
+            } else {
+                quote! { __input }
+            }
+        })
+        .collect();
+
     let expanded = quote! {
         fn main() -> Result<(), ::vercel_rpc::__private::vercel_runtime::Error> {
             ::vercel_rpc::__private::tokio::runtime::Builder::new_current_thread()
@@ -420,7 +461,7 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
             [
                 ("Access-Control-Allow-Origin", "*"),
                 ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
-                ("Access-Control-Allow-Headers", "Content-Type"),
+                ("Access-Control-Allow-Headers", "Content-Type, Authorization"),
                 ("Access-Control-Max-Age", "86400"),
             ]
         }
@@ -491,18 +532,33 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
                 );
             }
 
+            #extract_headers
+
             #parse_input
 
-            async fn #fn_name(#input_pat: #input_type) -> #return_type
+            async fn #fn_name(#(#inner_fn_params),*) -> #return_type
             #fn_block
 
-            let __raw_result = #fn_name(__input).await;
+            let __raw_result = #fn_name(#(#call_args),*).await;
 
             #result_handling
         }
     };
 
     Ok(expanded)
+}
+
+/// Returns `true` if the type syntactically ends with `Headers`
+/// (e.g. `Headers`, `vercel_rpc::Headers`).
+///
+/// This is a purely syntactic check, similar to [`is_result_type`].
+fn is_headers_type(ty: &Type) -> bool {
+    if let Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+    {
+        return segment.ident == "Headers";
+    }
+    false
 }
 
 /// Returns `true` if the type syntactically ends with `Result`

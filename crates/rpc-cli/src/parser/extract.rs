@@ -169,6 +169,10 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
 
     let input = func.sig.inputs.iter().find_map(|arg| {
         let FnArg::Typed(pat) = arg else { return None };
+        // Skip the Headers parameter — it's not part of the RPC input.
+        if is_headers_type(&pat.ty) {
+            return None;
+        }
         Some(extract_rust_type(&pat.ty))
     });
 
@@ -234,6 +238,19 @@ fn extract_enum_variants(item_enum: &syn::ItemEnum) -> Vec<EnumVariant> {
             EnumVariant { name, kind, rename }
         })
         .collect()
+}
+
+/// Returns `true` if the type path ends with `Headers` (e.g. `Headers`, `vercel_rpc::Headers`).
+///
+/// Used to skip the `Headers` parameter when extracting RPC input types,
+/// since it carries request metadata rather than user-provided input.
+fn is_headers_type(ty: &syn::Type) -> bool {
+    if let syn::Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+    {
+        return segment.ident == "Headers";
+    }
+    false
 }
 
 /// Checks if a struct has `#[derive(Serialize)]` or `#[derive(serde::Serialize)]`.
