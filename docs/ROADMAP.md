@@ -28,7 +28,7 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in [RFC-4](./RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/vercel-rpc/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/vercel-rpc/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/vercel-rpc/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/vercel-rpc/pull/49).
 
-### Per-Call Options
+### Per-Call Options → [RFC-5](./RFC-5.md)
 
 Every `query` and `mutate` call accepts an optional trailing options argument:
 
