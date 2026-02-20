@@ -136,6 +136,7 @@ pub fn load(path: &Path) -> Result<RpcConfig> {
 }
 
 /// CLI overrides that can be applied on top of a loaded config.
+#[derive(Default)]
 pub struct CliOverrides {
     pub config: Option<PathBuf>,
     pub no_config: bool,

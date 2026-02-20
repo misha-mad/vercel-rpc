@@ -267,6 +267,10 @@ enum HandlerKind {
 ///
 /// Generates `main()`, CORS helpers, input parsing, and response serialization.
 /// The `kind` parameter determines whether the handler accepts GET (query) or POST (mutation).
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "ItemFn is owned from parse_macro_input"
+)]
 fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenStream, syn::Error> {
     if func.sig.asyncness.is_none() {
         return Err(syn::Error::new_spanned(

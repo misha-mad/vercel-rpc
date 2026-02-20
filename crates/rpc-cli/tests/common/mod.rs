@@ -21,7 +21,7 @@ pub fn field(name: &str, ty: RustType) -> FieldDef {
 
 pub fn parse_source(source: &str) -> Manifest {
     let mut tmp = NamedTempFile::new().unwrap();
-    write!(tmp, "{}", source).unwrap();
+    write!(tmp, "{source}").unwrap();
     parse_file(tmp.path()).unwrap()
 }
 

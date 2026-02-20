@@ -41,7 +41,8 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
     let include_set = build_glob_set(&input.include)?;
     let exclude_set = build_glob_set(&input.exclude)?;
 
-    let entries: Vec<_> = WalkDir::new(&input.dir)
+    let mut file_count = 0;
+    for entry in WalkDir::new(&input.dir)
         .into_iter()
         // Skip unreadable entries (e.g. permission denied); the scan should
         // not abort because a single directory entry is inaccessible.
@@ -53,13 +54,8 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
             let rel = e.path().strip_prefix(&input.dir).unwrap_or(e.path());
             include_set.is_match(rel) && !exclude_set.is_match(rel)
         })
-        .collect();
-
-    if entries.is_empty() {
-        anyhow::bail!("No .rs files found in {}", input.dir.display());
-    }
-
-    for entry in entries {
+    {
+        file_count += 1;
         let path = entry.path();
         let file_manifest =
             parse_file(path).with_context(|| format!("Failed to parse {}", path.display()))?;
@@ -67,6 +63,10 @@ pub fn scan_directory(input: &InputConfig) -> Result<Manifest> {
         manifest.procedures.extend(file_manifest.procedures);
         manifest.structs.extend(file_manifest.structs);
         manifest.enums.extend(file_manifest.enums);
+    }
+
+    if file_count == 0 {
+        anyhow::bail!("No .rs files found in {}", input.dir.display());
     }
 
     // Sort for deterministic output

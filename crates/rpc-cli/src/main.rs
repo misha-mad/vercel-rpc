@@ -24,99 +24,71 @@ struct Cli {
     command: Command,
 }
 
+/// Shared input arguments for scan, generate, and watch commands.
+#[derive(clap::Args)]
+struct InputArgs {
+    /// Path to the directory containing Rust lambda source files
+    #[arg(short, long)]
+    dir: Option<PathBuf>,
+
+    /// Glob patterns for files to include (repeatable)
+    #[arg(long)]
+    include: Vec<String>,
+
+    /// Glob patterns for files to exclude (repeatable)
+    #[arg(long)]
+    exclude: Vec<String>,
+}
+
+/// Shared codegen arguments for generate and watch commands.
+#[derive(clap::Args)]
+struct GenerateArgs {
+    #[command(flatten)]
+    input: InputArgs,
+
+    /// Output path for the generated TypeScript types file
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+
+    /// Output path for the generated TypeScript client file
+    #[arg(short, long)]
+    client_output: Option<PathBuf>,
+
+    /// Import path for the types file used in the client (relative, without extension)
+    #[arg(long)]
+    types_import: Option<String>,
+
+    /// Suffix appended to the types import specifier (e.g. ".js" for ESM)
+    #[arg(long)]
+    extension: Option<String>,
+
+    /// Forward Rust doc comments as JSDoc in generated TypeScript
+    #[arg(long)]
+    preserve_docs: bool,
+
+    /// Field naming convention for generated TypeScript interfaces
+    #[arg(long, value_enum)]
+    fields: Option<FieldNaming>,
+}
+
 #[derive(Subcommand)]
 enum Command {
     /// Scan the api/ directory and print discovered RPC procedures as JSON
     Scan {
-        /// Path to the directory containing Rust lambda source files
-        #[arg(short, long)]
-        dir: Option<PathBuf>,
-
-        /// Glob patterns for files to include (repeatable)
-        #[arg(long)]
-        include: Vec<String>,
-
-        /// Glob patterns for files to exclude (repeatable)
-        #[arg(long)]
-        exclude: Vec<String>,
+        #[command(flatten)]
+        input: InputArgs,
     },
 
     /// Generate TypeScript type definitions and client from Rust lambda source files
     Generate {
-        /// Path to the directory containing Rust lambda source files
-        #[arg(short, long)]
-        dir: Option<PathBuf>,
-
-        /// Glob patterns for files to include (repeatable)
-        #[arg(long)]
-        include: Vec<String>,
-
-        /// Glob patterns for files to exclude (repeatable)
-        #[arg(long)]
-        exclude: Vec<String>,
-
-        /// Output path for the generated TypeScript types file
-        #[arg(short, long)]
-        output: Option<PathBuf>,
-
-        /// Output path for the generated TypeScript client file
-        #[arg(short, long)]
-        client_output: Option<PathBuf>,
-
-        /// Import path for the types file used in the client (relative, without extension)
-        #[arg(long)]
-        types_import: Option<String>,
-
-        /// Suffix appended to the types import specifier (e.g. ".js" for ESM)
-        #[arg(long)]
-        extension: Option<String>,
-
-        /// Forward Rust doc comments as JSDoc in generated TypeScript
-        #[arg(long)]
-        preserve_docs: bool,
-
-        /// Field naming convention for generated TypeScript interfaces
-        #[arg(long, value_enum)]
-        fields: Option<FieldNaming>,
+        #[command(flatten)]
+        args: GenerateArgs,
     },
 
     /// Watch the api/ directory and regenerate TypeScript files on changes
     Watch {
-        /// Path to the directory containing Rust lambda source files
-        #[arg(short, long)]
-        dir: Option<PathBuf>,
-
-        /// Glob patterns for files to include (repeatable)
-        #[arg(long)]
-        include: Vec<String>,
-
-        /// Glob patterns for files to exclude (repeatable)
-        #[arg(long)]
-        exclude: Vec<String>,
-
-        /// Output path for the generated TypeScript types file
-        #[arg(short, long)]
-        output: Option<PathBuf>,
-
-        /// Output path for the generated TypeScript client file
-        #[arg(short, long)]
-        client_output: Option<PathBuf>,
-
-        /// Import path for the types file used in the client (relative, without extension)
-        #[arg(long)]
-        types_import: Option<String>,
-
-        /// Suffix appended to the types import specifier (e.g. ".js" for ESM)
-        #[arg(long)]
-        extension: Option<String>,
-
-        /// Forward Rust doc comments as JSDoc in generated TypeScript
-        #[arg(long)]
-        preserve_docs: bool,
-
-        /// Field naming convention for generated TypeScript interfaces
-        #[arg(long, value_enum)]
-        fields: Option<FieldNaming>,
+        #[command(flatten)]
+        args: GenerateArgs,
 
         /// File watcher debounce interval in milliseconds
         #[arg(long)]
@@ -133,81 +105,51 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Scan {
-            dir,
-            include,
-            exclude,
-        } => {
+        Command::Scan { input } => {
             let cfg = config::resolve(&config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
-                dir,
-                include,
-                exclude,
-                output: None,
-                client_output: None,
-                types_import: None,
-                extension: None,
-                preserve_docs: false,
-                fields: None,
-                debounce_ms: None,
-                clear_screen: false,
+                dir: input.dir,
+                include: input.include,
+                exclude: input.exclude,
+                ..config::CliOverrides::default()
             })?;
             commands::cmd_scan(&cfg)
         }
-        Command::Generate {
-            dir,
-            include,
-            exclude,
-            output,
-            client_output,
-            types_import,
-            extension,
-            preserve_docs,
-            fields,
-        } => {
+        Command::Generate { args } => {
             let cfg = config::resolve(&config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
-                dir,
-                include,
-                exclude,
-                output,
-                client_output,
-                types_import,
-                extension,
-                preserve_docs,
-                fields,
-                debounce_ms: None,
-                clear_screen: false,
+                dir: args.input.dir,
+                include: args.input.include,
+                exclude: args.input.exclude,
+                output: args.output,
+                client_output: args.client_output,
+                types_import: args.types_import,
+                extension: args.extension,
+                preserve_docs: args.preserve_docs,
+                fields: args.fields,
+                ..config::CliOverrides::default()
             })?;
             commands::cmd_generate(&cfg)
         }
         Command::Watch {
-            dir,
-            include,
-            exclude,
-            output,
-            client_output,
-            types_import,
-            extension,
-            preserve_docs,
-            fields,
+            args,
             debounce_ms,
             clear_screen,
         } => {
             let cfg = config::resolve(&config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
-                dir,
-                include,
-                exclude,
-                output,
-                client_output,
-                types_import,
-                extension,
-                preserve_docs,
-                fields,
+                dir: args.input.dir,
+                include: args.input.include,
+                exclude: args.input.exclude,
+                output: args.output,
+                client_output: args.client_output,
+                types_import: args.types_import,
+                extension: args.extension,
+                preserve_docs: args.preserve_docs,
+                fields: args.fields,
                 debounce_ms,
                 clear_screen,
             })?;

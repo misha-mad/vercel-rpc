@@ -10,11 +10,10 @@ use crate::model::{FieldDef, RustType};
 pub fn extract_rust_type(ty: &Type) -> RustType {
     match ty {
         Type::Path(type_path) => {
-            let segment = type_path
-                .path
-                .segments
-                .last()
-                .expect("Type::Path always has at least one segment");
+            let Some(segment) = type_path.path.segments.last() else {
+                let token_str = quote::quote!(#ty).to_string();
+                return RustType::simple(token_str);
+            };
             let name = segment.ident.to_string();
             let generics = extract_generic_args(&segment.arguments);
 
