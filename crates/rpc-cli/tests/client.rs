@@ -512,3 +512,96 @@ fn fetch_helper_uses_client_signal() {
     assert!(output.contains("config.signal"));
     assert!(output.contains("AbortSignal.any"));
 }
+
+// --- insta snapshot tests ---
+
+#[test]
+fn snapshot_full_client() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_client_with_methods() {
+    let manifest = common::make_manifest(vec![
+        common::make_query(
+            "get_user",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("User")),
+        ),
+        common::make_query("version", None, Some(RustType::simple("String"))),
+        common::make_mutation(
+            "create_item",
+            Some(RustType::simple("CreateInput")),
+            Some(RustType::simple("Item")),
+        ),
+        common::make_mutation("reset", None, Some(RustType::simple("bool"))),
+    ]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_client_with_jsdoc() {
+    let manifest = common::make_manifest(vec![
+        Procedure {
+            name: "hello".to_string(),
+            kind: ProcedureKind::Query,
+            input: Some(RustType::simple("String")),
+            output: Some(RustType::simple("String")),
+            source_file: PathBuf::from("api/hello.rs"),
+            docs: Some("Say hello to someone.".to_string()),
+        },
+        Procedure {
+            name: "reset".to_string(),
+            kind: ProcedureKind::Mutation,
+            input: None,
+            output: Some(RustType::simple("bool")),
+            source_file: PathBuf::from("api/reset.rs"),
+            docs: Some("Reset all state.".to_string()),
+        },
+    ]);
+    let output = generate_client_file(&manifest, "./rpc-types", true);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_client_imports_structs() {
+    let manifest = Manifest {
+        procedures: vec![
+            common::make_query("get_time", None, Some(RustType::simple("TimeResponse"))),
+            common::make_mutation(
+                "create_item",
+                Some(RustType::simple("CreateInput")),
+                Some(RustType::simple("Item")),
+            ),
+        ],
+        structs: vec![
+            StructDef {
+                name: "TimeResponse".to_string(),
+                fields: vec![common::field("timestamp", RustType::simple("u64"))],
+                source_file: PathBuf::from("api/time.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "CreateInput".to_string(),
+                fields: vec![common::field("title", RustType::simple("String"))],
+                source_file: PathBuf::from("api/create.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "Item".to_string(),
+                fields: vec![common::field("id", RustType::simple("u64"))],
+                source_file: PathBuf::from("api/create.rs"),
+                docs: None,
+                rename_all: None,
+            },
+        ],
+        enums: vec![],
+    };
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    insta::assert_snapshot!(output);
+}
