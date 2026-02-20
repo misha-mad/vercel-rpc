@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.4...vercel-rpc-macro-v0.1.5) - 2026-02-20
+
+### Added
+
+- *(rpc)* add Headers support for accessing request headers in handlers
+
+### Other
+
+- *(rpc)* workspace-wide lint config and audit fixes
+- *(rpc-macro)* extract tests to separate file
+- *(rpc-macro)* remove unnecessary newline in `lib.rs`
+
 ## [0.1.4](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.3...vercel-rpc-macro-v0.1.4) - 2026-02-18
 
 ### Added
