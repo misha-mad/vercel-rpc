@@ -76,6 +76,13 @@ const CONFIG_INTERFACE: &str = r#"export interface RpcClientConfig {
   signal?: AbortSignal;
 }"#;
 
+/// Per-call options that override client-level defaults for a single request.
+const CALL_OPTIONS_INTERFACE: &str = r#"export interface CallOptions {
+  headers?: Record<string, string>;
+  timeout?: number;
+  signal?: AbortSignal;
+}"#;
+
 /// Internal fetch helper shared by query and mutate methods.
 const FETCH_HELPER: &str = r#"const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
 
@@ -84,12 +91,13 @@ async function rpcFetch(
   method: "GET" | "POST",
   procedure: string,
   input?: unknown,
+  callOptions?: CallOptions,
 ): Promise<unknown> {
   let url = `${config.baseUrl}/${procedure}`;
   const customHeaders = typeof config.headers === "function"
     ? await config.headers()
     : config.headers;
-  const baseHeaders: Record<string, string> = { ...customHeaders };
+  const baseHeaders: Record<string, string> = { ...customHeaders, ...callOptions?.headers };
 
   if (method === "GET" && input !== undefined) {
     const serialized = config.serialize ? config.serialize(input) : JSON.stringify(input);
@@ -101,6 +109,7 @@ async function rpcFetch(
   const fetchFn = config.fetch ?? globalThis.fetch;
   const maxAttempts = 1 + (config.retry?.attempts ?? 0);
   const retryOn = config.retry?.retryOn ?? DEFAULT_RETRY_ON;
+  const effectiveTimeout = callOptions?.timeout ?? config.timeout;
   const start = Date.now();
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -113,14 +122,16 @@ async function rpcFetch(
     }
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    if (config.timeout) {
+    const signals: AbortSignal[] = [];
+    if (config.signal) signals.push(config.signal);
+    if (callOptions?.signal) signals.push(callOptions.signal);
+    if (effectiveTimeout) {
       const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), config.timeout);
-      init.signal = config.signal
-        ? AbortSignal.any([config.signal, controller.signal])
-        : controller.signal;
-    } else if (config.signal) {
-      init.signal = config.signal;
+      timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+      signals.push(controller.signal);
+    }
+    if (signals.length > 0) {
+      init.signal = signals.length === 1 ? signals[0] : AbortSignal.any(signals);
     }
 
     try {
@@ -222,6 +233,9 @@ pub fn generate_client_file(
     // Client config interface
     let _ = writeln!(out, "{CONFIG_INTERFACE}\n");
 
+    // Per-call options interface
+    let _ = writeln!(out, "{CALL_OPTIONS_INTERFACE}\n");
+
     // Internal fetch helper
     let _ = writeln!(out, "{FETCH_HELPER}\n");
 
@@ -259,14 +273,53 @@ fn generate_type_helpers(out: &mut String) {
 
 /// Generates the `createRpcClient` factory using an interface for typed overloads.
 fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut String) {
-    let has_queries = manifest
+    let queries: Vec<_> = manifest
         .procedures
         .iter()
-        .any(|p| p.kind == ProcedureKind::Query);
-    let has_mutations = manifest
+        .filter(|p| p.kind == ProcedureKind::Query)
+        .collect();
+    let mutations: Vec<_> = manifest
         .procedures
         .iter()
-        .any(|p| p.kind == ProcedureKind::Mutation);
+        .filter(|p| p.kind == ProcedureKind::Mutation)
+        .collect();
+    let has_queries = !queries.is_empty();
+    let has_mutations = !mutations.is_empty();
+
+    // Partition queries and mutations by void/non-void input
+    let void_queries: Vec<_> = queries.iter().filter(|p| is_void_input(p)).collect();
+    let non_void_queries: Vec<_> = queries.iter().filter(|p| !is_void_input(p)).collect();
+    let void_mutations: Vec<_> = mutations.iter().filter(|p| is_void_input(p)).collect();
+    let non_void_mutations: Vec<_> = mutations.iter().filter(|p| !is_void_input(p)).collect();
+
+    let query_mixed = !void_queries.is_empty() && !non_void_queries.is_empty();
+    let mutation_mixed = !void_mutations.is_empty() && !non_void_mutations.is_empty();
+
+    // Emit VOID_QUERIES/VOID_MUTATIONS sets when mixed void/non-void exists
+    if query_mixed {
+        let names: Vec<_> = void_queries
+            .iter()
+            .map(|p| format!("\"{}\"", p.name))
+            .collect();
+        let _ = writeln!(
+            out,
+            "const VOID_QUERIES: Set<string> = new Set([{}]);",
+            names.join(", ")
+        );
+        out.push('\n');
+    }
+    if mutation_mixed {
+        let names: Vec<_> = void_mutations
+            .iter()
+            .map(|p| format!("\"{}\"", p.name))
+            .collect();
+        let _ = writeln!(
+            out,
+            "const VOID_MUTATIONS: Set<string> = new Set([{}]);",
+            names.join(", ")
+        );
+        out.push('\n');
+    }
 
     // Emit the RpcClient interface with overloaded method signatures
     let _ = writeln!(out, "export interface RpcClient {{");
@@ -297,7 +350,31 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             out,
             "    query(key: QueryKey, ...args: unknown[]): Promise<unknown> {{"
         );
-        let _ = writeln!(out, "      return rpcFetch(config, \"GET\", key, args[0]);");
+        if query_mixed {
+            // Mixed: use VOID_QUERIES set to branch at runtime
+            let _ = writeln!(out, "      if (VOID_QUERIES.has(key)) {{");
+            let _ = writeln!(
+                out,
+                "        return rpcFetch(config, \"GET\", key, undefined, args[0] as CallOptions | undefined);"
+            );
+            let _ = writeln!(out, "      }}");
+            let _ = writeln!(
+                out,
+                "      return rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined);"
+            );
+        } else if !void_queries.is_empty() {
+            // All void: args[0] is always CallOptions
+            let _ = writeln!(
+                out,
+                "      return rpcFetch(config, \"GET\", key, undefined, args[0] as CallOptions | undefined);"
+            );
+        } else {
+            // All non-void: args[0] is input, args[1] is CallOptions
+            let _ = writeln!(
+                out,
+                "      return rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined);"
+            );
+        }
         let _ = writeln!(out, "    }},");
     }
 
@@ -306,10 +383,31 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             out,
             "    mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {{"
         );
-        let _ = writeln!(
-            out,
-            "      return rpcFetch(config, \"POST\", key, args[0]);"
-        );
+        if mutation_mixed {
+            // Mixed: use VOID_MUTATIONS set to branch at runtime
+            let _ = writeln!(out, "      if (VOID_MUTATIONS.has(key)) {{");
+            let _ = writeln!(
+                out,
+                "        return rpcFetch(config, \"POST\", key, undefined, args[0] as CallOptions | undefined);"
+            );
+            let _ = writeln!(out, "      }}");
+            let _ = writeln!(
+                out,
+                "      return rpcFetch(config, \"POST\", key, args[0], args[1] as CallOptions | undefined);"
+            );
+        } else if !void_mutations.is_empty() {
+            // All void: args[0] is always CallOptions
+            let _ = writeln!(
+                out,
+                "      return rpcFetch(config, \"POST\", key, undefined, args[0] as CallOptions | undefined);"
+            );
+        } else {
+            // All non-void: args[0] is input, args[1] is CallOptions
+            let _ = writeln!(
+                out,
+                "      return rpcFetch(config, \"POST\", key, args[0], args[1] as CallOptions | undefined);"
+            );
+        }
         let _ = writeln!(out, "    }},");
     }
 
@@ -340,6 +438,11 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
             "  query(key: \"{}\"): Promise<{}>;",
             proc.name, output_ts,
         );
+        let _ = writeln!(
+            out,
+            "  query(key: \"{}\", options: CallOptions): Promise<{}>;",
+            proc.name, output_ts,
+        );
     }
 
     // Overload signatures for non-void-input queries
@@ -360,6 +463,11 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
         let _ = writeln!(
             out,
             "  query(key: \"{}\", input: {}): Promise<{}>;",
+            proc.name, input_ts, output_ts,
+        );
+        let _ = writeln!(
+            out,
+            "  query(key: \"{}\", input: {}, options: CallOptions): Promise<{}>;",
             proc.name, input_ts, output_ts,
         );
     }
@@ -388,6 +496,11 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
             "  mutate(key: \"{}\"): Promise<{}>;",
             proc.name, output_ts,
         );
+        let _ = writeln!(
+            out,
+            "  mutate(key: \"{}\", options: CallOptions): Promise<{}>;",
+            proc.name, output_ts,
+        );
     }
 
     // Overload signatures for non-void-input mutations
@@ -408,6 +521,11 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
         let _ = writeln!(
             out,
             "  mutate(key: \"{}\", input: {}): Promise<{}>;",
+            proc.name, input_ts, output_ts,
+        );
+        let _ = writeln!(
+            out,
+            "  mutate(key: \"{}\", input: {}, options: CallOptions): Promise<{}>;",
             proc.name, input_ts, output_ts,
         );
     }

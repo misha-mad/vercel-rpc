@@ -51,7 +51,11 @@ fn generates_query_method() {
     )]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("query(key: \"hello\", input: string): Promise<string>"));
-    assert!(output.contains("rpcFetch(config, \"GET\", key, args[0])"));
+    assert!(
+        output.contains(
+            "rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined)"
+        )
+    );
     assert!(output.contains("export interface RpcClient"));
 }
 
@@ -75,7 +79,11 @@ fn generates_mutation_method() {
     )]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("mutate(key: \"create_item\", input: CreateInput): Promise<Item>"));
-    assert!(output.contains("rpcFetch(config, \"POST\", key, args[0])"));
+    assert!(
+        output.contains(
+            "rpcFetch(config, \"POST\", key, args[0], args[1] as CallOptions | undefined)"
+        )
+    );
     assert!(output.contains("export interface RpcClient"));
 }
 
@@ -171,8 +179,16 @@ fn uses_get_for_queries_post_for_mutations() {
         ),
     ]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
-    assert!(output.contains("rpcFetch(config, \"GET\", key"));
-    assert!(output.contains("rpcFetch(config, \"POST\", key"));
+    assert!(
+        output.contains(
+            "rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined)"
+        )
+    );
+    assert!(
+        output.contains(
+            "rpcFetch(config, \"POST\", key, args[0], args[1] as CallOptions | undefined)"
+        )
+    );
 }
 
 #[test]
@@ -448,7 +464,7 @@ fn fetch_helper_handles_timeout() {
     let manifest = common::make_manifest(vec![]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("AbortController"));
-    assert!(output.contains("config.timeout"));
+    assert!(output.contains("effectiveTimeout"));
     assert!(output.contains("clearTimeout"));
 }
 
@@ -602,6 +618,142 @@ fn snapshot_client_imports_structs() {
         ],
         enums: vec![],
     };
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    insta::assert_snapshot!(output);
+}
+
+// --- CallOptions tests ---
+
+#[test]
+fn contains_call_options_interface() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("export interface CallOptions"));
+    assert!(output.contains("headers?: Record<string, string>"));
+    assert!(output.contains("timeout?: number"));
+    assert!(output.contains("signal?: AbortSignal"));
+}
+
+#[test]
+fn query_overload_with_options() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(
+        output.contains(
+            "query(key: \"hello\", input: string, options: CallOptions): Promise<string>"
+        )
+    );
+}
+
+#[test]
+fn query_void_overload_with_options() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "version",
+        None,
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("query(key: \"version\", options: CallOptions): Promise<string>"));
+}
+
+#[test]
+fn mutation_overload_with_options() {
+    let manifest = common::make_manifest(vec![common::make_mutation(
+        "create_item",
+        Some(RustType::simple("CreateInput")),
+        Some(RustType::simple("Item")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains(
+        "mutate(key: \"create_item\", input: CreateInput, options: CallOptions): Promise<Item>"
+    ));
+}
+
+#[test]
+fn mutation_void_overload_with_options() {
+    let manifest = common::make_manifest(vec![common::make_mutation(
+        "reset",
+        None,
+        Some(RustType::simple("bool")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("mutate(key: \"reset\", options: CallOptions): Promise<boolean>"));
+}
+
+#[test]
+fn fetch_helper_accepts_call_options() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("callOptions?: CallOptions"));
+}
+
+#[test]
+fn fetch_helper_merges_call_headers() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("callOptions?.headers"));
+}
+
+#[test]
+fn fetch_helper_uses_call_timeout() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("callOptions?.timeout"));
+}
+
+#[test]
+fn fetch_helper_uses_call_signal() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("callOptions?.signal"));
+}
+
+#[test]
+fn void_query_set_generated() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query(
+            "hello",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("VOID_QUERIES"));
+    assert!(output.contains("new Set([\"time\"])"));
+}
+
+#[test]
+fn void_query_set_omitted_when_all_non_void() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(!output.contains("VOID_QUERIES"));
+}
+
+#[test]
+fn snapshot_client_with_call_options() {
+    let manifest = common::make_manifest(vec![
+        common::make_query(
+            "hello",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_mutation(
+            "create_item",
+            Some(RustType::simple("CreateInput")),
+            Some(RustType::simple("Item")),
+        ),
+        common::make_mutation("reset", None, Some(RustType::simple("bool"))),
+    ]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     insta::assert_snapshot!(output);
 }
