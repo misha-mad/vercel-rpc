@@ -796,3 +796,176 @@ fn test_serde_default_on_non_option_field_is_not_optional() {
     assert!(output.contains("  retries: number;"));
     assert!(!output.contains("retries?"));
 }
+
+// --- insta snapshot tests ---
+
+#[test]
+fn snapshot_complete_types() {
+    let manifest = common::make_test_manifest();
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_empty_manifest() {
+    let manifest = Manifest::default();
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_types_with_jsdoc() {
+    let mut manifest = common::make_test_manifest();
+    for s in &mut manifest.structs {
+        s.docs = Some(format!("Documentation for {}.", s.name));
+    }
+    for p in &mut manifest.procedures {
+        p.docs = Some(format!("Documentation for {}.", p.name));
+    }
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_types_camel_case() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "ServerInfo".to_string(),
+            fields: vec![
+                field("uptime_secs", RustType::simple("u64")),
+                field("user_id", RustType::simple("String")),
+                field("is_active", RustType::simple("bool")),
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_enum_unit() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Status".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Active".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Inactive".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Banned".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_enum_mixed() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Shape".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Circle".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("f64")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Rect".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        field("w", RustType::simple("f64")),
+                        field("h", RustType::simple("f64")),
+                    ]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Unknown".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_serde_rename_all() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "UserProfile".to_string(),
+            fields: vec![
+                field("first_name", RustType::simple("String")),
+                field("last_name", RustType::simple("String")),
+                field("created_at", RustType::simple("u64")),
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::CamelCase),
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_serde_skip_and_default() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Config".to_string(),
+            fields: vec![
+                field("name", RustType::simple("String")),
+                FieldDef {
+                    name: "internal".to_string(),
+                    ty: RustType::simple("u64"),
+                    rename: None,
+                    skip: true,
+                    has_default: false,
+                },
+                FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
