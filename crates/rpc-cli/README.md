@@ -355,12 +355,69 @@ The generated `rpc-client.ts` includes:
 
 - **`RpcClient` interface** with typed overloads for every procedure — full
   autocomplete and type checking.
-- **`createRpcClient(config)`** factory function accepting `RpcClientConfig` with `baseUrl`, optional `fetch`, and optional `headers`.
+- **`createRpcClient(config)`** factory function accepting `RpcClientConfig` with `baseUrl`, optional `fetch`, `headers`, and lifecycle hooks.
 - **`RpcError` class** with `status` and `data` fields for structured error
   handling.
 - **`rpcFetch` helper** — uses `GET` with `?input=<JSON>` for queries and
   `POST` with JSON body for mutations. Unwraps the `result.data` envelope
   automatically.
+
+### Lifecycle hooks
+
+`RpcClientConfig` supports three optional hooks that run at different stages of each request:
+
+| Hook         | When it runs                                    | Context type      |
+|--------------|-------------------------------------------------|-------------------|
+| `onRequest`  | Before the fetch call — can mutate headers      | `RequestContext`  |
+| `onResponse` | After a successful response is parsed           | `ResponseContext` |
+| `onError`    | On network failure or non-ok HTTP status        | `ErrorContext`    |
+
+All hooks can be synchronous or return a `Promise`.
+
+**Context types:**
+
+```typescript
+interface RequestContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  headers: Record<string, string>;  // mutable — changes apply to the request
+  input?: unknown;
+}
+
+interface ResponseContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  response: Response;
+  data: unknown;
+  duration: number;  // milliseconds
+}
+
+interface ErrorContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  error: unknown;  // RpcError for HTTP errors, native Error for network failures
+}
+```
+
+**Example — logging and auth token:**
+
+```typescript
+const client = createRpcClient({
+  baseUrl: "/api",
+  onRequest(ctx) {
+    ctx.headers["Authorization"] = `Bearer ${getToken()}`;
+  },
+  onResponse(ctx) {
+    console.log(`${ctx.procedure} completed in ${ctx.duration}ms`);
+  },
+  onError(ctx) {
+    console.error(`${ctx.procedure} failed:`, ctx.error);
+  },
+});
+```
 
 ## Related crates
 
