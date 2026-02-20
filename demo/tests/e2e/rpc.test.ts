@@ -78,7 +78,9 @@ test.describe('RPC page — full e2e cycle', () => {
 	});
 
 	test('types query returns type showcase', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Types — Expanded Type Mappings' });
+		const section = page
+			.locator('section')
+			.filter({ has: page.locator('h2', { hasText: 'Types — Expanded Type Mappings' }) });
 		const button = section.locator('button').filter({ hasText: 'Fetch Types' });
 		await button.click();
 
