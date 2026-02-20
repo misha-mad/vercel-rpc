@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-v0.1.1...vercel-rpc-v0.1.2) - 2026-02-20
+
+### Added
+
+- *(rpc)* add Headers support for accessing request headers in handlers
+
+### Other
+
+- *(rpc)* workspace-wide lint config and audit fixes
+
 ## [0.1.1](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-v0.1.0...vercel-rpc-v0.1.1) - 2026-02-19
 
 ### Other

@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.2.0...vercel-rpc-cli-v0.2.1) - 2026-02-20
+
+### Added
+
+- *(rpc)* add signal option to RpcClientConfig
+- *(rpc)* add custom serialize/deserialize to RpcClientConfig
+- *(rpc)* add retry policy and timeout to RpcClientConfig
+- *(rpc)* add lifecycle hooks to RpcClientConfig
+- *(rpc)* add Headers support for accessing request headers in handlers
+- *(rpc-cli)* add protected endpoint demo for RpcClientConfig.headers
+- *(rpc-cli)* add RpcClientConfig with fetch and headers options
+- *(rpc-cli)* add type mappings for sets and smart pointers
+
+### Other
+
+- *(rpc-cli)* add insta snapshot tests for codegen output
+- *(rpc)* workspace-wide lint config and audit fixes
+- *(rpc-cli)* document lifecycle hooks in README
+- update type mapping tables and mark expanded types as done
+- Merge branch 'main' of misha-mad:misha-mad/vercel-rpc into feat/expanded-type-mappings
+
 ## [0.2.0](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.1.4...vercel-rpc-cli-v0.2.0) - 2026-02-19
 
 ### Added

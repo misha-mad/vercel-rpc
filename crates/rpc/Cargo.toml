@@ -1,6 +1,6 @@
 [package]
 name = "vercel-rpc"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "End-to-end typesafe RPC between Rust lambdas on Vercel and any TypeScript frontend"
 license = "MIT OR Apache-2.0"
