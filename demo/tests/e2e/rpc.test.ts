@@ -64,6 +64,53 @@ test.describe('RPC page — full e2e cycle', () => {
 		await expect(result).toContainText('Healthy');
 	});
 
+	test('profile query returns user profile with serde attributes', async ({ page }) => {
+		const section = page.locator('section').filter({ hasText: 'Profile — Serde Attributes' });
+		const button = section.locator('button').filter({ hasText: 'Fetch Profile' });
+		await button.click();
+
+		const result = section.locator('.result.success');
+		await expect(result).toBeVisible({ timeout: 10_000 });
+		await expect(result).toContainText('Alice');
+		await expect(result).toContainText('admin');
+		await expect(result).toContainText('sign-in');
+		await expect(result).toContainText('profile_url');
+	});
+
+	test('types query returns type showcase', async ({ page }) => {
+		const section = page
+			.locator('section')
+			.filter({ has: page.locator('h2', { hasText: 'Types — Expanded Type Mappings' }) });
+		const button = section.locator('button').filter({ hasText: 'Fetch Types' });
+		await button.click();
+
+		const result = section.locator('.result.success');
+		await expect(result).toBeVisible({ timeout: 10_000 });
+		await expect(result).toContainText('sorted_ids');
+		await expect(result).toContainText('boxed_label');
+		await expect(result).toContainText('cow_message');
+	});
+
+	test('secret endpoint rejects without token', async ({ page }) => {
+		const section = page.locator('section').filter({ hasText: 'Secret — Protected Endpoint' });
+		const button = section.locator('button').filter({ hasText: 'Call without token' });
+		await button.click();
+
+		const result = section.locator('.result.error');
+		await expect(result).toBeVisible({ timeout: 10_000 });
+		await expect(result).toContainText('Unauthorized');
+	});
+
+	test('secret endpoint succeeds with token', async ({ page }) => {
+		const section = page.locator('section').filter({ hasText: 'Secret — Protected Endpoint' });
+		const button = section.locator('button').filter({ hasText: 'Call with token' });
+		await button.click();
+
+		const result = section.locator('.result.success');
+		await expect(result).toBeVisible({ timeout: 10_000 });
+		await expect(result).toContainText('the cake is a lie');
+	});
+
 	test('navigation link to RPC exists in header', async ({ page }) => {
 		const examplesLink = page.locator('nav a[href="/examples"]');
 		await expect(examplesLink).toBeVisible();
@@ -122,5 +169,63 @@ test.describe('API endpoints — direct HTTP', () => {
 		const json = await res.json();
 		expect(json.result.data.transformed).toBe('HELLO');
 		expect(json.result.data.length).toBe(5);
+	});
+
+	test('GET /api/profile returns user profile with serde attributes', async ({ request }) => {
+		const input = encodeURIComponent(JSON.stringify(1));
+		const res = await request.get(`/api/profile?input=${input}`);
+		expect(res.ok()).toBe(true);
+		const json = await res.json();
+		const data = json.result.data;
+		// camelCase fields from #[serde(rename_all = "camelCase")]
+		expect(data.userId).toBe(1);
+		expect(data.displayName).toBe('Alice');
+		expect(data.emailAddress).toBe('alice@example.com');
+		// enum with #[serde(rename_all = "snake_case")]
+		expect(data.role).toBe('admin');
+		// enum with #[serde(rename_all = "kebab-case")]
+		expect(data.lastEvent).toBe('sign-in');
+		// #[serde(rename = "profile_url")] overrides camelCase
+		expect(data.profile_url).toBe('https://example.com/alice');
+		// #[serde(skip)] — internal_score must not be present
+		expect(data).not.toHaveProperty('internalScore');
+		expect(data).not.toHaveProperty('internal_score');
+		// #[serde(default)] + Option<String>
+		expect(data.avatarUrl).toBe('https://example.com/alice/avatar.png');
+	});
+
+	test('GET /api/types returns type showcase', async ({ request }) => {
+		const input = encodeURIComponent(JSON.stringify('e2e'));
+		const res = await request.get(`/api/types?input=${input}`);
+		expect(res.ok()).toBe(true);
+		const json = await res.json();
+		const data = json.result.data;
+		// HashSet<String> → string[]
+		expect(Array.isArray(data.tags)).toBe(true);
+		expect(data.tags).toContain('rust');
+		expect(data.tags).toContain('typescript');
+		expect(data.tags).toContain('rpc');
+		// BTreeSet<i32> → number[] (sorted)
+		expect(data.sorted_ids).toEqual([1, 2, 3]);
+		// Box<String> → string
+		expect(data.boxed_label).toBe('Category: e2e');
+		// Cow<str> → string
+		expect(data.cow_message).toBe('Hello from Cow — serialized as a plain string!');
+	});
+
+	test('GET /api/secret without token returns error', async ({ request }) => {
+		const res = await request.get('/api/secret');
+		expect(res.ok()).toBe(false);
+		const json = await res.json();
+		expect(json.error.message).toContain('Unauthorized');
+	});
+
+	test('GET /api/secret with valid token returns secret', async ({ request }) => {
+		const res = await request.get('/api/secret', {
+			headers: { Authorization: 'Bearer secret-token-123' }
+		});
+		expect(res.ok()).toBe(true);
+		const json = await res.json();
+		expect(json.result.data).toBe('Top secret: the cake is a lie.');
 	});
 });
