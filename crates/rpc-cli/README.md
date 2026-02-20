@@ -485,6 +485,22 @@ const client = createRpcClient({
 
 Custom serialization applies to query string params (GET), request bodies (POST), and success response parsing. Error responses are always parsed with the framework's default format.
 
+### Signal
+
+An `AbortSignal` for cancelling all in-flight requests made by this client. When combined with `timeout`, both signals are merged via `AbortSignal.any` — whichever fires first aborts the request.
+
+```typescript
+const controller = new AbortController();
+
+const client = createRpcClient({
+  baseUrl: "/api",
+  signal: controller.signal,
+});
+
+// Cancel all pending requests
+controller.abort();
+```
+
 ## Related crates
 
 - [`vercel-rpc-macro`](https://crates.io/crates/vercel-rpc-macro) — procedural

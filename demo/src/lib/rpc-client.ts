@@ -62,6 +62,8 @@ export interface RpcClientConfig {
   timeout?: number;
   serialize?: (input: unknown) => string;
   deserialize?: (text: string) => unknown;
+  // AbortSignal for cancelling all requests made by this client.
+  signal?: AbortSignal;
 }
 
 const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
@@ -103,7 +105,11 @@ async function rpcFetch(
     if (config.timeout) {
       const controller = new AbortController();
       timeoutId = setTimeout(() => controller.abort(), config.timeout);
-      init.signal = controller.signal;
+      init.signal = config.signal
+        ? AbortSignal.any([config.signal, controller.signal])
+        : controller.signal;
+    } else if (config.signal) {
+      init.signal = config.signal;
     }
 
     try {
