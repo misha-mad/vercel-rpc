@@ -39,3 +39,7 @@ path = "api/profile.rs"
 [[bin]]
 name = "types"
 path = "api/types.rs"
+
+[[bin]]
+name = "secret"
+path = "api/secret.rs"

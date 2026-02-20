@@ -117,7 +117,7 @@ export type Procedures = {
 
 // rpc-client.ts
 export class RpcError extends Error { ... }
-export function createRpcClient(baseUrl: string): RpcClient;
+export function createRpcClient(config: RpcClientConfig): RpcClient;
 
 // Usage in any TypeScript frontend
 import { rpc } from './client';

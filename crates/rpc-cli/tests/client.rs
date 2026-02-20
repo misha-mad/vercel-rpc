@@ -51,7 +51,7 @@ fn generates_query_method() {
     )]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("query(key: \"hello\", input: string): Promise<string>"));
-    assert!(output.contains("rpcFetch(baseUrl, \"GET\", key, args[0])"));
+    assert!(output.contains("rpcFetch(config, \"GET\", key, args[0])"));
     assert!(output.contains("export interface RpcClient"));
 }
 
@@ -75,7 +75,7 @@ fn generates_mutation_method() {
     )]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("mutate(key: \"create_item\", input: CreateInput): Promise<Item>"));
-    assert!(output.contains("rpcFetch(baseUrl, \"POST\", key, args[0])"));
+    assert!(output.contains("rpcFetch(config, \"POST\", key, args[0])"));
     assert!(output.contains("export interface RpcClient"));
 }
 
@@ -98,7 +98,7 @@ fn generates_create_rpc_client_factory() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
-    assert!(output.contains("export function createRpcClient(baseUrl: string)"));
+    assert!(output.contains("export function createRpcClient(config: RpcClientConfig)"));
 }
 
 #[test]
@@ -171,8 +171,8 @@ fn uses_get_for_queries_post_for_mutations() {
         ),
     ]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
-    assert!(output.contains("rpcFetch(baseUrl, \"GET\", key"));
-    assert!(output.contains("rpcFetch(baseUrl, \"POST\", key"));
+    assert!(output.contains("rpcFetch(config, \"GET\", key"));
+    assert!(output.contains("rpcFetch(config, \"POST\", key"));
 }
 
 #[test]
@@ -197,7 +197,7 @@ fn interface_based_overloads() {
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("export interface RpcClient"));
     assert!(output.contains("query(key: \"test\"): Promise<string>"));
-    assert!(output.contains("createRpcClient(baseUrl: string): RpcClient"));
+    assert!(output.contains("createRpcClient(config: RpcClientConfig): RpcClient"));
     assert!(output.contains("as RpcClient"));
 }
 
@@ -309,4 +309,27 @@ fn test_no_jsdoc_on_overload_when_disabled() {
     }]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(!output.contains("/**"));
+}
+
+#[test]
+fn contains_config_interface() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("export interface RpcClientConfig"));
+    assert!(output.contains("baseUrl: string"));
+}
+
+#[test]
+fn config_has_fetch_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("fetch?: typeof globalThis.fetch"));
+}
+
+#[test]
+fn config_has_headers_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("headers?:"));
+    assert!(output.contains("Record<string, string>"));
 }

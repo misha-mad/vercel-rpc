@@ -16,32 +16,21 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in [PR #41](https://github.com/misha-mad/vercel-rpc/pull/41). Sets map to `T[]`, smart pointers and `Cow` unwrap to inner type, fixed-size arrays already map to `T[]`.
 
-| Rust                        | TypeScript | Notes                                      |
-|-----------------------------|------------|--------------------------------------------|
-| `HashSet<T>`, `BTreeSet<T>` | `T[]`      | serde serializes sets as arrays            |
-| `Box<T>`, `Arc<T>`, `Rc<T>` | `T`        | transparent wrappers, unwrap to inner type |
-| `Cow<'_, T>`                | `T`        | lifetime stripped, unwraps to inner type   |
-| `[T; N]` (fixed-size array) | `T[]`      | already handled via `Array` parse path     |
-
 ---
 
 ## Phase 2 — Client
 
-### `RpcClientConfig`
+### ~~`RpcClientConfig` (first iteration)~~ ✅
 
-The current `createRpcClient(baseUrl)` accepts only a string. Expand it to a full configuration object:
+> Implemented in [PR #43](https://github.com/misha-mad/vercel-rpc/pull/43). `createRpcClient` now accepts an `RpcClientConfig` object with `baseUrl`, optional `fetch` override (SSR, testing), and optional static/async `headers` (auth tokens).
+
+### `RpcClientConfig` — extended options
+
+Extend the config with lifecycle hooks, retry policy, timeout, custom serialization, and abort signal:
 
 ```typescript
 export interface RpcClientConfig {
-  baseUrl: string;
-
-  // Custom fetch implementation (for SSR, testing, service workers)
-  fetch?: typeof globalThis.fetch;
-
-  // Static or dynamic headers (e.g. auth tokens)
-  headers?:
-    | Record<string, string>
-    | (() => Record<string, string> | Promise<Record<string, string>>);
+  // ... existing: baseUrl, fetch, headers
 
   // Lifecycle hooks
   onRequest?: (ctx: RequestContext) => void | Promise<void>;
@@ -65,13 +54,9 @@ export interface RpcClientConfig {
   // AbortController integration
   signal?: AbortSignal;
 }
-
-export function createRpcClient(config: RpcClientConfig | string): RpcClient;
 ```
 
 Key use cases:
-- **SSR** — pass a custom `fetch` from the server-side load function (SvelteKit, Next.js, Nuxt, etc.) so cookies and headers are forwarded.
-- **Authentication** — dynamic `headers` callback that reads the current token.
 - **Observability** — `onRequest`/`onResponse` hooks for logging, metrics, tracing.
 - **Resilience** — automatic retries with exponential backoff for transient failures.
 
@@ -385,6 +370,6 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | Phase | Focus      | Key Deliverables                                                                    |
 |-------|------------|-------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅              |
-| **2** | Client     | Client config, per-call options, request deduplication, ~~JSDoc generation~~ ✅      |
+| **2** | Client     | ~~Client config (v1)~~ ✅, client config (extended), per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
 | **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests        |

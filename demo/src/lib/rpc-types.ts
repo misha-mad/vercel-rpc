@@ -113,6 +113,11 @@ export type Procedures = {
      * on structs and enums to demonstrate TypeScript codegen fidelity.
      */
     profile: { input: number; output: UserProfile };
+    /**
+     * Access a protected secret.
+     * Requires a valid Bearer token in the Authorization header.
+     */
+    secret: { input: void; output: string };
     /** Compute descriptive statistics for a list of numbers. */
     stats: { input: number[]; output: Stats };
     /** Returns current service health, uptime, and version. */

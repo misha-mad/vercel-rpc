@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
-	import { RpcError } from '$lib/rpc-client';
+	import { RpcError, createRpcClient } from '$lib/rpc-client';
 	import type {
 		MathResult,
 		Stats,
@@ -158,6 +158,34 @@
 			typesError = `${e}`;
 		} finally {
 			typesLoading = false;
+		}
+	}
+
+	// --- Secret (protected endpoint with RpcClientConfig.headers) ---
+	let secretResult = $state('');
+	let secretError = $state('');
+	let secretLoading = $state(false);
+
+	async function callSecret(withToken: boolean) {
+		secretLoading = true;
+		secretResult = '';
+		secretError = '';
+		try {
+			const client = createRpcClient(
+				withToken
+					? { baseUrl: '/api', headers: { Authorization: 'Bearer secret-token-123' } }
+					: { baseUrl: '/api' }
+			);
+			secretResult = await client.query('secret');
+		} catch (e) {
+			if (e instanceof RpcError) {
+				const data = e.data as { error?: { message?: string } } | undefined;
+				secretError = data?.error?.message ?? e.message;
+			} else {
+				secretError = `${e}`;
+			}
+		} finally {
+			secretLoading = false;
 		}
 	}
 
@@ -1009,6 +1037,81 @@ create_item  → create_item    // procedure names — NOT affected`}</pre>
 		{/if}
 	</section>
 
+	<!-- Secret: Protected endpoint with RpcClientConfig.headers -->
+	<section class="card highlight">
+		<h2>🔐 Secret — Protected Endpoint (RpcClientConfig.headers)</h2>
+		<p class="desc">
+			Demonstrates <code>RpcClientConfig.headers</code> — call a protected endpoint without a token
+			(401 error) or with a valid <code>Authorization</code> header (success). Auth check lives in the
+			Vite dev mock, not in the Rust lambda.
+		</p>
+		<div class="row">
+			<button onclick={() => callSecret(false)} disabled={secretLoading}>
+				{secretLoading ? '...' : 'Call without token'}
+			</button>
+			<button onclick={() => callSecret(true)} disabled={secretLoading}>
+				{secretLoading ? '...' : 'Call with token'}
+			</button>
+		</div>
+		{#if secretResult}
+			<div class="result success">{secretResult}</div>
+		{/if}
+		{#if secretError}
+			<div class="result error">{secretError}</div>
+		{/if}
+		<pre class="code">{`// Without token — 401
+const client = createRpcClient({ baseUrl: "/api" });
+await client.query("secret"); // throws RpcError
+
+// With token — success
+const client = createRpcClient({
+  baseUrl: "/api",
+  headers: { Authorization: "Bearer secret-token-123" },
+});
+await client.query("secret"); // "Top secret: the cake is a lie."`}</pre>
+		<button class="toggle-code" onclick={() => toggleCode('secret')}>
+			{openCode['secret'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
+		</button>
+		{#if openCode['secret']}
+			<div class="code-panels">
+				<div class="code-panel">
+					<span class="code-label">🦀 Rust — api/secret.rs</span>
+					<pre class="code rust">{`/// Access a protected secret.
+/// Requires a valid Bearer token in the Authorization header.
+#[rpc_query]
+async fn secret() -> String {
+    "Top secret: the cake is a lie.".to_string()
+}`}</pre>
+				</div>
+				<div class="code-panel">
+					<span class="code-label">🟦 TypeScript — RpcClientConfig.headers</span>
+					<pre class="code ts">{`export interface RpcClientConfig {
+  baseUrl: string;
+  fetch?: typeof globalThis.fetch;
+  headers?:
+    | Record<string, string>                          // static
+    | (() => Record<string, string>                   // sync fn
+         | Promise<Record<string, string>>);          // async fn
+}
+
+// Static headers
+const client = createRpcClient({
+  baseUrl: "/api",
+  headers: { Authorization: "Bearer token" },
+});
+
+// Dynamic headers (e.g. refresh token)
+const client = createRpcClient({
+  baseUrl: "/api",
+  headers: async () => ({
+    Authorization: \`Bearer \${await getToken()}\`,
+  }),
+});`}</pre>
+				</div>
+			</div>
+		{/if}
+	</section>
+
 	<!-- Raw JSON viewer -->
 	<section class="card">
 		<h2>🔍 Raw Response Viewer</h2>
@@ -1031,6 +1134,7 @@ create_item  → create_item    // procedure names — NOT affected`}</pre>
 				<option value="/api/stats?input=%5B1,2,3,4,5%5D">GET /api/stats ([1,2,3,4,5])</option>
 				<option value="/api/types?input=%22demo%22">GET /api/types (expanded types)</option>
 				<option value="/api/profile?input=1">GET /api/profile (serde attrs)</option>
+				<option value="/api/secret">GET /api/secret (no token — 401)</option>
 			</select>
 			<button onclick={fetchRaw} disabled={rawLoading}>
 				{rawLoading ? '...' : 'Fetch'}
@@ -1152,7 +1256,7 @@ export type Procedures = {
   mutate(key: "echo", input: EchoInput): Promise<EchoOutput>;
 }
 
-export function createRpcClient(baseUrl: string): RpcClient;`}</pre>
+export function createRpcClient(config: RpcClientConfig): RpcClient;`}</pre>
 				</div>
 			</div>
 		{/if}
