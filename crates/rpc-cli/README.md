@@ -462,6 +462,29 @@ const client = createRpcClient({
 });
 ```
 
+### Custom serialization
+
+By default the client uses `JSON.stringify` / `res.json()` for serialization and deserialization. You can override both with the `serialize` and `deserialize` options — useful for libraries like [superjson](https://github.com/blitz-js/superjson) or [devalue](https://github.com/Rich-Harris/devalue) that support richer types (Date, Map, Set, etc.).
+
+```typescript
+serialize?: (input: unknown) => string;
+deserialize?: (text: string) => unknown;
+```
+
+**Example — superjson:**
+
+```typescript
+import superjson from "superjson";
+
+const client = createRpcClient({
+  baseUrl: "/api",
+  serialize: (input) => superjson.stringify(input),
+  deserialize: (text) => superjson.parse(text),
+});
+```
+
+Custom serialization applies to query string params (GET), request bodies (POST), and success response parsing. Error responses are always parsed with the framework's default format.
+
 ## Related crates
 
 - [`vercel-rpc-macro`](https://crates.io/crates/vercel-rpc-macro) — procedural
