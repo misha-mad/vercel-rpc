@@ -5,7 +5,7 @@ export default defineConfig({
 	timeout: 30_000,
 	retries: 0,
 	use: {
-		baseURL: process.env.BASE_URL,
+		baseURL: process.env.BASE_URL || 'https://vercel-rpc.vercel.app',
 		trace: 'on-first-retry'
 	},
 	projects: [
