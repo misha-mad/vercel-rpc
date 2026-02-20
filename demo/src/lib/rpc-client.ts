@@ -17,12 +17,39 @@ export class RpcError extends Error {
   }
 }
 
+export interface RequestContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  headers: Record<string, string>;
+  input?: unknown;
+}
+
+export interface ResponseContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  response: Response;
+  data: unknown;
+  duration: number;
+}
+
+export interface ErrorContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  error: unknown;
+}
+
 export interface RpcClientConfig {
   baseUrl: string;
   fetch?: typeof globalThis.fetch;
   headers?:
     | Record<string, string>
     | (() => Record<string, string> | Promise<Record<string, string>>);
+  onRequest?: (ctx: RequestContext) => void | Promise<void>;
+  onResponse?: (ctx: ResponseContext) => void | Promise<void>;
+  onError?: (ctx: ErrorContext) => void | Promise<void>;
 }
 
 async function rpcFetch(
@@ -35,17 +62,32 @@ async function rpcFetch(
   const customHeaders = typeof config.headers === "function"
     ? await config.headers()
     : config.headers;
-  const init: RequestInit = { method, headers: { ...customHeaders } };
+  const headers: Record<string, string> = { ...customHeaders };
 
   if (method === "GET" && input !== undefined) {
     url += `?input=${encodeURIComponent(JSON.stringify(input))}`;
   } else if (method === "POST" && input !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const reqCtx: RequestContext = { procedure, method, url, headers, input };
+  await config.onRequest?.(reqCtx);
+
+  const init: RequestInit = { method, headers: reqCtx.headers };
+  if (method === "POST" && input !== undefined) {
     init.body = JSON.stringify(input);
-    (init.headers as Record<string, string>)["Content-Type"] = "application/json";
   }
 
   const fetchFn = config.fetch ?? globalThis.fetch;
-  const res = await fetchFn(url, init);
+  const start = Date.now();
+
+  let res: Response;
+  try {
+    res = await fetchFn(url, init);
+  } catch (err) {
+    await config.onError?.({ procedure, method, url, error: err });
+    throw err;
+  }
 
   if (!res.ok) {
     let data: unknown;
@@ -54,15 +96,20 @@ async function rpcFetch(
     } catch {
       data = await res.text().catch(() => null);
     }
-    throw new RpcError(
+    const rpcError = new RpcError(
       res.status,
       `RPC error on "${procedure}": ${res.status} ${res.statusText}`,
       data,
     );
+    await config.onError?.({ procedure, method, url, error: rpcError });
+    throw rpcError;
   }
 
   const json = await res.json();
-  return json?.result?.data ?? json;
+  const result = json?.result?.data ?? json;
+  const duration = Date.now() - start;
+  await config.onResponse?.({ procedure, method, url, response: res, data: result, duration });
+  return result;
 }
 
 type QueryKey = keyof Procedures["queries"];

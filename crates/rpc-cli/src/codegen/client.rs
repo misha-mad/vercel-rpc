@@ -22,6 +22,33 @@ const ERROR_CLASS: &str = r#"export class RpcError extends Error {
   }
 }"#;
 
+/// Context passed to the `onRequest` lifecycle hook.
+const REQUEST_CONTEXT_INTERFACE: &str = r#"export interface RequestContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  headers: Record<string, string>;
+  input?: unknown;
+}"#;
+
+/// Context passed to the `onResponse` lifecycle hook.
+const RESPONSE_CONTEXT_INTERFACE: &str = r#"export interface ResponseContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  response: Response;
+  data: unknown;
+  duration: number;
+}"#;
+
+/// Context passed to the `onError` lifecycle hook.
+const ERROR_CONTEXT_INTERFACE: &str = r#"export interface ErrorContext {
+  procedure: string;
+  method: "GET" | "POST";
+  url: string;
+  error: unknown;
+}"#;
+
 /// Configuration interface for the RPC client.
 const CONFIG_INTERFACE: &str = r#"export interface RpcClientConfig {
   baseUrl: string;
@@ -29,6 +56,9 @@ const CONFIG_INTERFACE: &str = r#"export interface RpcClientConfig {
   headers?:
     | Record<string, string>
     | (() => Record<string, string> | Promise<Record<string, string>>);
+  onRequest?: (ctx: RequestContext) => void | Promise<void>;
+  onResponse?: (ctx: ResponseContext) => void | Promise<void>;
+  onError?: (ctx: ErrorContext) => void | Promise<void>;
 }"#;
 
 /// Internal fetch helper shared by query and mutate methods.
@@ -42,17 +72,32 @@ const FETCH_HELPER: &str = r#"async function rpcFetch(
   const customHeaders = typeof config.headers === "function"
     ? await config.headers()
     : config.headers;
-  const init: RequestInit = { method, headers: { ...customHeaders } };
+  const headers: Record<string, string> = { ...customHeaders };
 
   if (method === "GET" && input !== undefined) {
     url += `?input=${encodeURIComponent(JSON.stringify(input))}`;
   } else if (method === "POST" && input !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const reqCtx: RequestContext = { procedure, method, url, headers, input };
+  await config.onRequest?.(reqCtx);
+
+  const init: RequestInit = { method, headers: reqCtx.headers };
+  if (method === "POST" && input !== undefined) {
     init.body = JSON.stringify(input);
-    (init.headers as Record<string, string>)["Content-Type"] = "application/json";
   }
 
   const fetchFn = config.fetch ?? globalThis.fetch;
-  const res = await fetchFn(url, init);
+  const start = Date.now();
+
+  let res: Response;
+  try {
+    res = await fetchFn(url, init);
+  } catch (err) {
+    await config.onError?.({ procedure, method, url, error: err });
+    throw err;
+  }
 
   if (!res.ok) {
     let data: unknown;
@@ -61,15 +106,20 @@ const FETCH_HELPER: &str = r#"async function rpcFetch(
     } catch {
       data = await res.text().catch(() => null);
     }
-    throw new RpcError(
+    const rpcError = new RpcError(
       res.status,
       `RPC error on "${procedure}": ${res.status} ${res.statusText}`,
       data,
     );
+    await config.onError?.({ procedure, method, url, error: rpcError });
+    throw rpcError;
   }
 
   const json = await res.json();
-  return json?.result?.data ?? json;
+  const result = json?.result?.data ?? json;
+  const duration = Date.now() - start;
+  await config.onResponse?.({ procedure, method, url, response: res, data: result, duration });
+  return result;
 }"#;
 
 /// Generates the complete `rpc-client.ts` file content from a manifest.
@@ -117,6 +167,11 @@ pub fn generate_client_file(
 
     // Error class
     let _ = writeln!(out, "{ERROR_CLASS}\n");
+
+    // Lifecycle hook context interfaces
+    let _ = writeln!(out, "{REQUEST_CONTEXT_INTERFACE}\n");
+    let _ = writeln!(out, "{RESPONSE_CONTEXT_INTERFACE}\n");
+    let _ = writeln!(out, "{ERROR_CONTEXT_INTERFACE}\n");
 
     // Client config interface
     let _ = writeln!(out, "{CONFIG_INTERFACE}\n");
