@@ -60,6 +60,8 @@ export interface RpcClientConfig {
   onError?: (ctx: ErrorContext) => void | Promise<void>;
   retry?: RetryPolicy;
   timeout?: number;
+  serialize?: (input: unknown) => string;
+  deserialize?: (text: string) => unknown;
 }
 
 const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
@@ -77,7 +79,8 @@ async function rpcFetch(
   const baseHeaders: Record<string, string> = { ...customHeaders };
 
   if (method === "GET" && input !== undefined) {
-    url += `?input=${encodeURIComponent(JSON.stringify(input))}`;
+    const serialized = config.serialize ? config.serialize(input) : JSON.stringify(input);
+    url += `?input=${encodeURIComponent(serialized)}`;
   } else if (method === "POST" && input !== undefined) {
     baseHeaders["Content-Type"] = "application/json";
   }
@@ -93,7 +96,7 @@ async function rpcFetch(
 
     const init: RequestInit = { method, headers: reqCtx.headers };
     if (method === "POST" && input !== undefined) {
-      init.body = JSON.stringify(input);
+      init.body = config.serialize ? config.serialize(input) : JSON.stringify(input);
     }
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -122,7 +125,7 @@ async function rpcFetch(
         await config.onError?.({ procedure, method, url, error: rpcError, attempt, willRetry: canRetry });
         if (!canRetry) throw rpcError;
       } else {
-        const json = await res.json();
+        const json = config.deserialize ? config.deserialize(await res.text()) : await res.json();
         const result = json?.result?.data ?? json;
         const duration = Date.now() - start;
         await config.onResponse?.({ procedure, method, url, response: res, data: result, duration });

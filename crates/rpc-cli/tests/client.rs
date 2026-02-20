@@ -39,7 +39,7 @@ fn contains_fetch_helper() {
     let manifest = common::make_manifest(vec![]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("async function rpcFetch("));
-    assert!(output.contains("encodeURIComponent(JSON.stringify(input))"));
+    assert!(output.contains("encodeURIComponent(serialized)"));
 }
 
 #[test]
@@ -468,4 +468,32 @@ fn fetch_helper_uses_retry_on() {
     assert!(output.contains("DEFAULT_RETRY_ON"));
     assert!(output.contains("[408, 429, 500, 502, 503, 504]"));
     assert!(output.contains("retryOn.includes"));
+}
+
+#[test]
+fn config_has_serialize_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("serialize?: (input: unknown) => string"));
+}
+
+#[test]
+fn config_has_deserialize_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("deserialize?: (text: string) => unknown"));
+}
+
+#[test]
+fn fetch_helper_uses_custom_serialize() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("config.serialize"));
+}
+
+#[test]
+fn fetch_helper_uses_custom_deserialize() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("config.deserialize"));
 }
