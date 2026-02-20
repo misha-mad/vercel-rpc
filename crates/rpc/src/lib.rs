@@ -1,3 +1,4 @@
+#![warn(missing_docs)]
 //! End-to-end typesafe RPC between Rust lambdas on Vercel and any TypeScript frontend.
 //!
 //! This crate is a facade that re-exports the [`vercel-rpc-macro`] proc macros together

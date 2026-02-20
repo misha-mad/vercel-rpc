@@ -10,6 +10,9 @@ keywords = ["rpc", "vercel", "serverless", "typescript", "lambda"]
 categories = ["web-programming"]
 readme = "README.md"
 
+[lints]
+workspace = true
+
 [dependencies]
 vercel-rpc-macro = { path = "../rpc-macro", version = "0.1" }
 vercel_runtime = "2"
