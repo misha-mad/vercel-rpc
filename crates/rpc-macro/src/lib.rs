@@ -320,7 +320,6 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         quote! { () }
     };
 
-
     // Determine whether the handler returns Result<T, E> or plain T
     let (return_type, returns_result) = match fn_output {
         ReturnType::Default => (quote! { () }, false),
