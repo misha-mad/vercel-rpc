@@ -1042,8 +1042,8 @@ create_item  → create_item    // procedure names — NOT affected`}</pre>
 		<h2>🔐 Secret — Protected Endpoint (RpcClientConfig.headers)</h2>
 		<p class="desc">
 			Demonstrates <code>RpcClientConfig.headers</code> — call a protected endpoint without a token
-			(401 error) or with a valid <code>Authorization</code> header (success). Auth check lives in the
-			Vite dev mock, not in the Rust lambda.
+			(401 error) or with a valid <code>Authorization</code> header (success). The Rust handler uses
+			<code>Headers</code> to access the <code>Authorization</code> header and validate the Bearer token.
 		</p>
 		<div class="row">
 			<button onclick={() => callSecret(false)} disabled={secretLoading}>
