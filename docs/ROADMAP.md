@@ -24,41 +24,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in [PR #43](https://github.com/misha-mad/vercel-rpc/pull/43). `createRpcClient` now accepts an `RpcClientConfig` object with `baseUrl`, optional `fetch` override (SSR, testing), and optional static/async `headers` (auth tokens).
 
-### `RpcClientConfig` — extended options
+### ~~`RpcClientConfig` — extended options~~ ✅
 
-Extend the config with lifecycle hooks, retry policy, timeout, custom serialization, and abort signal:
-
-```typescript
-export interface RpcClientConfig {
-  // ... existing: baseUrl, fetch, headers
-
-  // Lifecycle hooks
-  onRequest?: (ctx: RequestContext) => void | Promise<void>;
-  onResponse?: (ctx: ResponseContext) => void | Promise<void>;
-  onError?: (error: RpcError) => void | Promise<void>;
-
-  // Retry policy
-  retry?: {
-    attempts: number;
-    delay: number | ((attempt: number) => number);
-    retryOn?: number[];
-  };
-
-  // Request timeout in milliseconds
-  timeout?: number;
-
-  // Custom serialization (for Date, BigInt, etc.)
-  serialize?: (input: unknown) => string;
-  deserialize?: (text: string) => unknown;
-
-  // AbortController integration
-  signal?: AbortSignal;
-}
-```
-
-Key use cases:
-- **Observability** — `onRequest`/`onResponse` hooks for logging, metrics, tracing.
-- **Resilience** — automatic retries with exponential backoff for transient failures.
+> Implemented in [RFC-4](./RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/vercel-rpc/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/vercel-rpc/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/vercel-rpc/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/vercel-rpc/pull/49).
 
 ### Per-Call Options
 
@@ -370,6 +338,6 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | Phase | Focus      | Key Deliverables                                                                    |
 |-------|------------|-------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅              |
-| **2** | Client     | ~~Client config (v1)~~ ✅, client config (extended), per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
+| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
 | **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests        |

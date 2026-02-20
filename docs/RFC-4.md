@@ -1,6 +1,6 @@
 # RFC-4: Extended `RpcClientConfig`
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Lifecycle hooks, retry, timeout, serialization, and abort support for the generated RPC client
 - **Date:** February 2026
 
