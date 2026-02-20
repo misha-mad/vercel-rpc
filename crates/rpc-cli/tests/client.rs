@@ -404,3 +404,68 @@ fn fetch_helper_tracks_duration() {
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("Date.now()"));
 }
+
+#[test]
+fn contains_retry_policy_interface() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("export interface RetryPolicy"));
+    assert!(output.contains("attempts: number"));
+    assert!(output.contains("delay: number | ((attempt: number) => number)"));
+    assert!(output.contains("retryOn?: number[]"));
+}
+
+#[test]
+fn config_has_retry_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("retry?: RetryPolicy"));
+}
+
+#[test]
+fn config_has_timeout_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("timeout?: number"));
+}
+
+#[test]
+fn error_context_has_attempt() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("attempt: number"));
+}
+
+#[test]
+fn error_context_has_will_retry() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("willRetry: boolean"));
+}
+
+#[test]
+fn fetch_helper_handles_timeout() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("AbortController"));
+    assert!(output.contains("config.timeout"));
+    assert!(output.contains("clearTimeout"));
+}
+
+#[test]
+fn fetch_helper_handles_retry() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("maxAttempts"));
+    assert!(output.contains("config.retry"));
+    assert!(output.contains("for (let attempt = 1"));
+}
+
+#[test]
+fn fetch_helper_uses_retry_on() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("DEFAULT_RETRY_ON"));
+    assert!(output.contains("[408, 429, 500, 502, 503, 504]"));
+    assert!(output.contains("retryOn.includes"));
+}

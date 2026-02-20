@@ -47,6 +47,15 @@ const ERROR_CONTEXT_INTERFACE: &str = r#"export interface ErrorContext {
   method: "GET" | "POST";
   url: string;
   error: unknown;
+  attempt: number;
+  willRetry: boolean;
+}"#;
+
+/// Retry policy configuration.
+const RETRY_POLICY_INTERFACE: &str = r#"export interface RetryPolicy {
+  attempts: number;
+  delay: number | ((attempt: number) => number);
+  retryOn?: number[];
 }"#;
 
 /// Configuration interface for the RPC client.
@@ -59,10 +68,14 @@ const CONFIG_INTERFACE: &str = r#"export interface RpcClientConfig {
   onRequest?: (ctx: RequestContext) => void | Promise<void>;
   onResponse?: (ctx: ResponseContext) => void | Promise<void>;
   onError?: (ctx: ErrorContext) => void | Promise<void>;
+  retry?: RetryPolicy;
+  timeout?: number;
 }"#;
 
 /// Internal fetch helper shared by query and mutate methods.
-const FETCH_HELPER: &str = r#"async function rpcFetch(
+const FETCH_HELPER: &str = r#"const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
+
+async function rpcFetch(
   config: RpcClientConfig,
   method: "GET" | "POST",
   procedure: string,
@@ -72,54 +85,75 @@ const FETCH_HELPER: &str = r#"async function rpcFetch(
   const customHeaders = typeof config.headers === "function"
     ? await config.headers()
     : config.headers;
-  const headers: Record<string, string> = { ...customHeaders };
+  const baseHeaders: Record<string, string> = { ...customHeaders };
 
   if (method === "GET" && input !== undefined) {
     url += `?input=${encodeURIComponent(JSON.stringify(input))}`;
   } else if (method === "POST" && input !== undefined) {
-    headers["Content-Type"] = "application/json";
-  }
-
-  const reqCtx: RequestContext = { procedure, method, url, headers, input };
-  await config.onRequest?.(reqCtx);
-
-  const init: RequestInit = { method, headers: reqCtx.headers };
-  if (method === "POST" && input !== undefined) {
-    init.body = JSON.stringify(input);
+    baseHeaders["Content-Type"] = "application/json";
   }
 
   const fetchFn = config.fetch ?? globalThis.fetch;
+  const maxAttempts = 1 + (config.retry?.attempts ?? 0);
+  const retryOn = config.retry?.retryOn ?? DEFAULT_RETRY_ON;
   const start = Date.now();
 
-  let res: Response;
-  try {
-    res = await fetchFn(url, init);
-  } catch (err) {
-    await config.onError?.({ procedure, method, url, error: err });
-    throw err;
-  }
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const reqCtx: RequestContext = { procedure, method, url, headers: { ...baseHeaders }, input };
+    await config.onRequest?.(reqCtx);
 
-  if (!res.ok) {
-    let data: unknown;
-    try {
-      data = await res.json();
-    } catch {
-      data = await res.text().catch(() => null);
+    const init: RequestInit = { method, headers: reqCtx.headers };
+    if (method === "POST" && input !== undefined) {
+      init.body = JSON.stringify(input);
     }
-    const rpcError = new RpcError(
-      res.status,
-      `RPC error on "${procedure}": ${res.status} ${res.statusText}`,
-      data,
-    );
-    await config.onError?.({ procedure, method, url, error: rpcError });
-    throw rpcError;
-  }
 
-  const json = await res.json();
-  const result = json?.result?.data ?? json;
-  const duration = Date.now() - start;
-  await config.onResponse?.({ procedure, method, url, response: res, data: result, duration });
-  return result;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    if (config.timeout) {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), config.timeout);
+      init.signal = controller.signal;
+    }
+
+    try {
+      const res = await fetchFn(url, init);
+
+      if (!res.ok) {
+        let data: unknown;
+        try {
+          data = await res.json();
+        } catch {
+          data = await res.text().catch(() => null);
+        }
+        const rpcError = new RpcError(
+          res.status,
+          `RPC error on "${procedure}": ${res.status} ${res.statusText}`,
+          data,
+        );
+        const canRetry = retryOn.includes(res.status) && attempt < maxAttempts;
+        await config.onError?.({ procedure, method, url, error: rpcError, attempt, willRetry: canRetry });
+        if (!canRetry) throw rpcError;
+      } else {
+        const json = await res.json();
+        const result = json?.result?.data ?? json;
+        const duration = Date.now() - start;
+        await config.onResponse?.({ procedure, method, url, response: res, data: result, duration });
+        return result;
+      }
+    } catch (err) {
+      if (err instanceof RpcError) throw err;
+      const willRetry = attempt < maxAttempts;
+      await config.onError?.({ procedure, method, url, error: err, attempt, willRetry });
+      if (!willRetry) throw err;
+    } finally {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    }
+
+    if (config.retry) {
+      const d = typeof config.retry.delay === "function"
+        ? config.retry.delay(attempt) : config.retry.delay;
+      await new Promise(r => setTimeout(r, d));
+    }
+  }
 }"#;
 
 /// Generates the complete `rpc-client.ts` file content from a manifest.
@@ -172,6 +206,9 @@ pub fn generate_client_file(
     let _ = writeln!(out, "{REQUEST_CONTEXT_INTERFACE}\n");
     let _ = writeln!(out, "{RESPONSE_CONTEXT_INTERFACE}\n");
     let _ = writeln!(out, "{ERROR_CONTEXT_INTERFACE}\n");
+
+    // Retry policy interface
+    let _ = writeln!(out, "{RETRY_POLICY_INTERFACE}\n");
 
     // Client config interface
     let _ = writeln!(out, "{CONFIG_INTERFACE}\n");
