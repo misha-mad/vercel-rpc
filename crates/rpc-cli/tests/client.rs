@@ -235,7 +235,8 @@ fn error_handling_in_fetch() {
     let manifest = common::make_manifest(vec![]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("if (!res.ok)"));
-    assert!(output.contains("throw new RpcError("));
+    assert!(output.contains("new RpcError("));
+    assert!(output.contains("throw rpcError"));
 }
 
 #[test]
@@ -332,4 +333,74 @@ fn config_has_headers_option() {
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("headers?:"));
     assert!(output.contains("Record<string, string>"));
+}
+
+#[test]
+fn config_has_on_request_hook() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("onRequest?: (ctx: RequestContext) => void | Promise<void>"));
+}
+
+#[test]
+fn config_has_on_response_hook() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("onResponse?: (ctx: ResponseContext) => void | Promise<void>"));
+}
+
+#[test]
+fn config_has_on_error_hook() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("onError?: (ctx: ErrorContext) => void | Promise<void>"));
+}
+
+#[test]
+fn contains_request_context_interface() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("export interface RequestContext"));
+}
+
+#[test]
+fn contains_response_context_interface() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("export interface ResponseContext"));
+}
+
+#[test]
+fn contains_error_context_interface() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("export interface ErrorContext"));
+}
+
+#[test]
+fn fetch_helper_calls_on_request() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("config.onRequest"));
+}
+
+#[test]
+fn fetch_helper_calls_on_response() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("config.onResponse"));
+}
+
+#[test]
+fn fetch_helper_calls_on_error() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("config.onError"));
+}
+
+#[test]
+fn fetch_helper_tracks_duration() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("Date.now()"));
 }
