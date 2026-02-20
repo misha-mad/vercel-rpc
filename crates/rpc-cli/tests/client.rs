@@ -497,3 +497,18 @@ fn fetch_helper_uses_custom_deserialize() {
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("config.deserialize"));
 }
+
+#[test]
+fn config_has_signal_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("signal?: AbortSignal"));
+}
+
+#[test]
+fn fetch_helper_uses_client_signal() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("config.signal"));
+    assert!(output.contains("AbortSignal.any"));
+}

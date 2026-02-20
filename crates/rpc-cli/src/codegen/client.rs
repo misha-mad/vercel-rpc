@@ -72,6 +72,8 @@ const CONFIG_INTERFACE: &str = r#"export interface RpcClientConfig {
   timeout?: number;
   serialize?: (input: unknown) => string;
   deserialize?: (text: string) => unknown;
+  // AbortSignal for cancelling all requests made by this client.
+  signal?: AbortSignal;
 }"#;
 
 /// Internal fetch helper shared by query and mutate methods.
@@ -114,7 +116,11 @@ async function rpcFetch(
     if (config.timeout) {
       const controller = new AbortController();
       timeoutId = setTimeout(() => controller.abort(), config.timeout);
-      init.signal = controller.signal;
+      init.signal = config.signal
+        ? AbortSignal.any([config.signal, controller.signal])
+        : controller.signal;
+    } else if (config.signal) {
+      init.signal = config.signal;
     }
 
     try {
