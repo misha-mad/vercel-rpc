@@ -355,7 +355,7 @@ The generated `rpc-client.ts` includes:
 
 - **`RpcClient` interface** with typed overloads for every procedure — full
   autocomplete and type checking.
-- **`createRpcClient(config)`** factory function accepting `RpcClientConfig` with `baseUrl`, optional `fetch`, `headers`, and lifecycle hooks.
+- **`createRpcClient(config)`** factory function accepting `RpcClientConfig` with `baseUrl`, optional `fetch`, `headers`, lifecycle hooks, retry, and timeout.
 - **`RpcError` class** with `status` and `data` fields for structured error
   handling.
 - **`rpcFetch` helper** — uses `GET` with `?input=<JSON>` for queries and
@@ -399,6 +399,8 @@ interface ErrorContext {
   method: "GET" | "POST";
   url: string;
   error: unknown;  // RpcError for HTTP errors, native Error for network failures
+  attempt: number;   // 1-based attempt number
+  willRetry: boolean; // whether the request will be retried
 }
 ```
 
@@ -414,8 +416,49 @@ const client = createRpcClient({
     console.log(`${ctx.procedure} completed in ${ctx.duration}ms`);
   },
   onError(ctx) {
-    console.error(`${ctx.procedure} failed:`, ctx.error);
+    if (!ctx.willRetry) {
+      console.error(`${ctx.procedure} failed on attempt ${ctx.attempt}:`, ctx.error);
+    }
   },
+});
+```
+
+### Retry
+
+Automatic retries are configured via `retry`:
+
+```typescript
+interface RetryPolicy {
+  attempts: number;                            // max retries (excluding initial request)
+  delay: number | ((attempt: number) => number); // fixed ms or backoff function
+  retryOn?: number[];                          // HTTP status codes (default: [408, 429, 500, 502, 503, 504])
+}
+```
+
+A request is retried when a network error occurs or the response status is in `retryOn`, up to `attempts` additional tries. On each retry the full `onRequest` hook runs again, so dynamic headers (e.g. refreshed auth tokens) are re-evaluated.
+
+```typescript
+// Fixed delay
+const client = createRpcClient({
+  baseUrl: "/api",
+  retry: { attempts: 3, delay: 1000 },
+});
+
+// Exponential backoff: 1s, 2s, 4s
+const client = createRpcClient({
+  baseUrl: "/api",
+  retry: { attempts: 3, delay: (n) => 1000 * 2 ** (n - 1) },
+});
+```
+
+### Timeout
+
+Per-request timeout in milliseconds. Uses `AbortController` internally — the request is aborted if it doesn't complete within the limit. Timeout applies to each individual attempt when combined with retry.
+
+```typescript
+const client = createRpcClient({
+  baseUrl: "/api",
+  timeout: 10_000,
 });
 ```
 
