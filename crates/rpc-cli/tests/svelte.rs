@@ -337,7 +337,9 @@ fn svelte_query_status_enum() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains(r#"export type QueryStatus = "idle" | "loading" | "success" | "error""#));
+    assert!(
+        output.contains(r#"export type QueryStatus = "idle" | "loading" | "success" | "error""#)
+    );
 }
 
 #[test]
@@ -348,7 +350,9 @@ fn svelte_mutation_status_enum() {
         Some(RustType::simple("Item")),
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains(r#"export type MutationStatus = "idle" | "loading" | "success" | "error""#));
+    assert!(
+        output.contains(r#"export type MutationStatus = "idle" | "loading" | "success" | "error""#)
+    );
 }
 
 #[test]
