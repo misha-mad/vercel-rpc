@@ -176,6 +176,8 @@ interface QueryOptions<K extends QueryKey> {
 #### `QueryResult<K>`
 
 ```typescript
+type QueryStatus = "idle" | "loading" | "success" | "error";
+
 interface QueryResult<K extends QueryKey> {
   /** The latest successfully resolved data, or placeholderData. */
   readonly data: QueryOutput<K> | undefined;
@@ -183,14 +185,20 @@ interface QueryResult<K extends QueryKey> {
   /** The error from the most recent failed fetch, cleared on success. */
   readonly error: RpcError | undefined;
 
+  /** Current status of the query state machine. */
+  readonly status: QueryStatus;
+
   /** True while a fetch is in-flight (including the initial fetch). */
   readonly isLoading: boolean;
 
   /** True after the first successful fetch. Stays true across refetches. */
   readonly isSuccess: boolean;
 
-  /** True when error is set. */
+  /** True when the most recent fetch failed. */
   readonly isError: boolean;
+
+  /** True when placeholderData is being shown and no real fetch has completed yet. */
+  readonly isPlaceholderData: boolean;
 
   /** Manually trigger a refetch. */
   refetch: () => Promise<void>;
@@ -230,6 +238,8 @@ interface MutationOptions<K extends MutationKey> {
 For mutations with input (non-void):
 
 ```typescript
+type MutationStatus = "idle" | "loading" | "success" | "error";
+
 interface MutationResult<K extends MutationKey> {
   /** Execute the mutation with the given input. Rejects on error. */
   mutate: (input: MutationInput<K>) => Promise<void>;
@@ -243,13 +253,16 @@ interface MutationResult<K extends MutationKey> {
   /** The error from the most recent failed mutation, cleared on next attempt. */
   readonly error: RpcError | undefined;
 
+  /** Current status of the mutation state machine. */
+  readonly status: MutationStatus;
+
   /** True while a mutation is in-flight. */
   readonly isLoading: boolean;
 
   /** True after the most recent mutation succeeded. */
   readonly isSuccess: boolean;
 
-  /** True when error is set. */
+  /** True when the most recent mutation failed. */
   readonly isError: boolean;
 
   /** Reset state back to idle (clear data, error, status). */
@@ -396,7 +409,7 @@ export function createQuery<K extends QueryKey>(
 
   let data = $state<QueryOutput<K> | undefined>(options?.placeholderData);
   let error = $state<RpcError | undefined>();
-  let isLoading = $state(true);
+  let status = $state<QueryStatus>("idle");
 
   async function fetch() {
     const enabled = typeof options?.enabled === "function"
@@ -404,18 +417,19 @@ export function createQuery<K extends QueryKey>(
       : (options?.enabled ?? true);
     if (!enabled) return;
 
-    isLoading = true;
+    status = "loading";
     error = undefined;
     try {
       const input = inputFn?.();
       data = await client.query(key, ...(input !== undefined ? [input] : []),
         ...(options?.callOptions ? [options.callOptions] : [])) as QueryOutput<K>;
+      status = "success";
       options?.onSuccess?.(data!);
     } catch (e) {
       error = e as RpcError;
+      status = "error";
       options?.onError?.(error);
     } finally {
-      isLoading = false;
       options?.onSettled?.();
     }
   }
@@ -439,9 +453,11 @@ export function createQuery<K extends QueryKey>(
   return {
     get data() { return data; },
     get error() { return error; },
-    get isLoading() { return isLoading; },
-    get isSuccess() { return data !== undefined; },
-    get isError() { return error !== undefined; },
+    get status() { return status; },
+    get isLoading() { return status === "loading"; },
+    get isSuccess() { return status === "success"; },
+    get isError() { return status === "error"; },
+    get isPlaceholderData() { return status !== "success" && data !== undefined; },
     refetch: fetch,
   };
 }
@@ -457,23 +473,24 @@ export function createMutation<K extends MutationKey>(
 ): MutationResult<K> {
   let data = $state<MutationOutput<K> | undefined>();
   let error = $state<RpcError | undefined>();
-  let isLoading = $state(false);
+  let status = $state<MutationStatus>("idle");
 
   async function execute(input?: MutationInput<K>): Promise<MutationOutput<K>> {
-    isLoading = true;
+    status = "loading";
     error = undefined;
     try {
       const result = await client.mutate(key, ...(input !== undefined ? [input] : []),
         ...(options?.callOptions ? [options.callOptions] : [])) as MutationOutput<K>;
       data = result;
+      status = "success";
       options?.onSuccess?.(result);
       return result;
     } catch (e) {
       error = e as RpcError;
+      status = "error";
       options?.onError?.(error);
       throw e;
     } finally {
-      isLoading = false;
       options?.onSettled?.();
     }
   }
@@ -483,27 +500,30 @@ export function createMutation<K extends MutationKey>(
     mutateAsync: (input?: MutationInput<K>) => execute(input),
     get data() { return data; },
     get error() { return error; },
-    get isLoading() { return isLoading; },
-    get isSuccess() { return data !== undefined && error === undefined; },
-    get isError() { return error !== undefined; },
-    reset: () => { data = undefined; error = undefined; isLoading = false; },
+    get status() { return status; },
+    get isLoading() { return status === "loading"; },
+    get isSuccess() { return status === "success"; },
+    get isError() { return status === "error"; },
+    reset: () => { data = undefined; error = undefined; status = "idle"; },
   };
 }
 ```
 
 ### 7.4 Reactivity Model
 
-| Feature                      | Mechanism                                 |
-|------------------------------|-------------------------------------------|
-| `data`, `error`, `isLoading` | `$state` — triggers re-render on change   |
-| `isSuccess`, `isError`       | Getter over `$state` — derived implicitly |
-| Auto-refetch on input change | `$effect` tracks `inputFn()` call         |
-| `enabled` as getter          | `$effect` tracks `options.enabled()` call |
-| Polling cleanup              | `$effect` returns cleanup function        |
+| Feature                      | Mechanism                                                       |
+|------------------------------|-----------------------------------------------------------------|
+| `data`, `error`              | `$state` — triggers re-render on change                         |
+| `status`                     | `$state<QueryStatus>` — single enum for the state machine       |
+| `isLoading`, `isSuccess`, …  | Getter: `status === "loading"`, `status === "success"`, etc.    |
+| `isPlaceholderData`          | `status !== "success" && data !== undefined` — true pre-fetch   |
+| Auto-refetch on input change | `$effect` tracks `inputFn()` call                               |
+| `enabled` as getter          | `$effect` tracks `options.enabled()` call                       |
+| Polling cleanup              | `$effect` returns cleanup function                              |
 
 ### 7.5 No `$effect.pre` or `$derived`
 
-The implementation uses `$state` + getters rather than `$derived` for computed fields. This keeps the generated code simpler and avoids edge cases with `$derived` and mutable state. The getter pattern (`get isSuccess() { return data !== undefined; }`) is re-evaluated on each access, which is the correct behavior for these flags.
+The implementation uses `$state` + getters rather than `$derived` for computed fields. This keeps the generated code simpler and avoids edge cases with `$derived` and mutable state. The getter pattern (`get isSuccess() { return status === "success"; }`) is re-evaluated on each access, which is the correct behavior for these flags. Boolean flags are derived from the `status` enum rather than from `data` presence, which avoids a subtle bug where `placeholderData` would cause `isSuccess` to be `true` before any real fetch completes.
 
 ## 8. Codegen Changes
 
@@ -600,6 +620,10 @@ if let Some(svelte_path) = &config.output.svelte {
 | `svelte_queries_only_no_mutation`         | Queries-only manifest omits `createMutation`                            |
 | `svelte_mutations_only_no_query`          | Mutations-only manifest omits `createQuery`                             |
 | `svelte_empty_manifest_not_generated`     | Empty manifest produces empty string                                    |
+| `svelte_query_status_enum`                | Output contains `QueryStatus` type with idle/loading/success/error      |
+| `svelte_mutation_status_enum`             | Output contains `MutationStatus` type with idle/loading/success/error   |
+| `svelte_query_is_placeholder_data`        | `QueryResult` includes `isPlaceholderData` boolean field                |
+| `svelte_status_derives_booleans`          | `isLoading`/`isSuccess`/`isError` derived from `status` comparisons     |
 | `svelte_uses_state_rune`                  | Output contains `$state` calls                                          |
 | `svelte_uses_effect_rune`                 | Output contains `$effect` call                                          |
 | `svelte_refetch_interval_cleanup`         | `$effect` returns cleanup for `clearInterval`                           |

@@ -37,7 +37,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 ┌──────────────┐     scan     ┌─────────────┐    codegen   ┌──────────────────────┐
 │  api/*.rs    │ ──────────▶  │   Manifest  │ ──────────▶  │  rpc-types.ts        │
 │  #[rpc_query]│   (syn)      │  procedures │   (rust→ts)  │  rpc-client.ts       │
-│  #[rpc_mut.] │              │  structs    │              │  rpc.svelte.ts (opt)  │
+│  #[rpc_mut.] │              │  structs    │              │  rpc.svelte.ts (opt) │
 └──────────────┘              └─────────────┘              └──────────────────────┘
        │                                                           │
        │  deploy (vercel)                              import (ts) │

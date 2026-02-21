@@ -30,12 +30,17 @@ const QUERY_OPTIONS_INTERFACE: &str = r#"export interface QueryOptions<K extends
   onSettled?: () => void;
 }"#;
 
-const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends QueryKey> {
+const QUERY_RESULT_INTERFACE: &str = r#"export type QueryStatus = "idle" | "loading" | "success" | "error";
+
+export interface QueryResult<K extends QueryKey> {
   /** The latest successfully resolved data, or placeholderData. */
   readonly data: QueryOutput<K> | undefined;
 
   /** The error from the most recent failed fetch, cleared on success. */
   readonly error: RpcError | undefined;
+
+  /** Current status of the query state machine. */
+  readonly status: QueryStatus;
 
   /** True while a fetch is in-flight (including the initial fetch). */
   readonly isLoading: boolean;
@@ -43,8 +48,11 @@ const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends Q
   /** True after the first successful fetch. Stays true across refetches. */
   readonly isSuccess: boolean;
 
-  /** True when error is set. */
+  /** True when the most recent fetch failed. */
   readonly isError: boolean;
+
+  /** True when placeholderData is being shown and no real fetch has completed yet. */
+  readonly isPlaceholderData: boolean;
 
   /** Manually trigger a refetch. */
   refetch: () => Promise<void>;
@@ -64,7 +72,9 @@ const MUTATION_OPTIONS_INTERFACE: &str = r#"export interface MutationOptions<K e
   onSettled?: () => void;
 }"#;
 
-const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K extends MutationKey> {
+const MUTATION_RESULT_INTERFACE: &str = r#"export type MutationStatus = "idle" | "loading" | "success" | "error";
+
+export interface MutationResult<K extends MutationKey> {
   /** Execute the mutation. Rejects on error. */
   mutate: (...args: MutationArgs<K>) => Promise<void>;
 
@@ -77,13 +87,16 @@ const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K ext
   /** The error from the most recent failed mutation, cleared on next attempt. */
   readonly error: RpcError | undefined;
 
+  /** Current status of the mutation state machine. */
+  readonly status: MutationStatus;
+
   /** True while a mutation is in-flight. */
   readonly isLoading: boolean;
 
   /** True after the most recent mutation succeeded. */
   readonly isSuccess: boolean;
 
-  /** True when error is set. */
+  /** True when the most recent mutation failed. */
   readonly isError: boolean;
 
   /** Reset state back to idle (clear data, error, status). */
@@ -105,7 +118,7 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
 
   let data = $state<QueryOutput<K> | undefined>(options?.placeholderData);
   let error = $state<RpcError | undefined>();
-  let isLoading = $state(true);
+  let status = $state<QueryStatus>("idle");
 
   async function fetchData() {
     const enabled = typeof options?.enabled === "function"
@@ -113,7 +126,7 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
       : (options?.enabled ?? true);
     if (!enabled) return;
 
-    isLoading = true;
+    status = "loading";
     error = undefined;
     try {
       const input = inputFn?.();
@@ -121,12 +134,13 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
       if (input !== undefined) args.push(input);
       if (options?.callOptions) args.push(options.callOptions);
       data = await (client.query as Function)(...args) as QueryOutput<K>;
+      status = "success";
       options?.onSuccess?.(data!);
     } catch (e) {
       error = e as RpcError;
+      status = "error";
       options?.onError?.(error);
     } finally {
-      isLoading = false;
       options?.onSettled?.();
     }
   }
@@ -149,9 +163,11 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   return {
     get data() { return data; },
     get error() { return error; },
-    get isLoading() { return isLoading; },
-    get isSuccess() { return data !== undefined; },
-    get isError() { return error !== undefined; },
+    get status() { return status; },
+    get isLoading() { return status === "loading"; },
+    get isSuccess() { return status === "success"; },
+    get isError() { return status === "error"; },
+    get isPlaceholderData() { return status !== "success" && data !== undefined; },
     refetch: fetchData,
   };
 }"#;
@@ -163,10 +179,10 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
 ): MutationResult<K> {
   let data = $state<MutationOutput<K> | undefined>();
   let error = $state<RpcError | undefined>();
-  let isLoading = $state(false);
+  let status = $state<MutationStatus>("idle");
 
   async function execute(...input: unknown[]): Promise<MutationOutput<K>> {
-    isLoading = true;
+    status = "loading";
     error = undefined;
     try {
       const args: unknown[] = [key];
@@ -174,14 +190,15 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
       if (options?.callOptions) args.push(options.callOptions);
       const result = await (client.mutate as Function)(...args) as MutationOutput<K>;
       data = result;
+      status = "success";
       options?.onSuccess?.(result);
       return result;
     } catch (e) {
       error = e as RpcError;
+      status = "error";
       options?.onError?.(error);
       throw e;
     } finally {
-      isLoading = false;
       options?.onSettled?.();
     }
   }
@@ -191,10 +208,11 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
     mutateAsync: (...args: unknown[]) => execute(...args),
     get data() { return data; },
     get error() { return error; },
-    get isLoading() { return isLoading; },
-    get isSuccess() { return data !== undefined && error === undefined; },
-    get isError() { return error !== undefined; },
-    reset: () => { data = undefined; error = undefined; isLoading = false; },
+    get status() { return status; },
+    get isLoading() { return status === "loading"; },
+    get isSuccess() { return status === "success"; },
+    get isError() { return status === "error"; },
+    reset: () => { data = undefined; error = undefined; status = "idle"; },
   } as MutationResult<K>;
 }"#;
 

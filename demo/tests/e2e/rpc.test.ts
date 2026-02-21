@@ -15,22 +15,20 @@ test.describe('RPC page — full e2e cycle', () => {
 	});
 
 	test('hello query returns greeting', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Hello — Simple Query' });
+		const section = page.locator('section').filter({ hasText: 'Hello — Reactive Query' });
 		const input = section.locator('input[type="text"]');
-		const button = section.locator('button').filter({ hasText: 'Say Hello' });
 
 		await input.fill('Playwright');
-		await button.click();
 
-		const result = section.locator('.result');
+		// Reactive query auto-fetches on input change
+		const result = section.locator('.result.success');
 		await expect(result).toContainText('Hello, Playwright', { timeout: 10_000 });
 	});
 
 	test('math query calculates result', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Math — Enum Input' });
-		const button = section.locator('button').filter({ hasText: 'Calculate' });
-		await button.click();
+		const section = page.locator('section').filter({ hasText: 'Math — Reactive Calc' });
 
+		// Reactive query auto-fetches with default inputs (10 + 3)
 		const result = section.locator('.result.success');
 		await expect(result).toBeVisible({ timeout: 10_000 });
 	});
@@ -47,9 +45,8 @@ test.describe('RPC page — full e2e cycle', () => {
 
 	test('stats query computes statistics', async ({ page }) => {
 		const section = page.locator('section').filter({ hasText: 'Stats — Vec' });
-		const button = section.locator('button').filter({ hasText: 'Compute' });
-		await button.click();
 
+		// Reactive query auto-fetches with default input "1, 2, 3, 4, 5, 3, 2"
 		const result = section.locator('.result.success');
 		await expect(result).toBeVisible({ timeout: 10_000 });
 		await expect(result).toContainText('Count:');
@@ -65,10 +62,11 @@ test.describe('RPC page — full e2e cycle', () => {
 	});
 
 	test('profile query returns user profile with serde attributes', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Profile — Serde Attributes' });
-		const button = section.locator('button').filter({ hasText: 'Fetch Profile' });
-		await button.click();
+		const section = page
+			.locator('section')
+			.filter({ hasText: 'Profile — Reactive Serde Attributes' });
 
+		// Reactive query auto-fetches with default profileId = 1
 		const result = section.locator('.result.success');
 		await expect(result).toBeVisible({ timeout: 10_000 });
 		await expect(result).toContainText('Alice');
@@ -80,10 +78,9 @@ test.describe('RPC page — full e2e cycle', () => {
 	test('types query returns type showcase', async ({ page }) => {
 		const section = page
 			.locator('section')
-			.filter({ has: page.locator('h2', { hasText: 'Types — Expanded Type Mappings' }) });
-		const button = section.locator('button').filter({ hasText: 'Fetch Types' });
-		await button.click();
+			.filter({ has: page.locator('h2', { hasText: 'Types — Reactive Expanded Types' }) });
 
+		// Reactive query auto-fetches with default category "demo"
 		const result = section.locator('.result.success');
 		await expect(result).toBeVisible({ timeout: 10_000 });
 		await expect(result).toContainText('sorted_ids');

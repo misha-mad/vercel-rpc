@@ -327,6 +327,61 @@ fn svelte_void_mutation_key() {
     assert!(output.contains("type VoidMutationKey = \"reset\""));
 }
 
+// --- Status enum ---
+
+#[test]
+fn svelte_query_status_enum() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(
+        output.contains(r#"export type QueryStatus = "idle" | "loading" | "success" | "error""#)
+    );
+}
+
+#[test]
+fn svelte_mutation_status_enum() {
+    let manifest = common::make_manifest(vec![common::make_mutation(
+        "create_item",
+        Some(RustType::simple("CreateInput")),
+        Some(RustType::simple("Item")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(
+        output.contains(r#"export type MutationStatus = "idle" | "loading" | "success" | "error""#)
+    );
+}
+
+#[test]
+fn svelte_query_is_placeholder_data() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("isPlaceholderData"));
+    assert!(output.contains(r#"status !== "success" && data !== undefined"#));
+}
+
+#[test]
+fn svelte_status_derives_booleans() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(r#"status === "loading""#));
+    assert!(output.contains(r#"status === "success""#));
+    assert!(output.contains(r#"status === "error""#));
+    // Must NOT contain the old data-based isSuccess derivation
+    assert!(!output.contains("get isSuccess() { return data !== undefined"));
+}
+
 // --- insta snapshot tests ---
 
 #[test]
