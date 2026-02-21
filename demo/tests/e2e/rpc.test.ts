@@ -62,7 +62,9 @@ test.describe('RPC page — full e2e cycle', () => {
 	});
 
 	test('profile query returns user profile with serde attributes', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Profile — Reactive Serde Attributes' });
+		const section = page
+			.locator('section')
+			.filter({ hasText: 'Profile — Reactive Serde Attributes' });
 
 		// Reactive query auto-fetches with default profileId = 1
 		const result = section.locator('.result.success');
