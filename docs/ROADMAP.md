@@ -58,6 +58,28 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > **SolidJS** — Implemented in RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid signals (`createSignal`, `createEffect`, `onCleanup`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
 
+### Reactive Options for Framework Wrappers
+
+Currently, `QueryOptions` (including `refetchInterval`, callbacks) are read once when the wrapper is created. If the options object changes after initialization, the wrapper does not react to the new values because `options` is not a signal/ref.
+
+To fix this, wrappers should accept options as a getter (`() => QueryOptions<K>`) so the framework's reactivity system can track changes:
+
+```typescript
+// SolidJS — options as getter
+const stats = createQuery(rpc, "server_stats", () => ({
+  refetchInterval: pollInterval(),  // reactive — re-evaluates when pollInterval changes
+  enabled: isAuthenticated(),
+}));
+
+// Vue — options as getter
+const stats = useQuery(rpc, "server_stats", () => ({
+  refetchInterval: pollInterval.value,
+  enabled: isAuthenticated.value,
+}));
+```
+
+This is a cross-cutting concern affecting Svelte, React, Vue, and SolidJS wrappers. The current implementation is sufficient for most use cases where options are static.
+
 ### Query Race Condition Handling (AbortController)
 
 When input changes rapidly (e.g. `userId: 1 → 2 → 3`), multiple fetch requests fire in parallel and responses may arrive out of order. A late response from an earlier input can overwrite the correct data:
