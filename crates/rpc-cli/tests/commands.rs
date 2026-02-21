@@ -161,7 +161,7 @@ async fn ping() -> String {
             types: types_path.clone(),
             client: client_path.clone(),
             svelte: None,
-            imports: config::ImportsConfig::default(),
+            ..config::OutputConfig::default()
         },
         ..config::RpcConfig::default()
     };
@@ -190,7 +190,7 @@ fn cmd_generate_empty_dir_errors() {
             types: types_path,
             client: client_path,
             svelte: None,
-            imports: config::ImportsConfig::default(),
+            ..config::OutputConfig::default()
         },
         ..config::RpcConfig::default()
     };
@@ -228,7 +228,7 @@ async fn ping() -> String {
             types: types_path,
             client: client_path,
             svelte: Some(svelte_path.clone()),
-            imports: config::ImportsConfig::default(),
+            ..config::OutputConfig::default()
         },
         ..config::RpcConfig::default()
     };
@@ -270,11 +270,92 @@ async fn ping() -> String {
             types: types_path,
             client: client_path,
             svelte: None, // Not configured
-            imports: config::ImportsConfig::default(),
+            ..config::OutputConfig::default()
         },
         ..config::RpcConfig::default()
     };
     cmd_generate(&cfg).unwrap();
 
     assert!(!svelte_path.exists());
+}
+
+#[test]
+fn cmd_generate_writes_react_file() {
+    let tmp = TempDir::new().unwrap();
+    let api_dir = tmp.path().join("api");
+    fs::create_dir(&api_dir).unwrap();
+    fs::write(
+        api_dir.join("ping.rs"),
+        r#"
+#[rpc_query]
+async fn ping() -> String {
+    "pong".to_string()
+}
+"#,
+    )
+    .unwrap();
+
+    let types_path = tmp.path().join("out/rpc-types.ts");
+    let client_path = tmp.path().join("out/rpc-client.ts");
+    let react_path = tmp.path().join("out/rpc.react.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: api_dir,
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path,
+            client: client_path,
+            react: Some(react_path.clone()),
+            ..config::OutputConfig::default()
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_generate(&cfg).unwrap();
+
+    let react = fs::read_to_string(&react_path).unwrap();
+    assert!(react.contains("useQuery"));
+    assert!(react.contains("useState"));
+    assert!(react.contains("useEffect"));
+}
+
+#[test]
+fn cmd_generate_skips_react_when_not_configured() {
+    let tmp = TempDir::new().unwrap();
+    let api_dir = tmp.path().join("api");
+    fs::create_dir(&api_dir).unwrap();
+    fs::write(
+        api_dir.join("ping.rs"),
+        r#"
+#[rpc_query]
+async fn ping() -> String {
+    "pong".to_string()
+}
+"#,
+    )
+    .unwrap();
+
+    let types_path = tmp.path().join("out/rpc-types.ts");
+    let client_path = tmp.path().join("out/rpc-client.ts");
+    let react_path = tmp.path().join("out/rpc.react.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: api_dir,
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path,
+            client: client_path,
+            react: None, // Not configured
+            ..config::OutputConfig::default()
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_generate(&cfg).unwrap();
+
+    assert!(!react_path.exists());
 }

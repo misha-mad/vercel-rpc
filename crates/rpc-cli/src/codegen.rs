@@ -6,6 +6,8 @@
 //!   `createRpcClient` factory, `RpcError` class, `rpcFetch` helper).
 //! - [`svelte`] — generates `rpc.svelte.ts` (Svelte 5 reactive wrappers:
 //!   `createQuery`, `createMutation`).
+//! - [`react`] — generates `rpc.react.ts` (React hooks wrappers:
+//!   `useQuery`, `useMutation`).
 
 /// Shorthand for `let _ = writeln!(...)` when writing to a `String` buffer.
 ///
@@ -20,5 +22,6 @@ macro_rules! emit {
 }
 
 pub mod client;
+pub mod react;
 pub mod svelte;
 pub mod typescript;
