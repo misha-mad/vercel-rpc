@@ -114,6 +114,25 @@ fn generate(config: &RpcConfig) -> Result<()> {
     );
     write_file(&config.output.client, &client_content)?;
 
+    if let Some(svelte_path) = &config.output.svelte {
+        let client_stem = config
+            .output
+            .client
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
+        let svelte_content = codegen::svelte::generate_svelte_file(
+            &manifest,
+            &client_import,
+            &config.output.imports.types_specifier(),
+            config.codegen.preserve_docs,
+        );
+        if !svelte_content.is_empty() {
+            write_file(svelte_path, &svelte_content)?;
+        }
+    }
+
     let elapsed = start.elapsed();
     let proc_count = manifest.procedures.len();
     let struct_count = manifest.structs.len();
@@ -135,6 +154,9 @@ fn generate(config: &RpcConfig) -> Result<()> {
         "→".dimmed(),
         config.output.client.display().to_string().dimmed(),
     );
+    if let Some(svelte) = &config.output.svelte {
+        println!("    {} {}", "→".dimmed(), svelte.display().to_string().dimmed(),);
+    }
 
     Ok(())
 }
@@ -150,6 +172,9 @@ fn print_banner(config: &RpcConfig) {
         "client:".dimmed(),
         config.output.client.display(),
     );
+    if let Some(svelte) = &config.output.svelte {
+        println!("  {} {}", "svelte:".dimmed(), svelte.display(),);
+    }
     println!();
 }
 

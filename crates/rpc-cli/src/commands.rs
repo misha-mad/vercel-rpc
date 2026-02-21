@@ -94,6 +94,31 @@ pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
         bytecount(&client_content),
     );
 
+    // Generate svelte wrapper file (opt-in)
+    if let Some(svelte_path) = &config.output.svelte {
+        let client_stem = config
+            .output
+            .client
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
+        let svelte_content = codegen::svelte::generate_svelte_file(
+            &manifest,
+            &client_import,
+            &config.output.imports.types_specifier(),
+            config.codegen.preserve_docs,
+        );
+        if !svelte_content.is_empty() {
+            write_file(svelte_path, &svelte_content)?;
+            println!(
+                "Generated {} -> {}",
+                svelte_path.display(),
+                bytecount(&svelte_content),
+            );
+        }
+    }
+
     Ok(())
 }
 

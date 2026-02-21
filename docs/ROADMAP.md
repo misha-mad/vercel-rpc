@@ -40,81 +40,13 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented via `codegen.preserve_docs` config option and `--preserve-docs` CLI flag.
 
-Forward Rust `///` doc-comments to the generated TypeScript as JSDoc:
-
-```rust
-/// User profile returned by the /me endpoint.
-#[derive(Serialize)]
-struct UserProfile {
-    /// Display name chosen during onboarding.
-    name: String,
-}
-```
-
-Generated output:
-
-```typescript
-/** User profile returned by the /me endpoint. */
-export interface UserProfile {
-  /** Display name chosen during onboarding. */
-  name: string;
-}
-```
-
-Implementation: `syn` already exposes doc attributes as `#[doc = "..."]`. Collect them in `extract.rs` and thread through the model to the codegen layer.
-
 ---
 
 ## Phase 3 — Developer Experience
 
-### Framework Reactive Wrappers
+### ~~Framework Reactive Wrappers~~ ✅ → [RFC-7](./RFC-7.md)
 
-Generate optional framework-specific wrapper files with reactive primitives. Example for Svelte 5 (`rpc-svelte.ts`):
-
-```typescript
-import type { RpcClient } from './rpc-client';
-import type { Procedures } from './rpc-types';
-
-type QueryKey = keyof Procedures['queries'];
-type MutationKey = keyof Procedures['mutations'];
-
-export function createQuery<K extends QueryKey>(
-  client: RpcClient,
-  key: K,
-  input: () => Procedures['queries'][K]['input'],
-  options?: {
-    enabled?: boolean;
-    refetchInterval?: number;
-    placeholderData?: Procedures['queries'][K]['output'];
-    onSuccess?: (data: Procedures['queries'][K]['output']) => void;
-    onError?: (error: RpcError) => void;
-  },
-): {
-  readonly data: Procedures['queries'][K]['output'] | undefined;
-  readonly error: RpcError | undefined;
-  readonly isLoading: boolean;
-  readonly isError: boolean;
-  refetch: () => Promise<void>;
-};
-
-export function createMutation<K extends MutationKey>(
-  client: RpcClient,
-  key: K,
-  options?: {
-    onSuccess?: (data: Procedures['mutations'][K]['output']) => void;
-    onError?: (error: RpcError) => void;
-    onSettled?: () => void;
-  },
-): {
-  mutate: (input: Procedures['mutations'][K]['input']) => Promise<void>;
-  mutateAsync: (input: Procedures['mutations'][K]['input']) => Promise<Procedures['mutations'][K]['output']>;
-  readonly data: Procedures['mutations'][K]['output'] | undefined;
-  readonly error: RpcError | undefined;
-  readonly isLoading: boolean;
-};
-```
-
-This is opt-in via `codegen.client_style = "hooks"` in the config.
+> Implemented in RFC-7. Optional Svelte 5 reactive wrapper file (`rpc.svelte.ts`) with `createQuery` and `createMutation` helpers that wrap `RpcClient` with `$state` / `$effect` runes. Opt-in via `output.svelte` config field or `--svelte-output` CLI flag.
 
 ### Serde Enum Representations
 
@@ -315,5 +247,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten                                                   |
+| **3** | DX         | ~~Framework reactive wrappers~~ ✅, enum representations, generics, branded types, flatten                                             |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                          |

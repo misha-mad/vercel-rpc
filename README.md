@@ -34,11 +34,11 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 ## How It Works
 
 ```
-┌──────────────┐     scan     ┌─────────────┐    codegen   ┌──────────────────┐
-│  api/*.rs    │ ──────────▶  │   Manifest  │ ──────────▶  │  rpc-types.ts    │
-│  #[rpc_query]│   (syn)      │  procedures │   (rust→ts)  │  rpc-client.ts   │
-│  #[rpc_mut.] │              │  structs    │              │  Typed RpcClient │
-└──────────────┘              └─────────────┘              └──────────────────┘
+┌──────────────┐     scan     ┌─────────────┐    codegen   ┌──────────────────────┐
+│  api/*.rs    │ ──────────▶  │   Manifest  │ ──────────▶  │  rpc-types.ts        │
+│  #[rpc_query]│   (syn)      │  procedures │   (rust→ts)  │  rpc-client.ts       │
+│  #[rpc_mut.] │              │  structs    │              │  rpc.svelte.ts (opt)  │
+└──────────────┘              └─────────────┘              └──────────────────────┘
        │                                                           │
        │  deploy (vercel)                              import (ts) │
        ▼                                                           ▼
@@ -81,7 +81,7 @@ npm run generate
 cargo run -p vercel-rpc-cli -- generate --dir api --output demo/src/lib/rpc-types.ts --client-output demo/src/lib/rpc-client.ts
 ```
 
-This produces two files:
+This produces two files (plus an optional Svelte 5 wrapper — see below):
 
 **`src/lib/rpc-types.ts`** — type definitions:
 ```typescript
@@ -170,7 +170,8 @@ vercel-rpc/
 │       │   │   └── types.rs      #     syn::Type → RustType conversion
 │       │   ├── codegen/          #   Manifest → TypeScript
 │       │   │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
-│       │   │   └── client.rs     #     RpcClient interface + rpc-client.ts
+│       │   │   ├── client.rs     #     RpcClient interface + rpc-client.ts
+│       │   │   └── svelte.rs     #     Svelte 5 reactive wrappers (opt-in)
 │       │   └── watch.rs          #   File watcher with debounce
 │       └── tests/                # Integration tests
 │           ├── common/mod.rs     #   Shared test helpers
@@ -179,7 +180,8 @@ vercel-rpc/
 │           ├── extract.rs        #   Parser extraction from Rust source
 │           ├── types.rs          #   syn::Type → RustType + RenameRule conversion
 │           ├── typescript.rs     #   TypeScript codegen (type mapping, JSDoc, serde)
-│           └── client.rs         #   Client codegen (RpcClient, overloads)
+│           ├── client.rs         #   Client codegen (RpcClient, overloads)
+│           └── svelte.rs         #   Svelte codegen (createQuery, createMutation)
 ├── demo/                         # Demo application (SvelteKit) + Rust lambdas
 │   ├── api/                      # Rust lambdas (each file = one endpoint)
 │   │   ├── hello.rs              #   GET  /api/hello?input="name"
@@ -194,6 +196,7 @@ vercel-rpc/
 │   │   ├── lib/
 │   │   │   ├── rpc-types.ts      # ← auto-generated types
 │   │   │   ├── rpc-client.ts     # ← auto-generated client
+│   │   │   ├── rpc.svelte.ts     # ← auto-generated Svelte 5 wrappers
 │   │   │   └── client.ts         #   RPC client instance (manual)
 │   │   └── routes/               # SvelteKit pages
 │   ├── tests/
@@ -242,14 +245,15 @@ cargo run -p vercel-rpc-cli -- generate \
   --types-import ./rpc-types
 ```
 
-| Flag                    | Default                 | Description                     |
-|-------------------------|-------------------------|---------------------------------|
-| `--dir`, `-d`           | `api`                   | Rust source directory           |
-| `--output`, `-o`        | `src/lib/rpc-types.ts`  | Types output path               |
-| `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path              |
-| `--types-import`        | `./rpc-types`           | Import path for types in client |
-| `--config`              | *(auto-discover)*       | Path to config file             |
-| `--no-config`           | `false`                 | Disable config file loading     |
+| Flag                    | Default                 | Description                              |
+|-------------------------|-------------------------|------------------------------------------|
+| `--dir`, `-d`           | `api`                   | Rust source directory                    |
+| `--output`, `-o`        | `src/lib/rpc-types.ts`  | Types output path                        |
+| `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path                       |
+| `--svelte-output`       | *(none)*                | Svelte 5 wrapper output path (opt-in)    |
+| `--types-import`        | `./rpc-types`           | Import path for types in client          |
+| `--config`              | *(auto-discover)*       | Path to config file                      |
+| `--no-config`           | `false`                 | Disable config file loading              |
 
 ### `rpc watch`
 
@@ -274,6 +278,7 @@ exclude = []             # glob patterns for files to exclude
 [output]
 types = "src/lib/rpc-types.ts"
 client = "src/lib/rpc-client.ts"
+svelte = "src/lib/rpc.svelte.ts"  # opt-in Svelte 5 wrappers
 
 [output.imports]
 types_path = "./rpc-types"
@@ -478,6 +483,41 @@ const [a, b] = await Promise.all([
 Dedup is on by default for queries. Disable globally via `dedupe: false` in config or per-call via `CallOptions`. Mutations are never deduplicated.
 
 See the [rpc-cli README](./crates/rpc-cli/README.md#generated-client-features) for full details on lifecycle hooks, retry, timeout, serialization, signal, per-call options, and deduplication.
+
+### Svelte 5 reactive wrappers (opt-in)
+
+When `output.svelte` is configured, the CLI generates a `.svelte.ts` file with `createQuery` and `createMutation` helpers that wrap the `RpcClient` with Svelte 5 runes (`$state`, `$effect`):
+
+```toml
+# rpc.config.toml
+[output]
+svelte = "src/lib/rpc.svelte.ts"
+```
+
+```svelte
+<script lang="ts">
+  import { rpc } from '$lib/rpc';
+  import { createQuery, createMutation } from '$lib/rpc.svelte';
+
+  // Reactive query — auto-refetches when input changes
+  const user = createQuery(rpc, "get_user", () => ({ id: userId }));
+
+  // Mutation with lifecycle callbacks
+  const updateName = createMutation(rpc, "update_profile", {
+    onSuccess: () => alert("Saved!"),
+  });
+</script>
+
+{#if user.isLoading}
+  <Spinner />
+{:else if user.isError}
+  <ErrorBanner error={user.error} />
+{:else}
+  <p>Hello, {user.data.name}</p>
+{/if}
+```
+
+See the [rpc-cli README](./crates/rpc-cli/README.md#svelte-5-reactive-wrappers) and [RFC-7](./docs/RFC-7.md) for full API details.
 
 ## Rust Macros
 

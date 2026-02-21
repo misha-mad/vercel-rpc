@@ -53,7 +53,7 @@ rpc generate \
   --types-import ./rpc-types
 ```
 
-This produces two files:
+This produces two files (plus an optional third when `output.svelte` is configured):
 
 **`rpc-types.ts`** — TypeScript interfaces and a `Procedures` type map:
 
@@ -128,6 +128,7 @@ exclude = []                         # glob patterns for files to exclude
 [output]
 types = "src/lib/rpc-types.ts"       # generated types file path
 client = "src/lib/rpc-client.ts"     # generated client file path
+# svelte = "src/lib/rpc.svelte.ts"   # opt-in Svelte 5 reactive wrappers
 
 [output.imports]
 types_path = "./rpc-types"           # import specifier used in client file
@@ -309,6 +310,7 @@ A config file sets project-level defaults; CLI flags override them per invocatio
 | `--exclude`       |       | *(none)*                | scan, generate, watch | Glob pattern for files to exclude (repeatable)        |
 | `--output`        | `-o`  | `src/lib/rpc-types.ts`  | generate, watch       | Output path for TypeScript types                      |
 | `--client-output` | `-c`  | `src/lib/rpc-client.ts` | generate, watch       | Output path for TypeScript client                     |
+| `--svelte-output` |       | *(none)*                | generate, watch       | Output path for Svelte 5 reactive wrapper (opt-in)    |
 | `--types-import`  |       | `./rpc-types`           | generate, watch       | Import path for types in the client file              |
 | `--extension`     |       | `""`                    | generate, watch       | Suffix appended to types import (e.g. `.js` for ESM)  |
 | `--preserve-docs` |       | `false`                 | generate, watch       | Forward Rust doc comments as JSDoc                    |
@@ -555,6 +557,88 @@ const fresh = await rpc.query("get_user", id, { dedupe: false });
 ```
 
 Mutations are never deduplicated. Each per-caller `AbortSignal` is wrapped independently — aborting one caller does not affect others sharing the same in-flight promise.
+
+## Svelte 5 reactive wrappers
+
+When `output.svelte` is configured (or `--svelte-output` is passed), the CLI generates a `.svelte.ts` file with `createQuery` and `createMutation` helpers that wrap the `RpcClient` with Svelte 5 runes (`$state`, `$effect`).
+
+```toml
+[output]
+svelte = "src/lib/rpc.svelte.ts"
+```
+
+### `createQuery`
+
+Wraps `client.query()` with reactive state. Void-input queries omit the `input` parameter:
+
+```typescript
+// Void query — no input needed
+const health = createQuery(rpc, "health_check");
+
+// Non-void query — input is a getter for reactive dependency tracking
+const user = createQuery(rpc, "get_user", () => ({ id: userId }));
+
+// With options
+const stats = createQuery(rpc, "server_stats", {
+  refetchInterval: 5000,
+  enabled: () => isAuthenticated,
+  onSuccess: (data) => console.log("got stats", data),
+});
+```
+
+**`QueryOptions<K>`:**
+
+| Option            | Type                         | Description                                            |
+|-------------------|------------------------------|--------------------------------------------------------|
+| `enabled`         | `boolean \| (() => boolean)` | Whether to execute the query (default: `true`)         |
+| `refetchInterval` | `number`                     | Auto-refetch interval in ms (0 or omit to disable)    |
+| `placeholderData` | `QueryOutput<K>`             | Initial data before the first fetch completes          |
+| `callOptions`     | `CallOptions`                | Per-call options forwarded to `client.query()`         |
+| `onSuccess`       | `(data) => void`             | Called when the query succeeds                         |
+| `onError`         | `(error) => void`            | Called when the query fails                            |
+| `onSettled`       | `() => void`                 | Called when the query settles (success or failure)     |
+
+**`QueryResult<K>`:**
+
+| Property    | Type                          | Description                                       |
+|-------------|-------------------------------|---------------------------------------------------|
+| `data`      | `QueryOutput<K> \| undefined` | Latest resolved data, or `placeholderData`        |
+| `error`     | `RpcError \| undefined`       | Error from the most recent failed fetch           |
+| `isLoading` | `boolean`                     | True while a fetch is in-flight                   |
+| `isSuccess` | `boolean`                     | True after the first successful fetch             |
+| `isError`   | `boolean`                     | True when `error` is set                          |
+| `refetch`   | `() => Promise<void>`         | Manually trigger a refetch                        |
+
+### `createMutation`
+
+Wraps `client.mutate()` with reactive state:
+
+```typescript
+const createItem = createMutation(rpc, "create_item", {
+  onSuccess: (item) => console.log("created", item.id),
+});
+
+// Fire-and-forget
+createItem.mutate({ title: "New Item" });
+
+// Await the result
+const item = await createItem.mutateAsync({ title: "New Item" });
+```
+
+**`MutationResult<K>`:**
+
+| Property      | Type                             | Description                                          |
+|---------------|----------------------------------|------------------------------------------------------|
+| `mutate`      | `(input) => Promise<void>`       | Execute the mutation (void for void-input mutations) |
+| `mutateAsync` | `(input) => Promise<Output>`     | Execute and return the result                        |
+| `data`        | `MutationOutput<K> \| undefined` | Latest resolved data                                 |
+| `error`       | `RpcError \| undefined`          | Error from the most recent failed mutation           |
+| `isLoading`   | `boolean`                        | True while a mutation is in-flight                   |
+| `isSuccess`   | `boolean`                        | True after the most recent mutation succeeded        |
+| `isError`     | `boolean`                        | True when `error` is set                             |
+| `reset`       | `() => void`                     | Reset state back to idle                             |
+
+See [RFC-7](../../docs/RFC-7.md) for the full design and implementation details.
 
 ## Related crates
 

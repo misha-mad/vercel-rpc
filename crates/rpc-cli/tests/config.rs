@@ -12,6 +12,7 @@ fn test_default_matches_current_behavior() {
     assert!(config.input.exclude.is_empty());
     assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
     assert_eq!(config.output.client, PathBuf::from("src/lib/rpc-client.ts"));
+    assert!(config.output.svelte.is_none());
     assert_eq!(config.output.imports.types_path, "./rpc-types");
     assert_eq!(config.output.imports.extension, "");
     assert_eq!(config.output.imports.types_specifier(), "./rpc-types");
@@ -239,6 +240,7 @@ client = "client.ts"
         exclude: vec!["**/test_*.rs".into()],
         output: Some(PathBuf::from("out.ts")),
         client_output: None,
+        svelte_output: None,
         types_import: Some("./my-types".to_string()),
         extension: Some(".js".to_string()),
         preserve_docs: true,
@@ -272,6 +274,7 @@ fn test_resolve_no_config_flag() {
         exclude: vec![],
         output: None,
         client_output: None,
+        svelte_output: None,
         types_import: None,
         extension: None,
         preserve_docs: false,
@@ -295,6 +298,7 @@ fn test_resolve_client_output_override() {
         exclude: vec![],
         output: None,
         client_output: Some(PathBuf::from("custom-client.ts")),
+        svelte_output: None,
         types_import: None,
         extension: None,
         preserve_docs: false,
@@ -304,4 +308,38 @@ fn test_resolve_client_output_override() {
     };
     let config = resolve(overrides).unwrap();
     assert_eq!(config.output.client, PathBuf::from("custom-client.ts"));
+}
+
+#[test]
+fn test_config_svelte_default_none() {
+    let config = RpcConfig::default();
+    assert!(config.output.svelte.is_none());
+}
+
+#[test]
+fn test_config_svelte_parsed() {
+    let toml_str = r#"
+[output]
+svelte = "src/lib/rpc.svelte.ts"
+"#;
+    let config: RpcConfig = toml::from_str(toml_str).unwrap();
+    assert_eq!(
+        config.output.svelte,
+        Some(PathBuf::from("src/lib/rpc.svelte.ts"))
+    );
+}
+
+#[test]
+fn test_cli_svelte_override() {
+    let overrides = CliOverrides {
+        config: None,
+        no_config: true,
+        svelte_output: Some(PathBuf::from("custom.svelte.ts")),
+        ..CliOverrides::default()
+    };
+    let config = resolve(overrides).unwrap();
+    assert_eq!(
+        config.output.svelte,
+        Some(PathBuf::from("custom.svelte.ts"))
+    );
 }
