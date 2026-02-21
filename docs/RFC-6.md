@@ -1,6 +1,6 @@
 # RFC-6: Request Deduplication
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Automatic deduplication of identical in-flight queries
 - **Date:** February 2026
 
