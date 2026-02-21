@@ -175,10 +175,35 @@ type QueryOutput<K extends QueryKey> = Procedures["queries"][K]["output"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
+const VOID_QUERIES: Set<string> = new Set(["time"]);
+
+const VOID_MUTATIONS: Set<string> = new Set(["reset"]);
+
 export interface RpcClient {
+  query(key: "time"): Promise<string>;
+  query(key: "time", options: CallOptions): Promise<string>;
+  query(key: "hello", input: string): Promise<string>;
+  query(key: "hello", input: string, options: CallOptions): Promise<string>;
+
+  mutate(key: "reset"): Promise<boolean>;
+  mutate(key: "reset", options: CallOptions): Promise<boolean>;
+  mutate(key: "create_item", input: CreateInput): Promise<Item>;
+  mutate(key: "create_item", input: CreateInput, options: CallOptions): Promise<Item>;
 }
 
 export function createRpcClient(config: RpcClientConfig): RpcClient {
   return {
+    query(key: QueryKey, ...args: unknown[]): Promise<unknown> {
+      if (VOID_QUERIES.has(key)) {
+        return rpcFetch(config, "GET", key, undefined, args[0] as CallOptions | undefined);
+      }
+      return rpcFetch(config, "GET", key, args[0], args[1] as CallOptions | undefined);
+    },
+    mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {
+      if (VOID_MUTATIONS.has(key)) {
+        return rpcFetch(config, "POST", key, undefined, args[0] as CallOptions | undefined);
+      }
+      return rpcFetch(config, "POST", key, args[0], args[1] as CallOptions | undefined);
+    },
   } as RpcClient;
 }

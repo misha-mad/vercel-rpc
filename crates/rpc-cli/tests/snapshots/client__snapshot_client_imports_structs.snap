@@ -70,6 +70,12 @@ export interface RpcClientConfig {
   signal?: AbortSignal;
 }
 
+export interface CallOptions {
+  headers?: Record<string, string>;
+  timeout?: number;
+  signal?: AbortSignal;
+}
+
 const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
 
 async function rpcFetch(
@@ -77,12 +83,13 @@ async function rpcFetch(
   method: "GET" | "POST",
   procedure: string,
   input?: unknown,
+  callOptions?: CallOptions,
 ): Promise<unknown> {
   let url = `${config.baseUrl}/${procedure}`;
   const customHeaders = typeof config.headers === "function"
     ? await config.headers()
     : config.headers;
-  const baseHeaders: Record<string, string> = { ...customHeaders };
+  const baseHeaders: Record<string, string> = { ...customHeaders, ...callOptions?.headers };
 
   if (method === "GET" && input !== undefined) {
     const serialized = config.serialize ? config.serialize(input) : JSON.stringify(input);
@@ -94,6 +101,7 @@ async function rpcFetch(
   const fetchFn = config.fetch ?? globalThis.fetch;
   const maxAttempts = 1 + (config.retry?.attempts ?? 0);
   const retryOn = config.retry?.retryOn ?? DEFAULT_RETRY_ON;
+  const effectiveTimeout = callOptions?.timeout ?? config.timeout;
   const start = Date.now();
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -106,14 +114,16 @@ async function rpcFetch(
     }
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    if (config.timeout) {
+    const signals: AbortSignal[] = [];
+    if (config.signal) signals.push(config.signal);
+    if (callOptions?.signal) signals.push(callOptions.signal);
+    if (effectiveTimeout) {
       const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), config.timeout);
-      init.signal = config.signal
-        ? AbortSignal.any([config.signal, controller.signal])
-        : controller.signal;
-    } else if (config.signal) {
-      init.signal = config.signal;
+      timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+      signals.push(controller.signal);
+    }
+    if (signals.length > 0) {
+      init.signal = signals.length === 1 ? signals[0] : AbortSignal.any(signals);
     }
 
     try {
@@ -167,17 +177,19 @@ type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"
 
 export interface RpcClient {
   query(key: "get_time"): Promise<TimeResponse>;
+  query(key: "get_time", options: CallOptions): Promise<TimeResponse>;
 
   mutate(key: "create_item", input: CreateInput): Promise<Item>;
+  mutate(key: "create_item", input: CreateInput, options: CallOptions): Promise<Item>;
 }
 
 export function createRpcClient(config: RpcClientConfig): RpcClient {
   return {
     query(key: QueryKey, ...args: unknown[]): Promise<unknown> {
-      return rpcFetch(config, "GET", key, args[0]);
+      return rpcFetch(config, "GET", key, undefined, args[0] as CallOptions | undefined);
     },
     mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {
-      return rpcFetch(config, "POST", key, args[0]);
+      return rpcFetch(config, "POST", key, args[0], args[1] as CallOptions | undefined);
     },
   } as RpcClient;
 }

@@ -28,22 +28,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in [RFC-4](./RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/vercel-rpc/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/vercel-rpc/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/vercel-rpc/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/vercel-rpc/pull/49).
 
-### Per-Call Options → [RFC-5](./RFC-5.md)
+### ~~Per-Call Options~~ ✅ → [RFC-5](./RFC-5.md)
 
-Every `query` and `mutate` call accepts an optional trailing options argument:
-
-```typescript
-interface CallOptions {
-  signal?: AbortSignal;
-  headers?: Record<string, string>;
-  timeout?: number;
-}
-
-const data = await client.query("hello", "world", {
-  signal: controller.signal,
-  timeout: 5000,
-});
-```
+> Implemented in RFC-5. Every `query()` and `mutate()` overload accepts an optional trailing `CallOptions` argument with per-request `signal`, `headers`, and `timeout` overrides.
 
 ### Request Deduplication
 
@@ -338,6 +325,6 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | Phase | Focus      | Key Deliverables                                                                    |
 |-------|------------|-------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅              |
-| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, per-call options, request deduplication, ~~JSDoc generation~~ ✅ |
+| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, request deduplication, ~~JSDoc generation~~ ✅ |
 | **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests        |

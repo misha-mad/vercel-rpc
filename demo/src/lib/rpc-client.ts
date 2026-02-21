@@ -66,6 +66,12 @@ export interface RpcClientConfig {
   signal?: AbortSignal;
 }
 
+export interface CallOptions {
+  headers?: Record<string, string>;
+  timeout?: number;
+  signal?: AbortSignal;
+}
+
 const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
 
 async function rpcFetch(
@@ -73,12 +79,13 @@ async function rpcFetch(
   method: "GET" | "POST",
   procedure: string,
   input?: unknown,
+  callOptions?: CallOptions,
 ): Promise<unknown> {
   let url = `${config.baseUrl}/${procedure}`;
   const customHeaders = typeof config.headers === "function"
     ? await config.headers()
     : config.headers;
-  const baseHeaders: Record<string, string> = { ...customHeaders };
+  const baseHeaders: Record<string, string> = { ...customHeaders, ...callOptions?.headers };
 
   if (method === "GET" && input !== undefined) {
     const serialized = config.serialize ? config.serialize(input) : JSON.stringify(input);
@@ -90,6 +97,7 @@ async function rpcFetch(
   const fetchFn = config.fetch ?? globalThis.fetch;
   const maxAttempts = 1 + (config.retry?.attempts ?? 0);
   const retryOn = config.retry?.retryOn ?? DEFAULT_RETRY_ON;
+  const effectiveTimeout = callOptions?.timeout ?? config.timeout;
   const start = Date.now();
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -102,14 +110,16 @@ async function rpcFetch(
     }
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    if (config.timeout) {
+    const signals: AbortSignal[] = [];
+    if (config.signal) signals.push(config.signal);
+    if (callOptions?.signal) signals.push(callOptions.signal);
+    if (effectiveTimeout) {
       const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), config.timeout);
-      init.signal = config.signal
-        ? AbortSignal.any([config.signal, controller.signal])
-        : controller.signal;
-    } else if (config.signal) {
-      init.signal = config.signal;
+      timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+      signals.push(controller.signal);
+    }
+    if (signals.length > 0) {
+      init.signal = signals.length === 1 ? signals[0] : AbortSignal.any(signals);
     }
 
     try {
@@ -161,23 +171,30 @@ type QueryOutput<K extends QueryKey> = Procedures["queries"][K]["output"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
+const VOID_QUERIES: Set<string> = new Set(["secret", "status", "time"]);
+
 export interface RpcClient {
   /**
    * Access a protected secret.
    * Requires a valid Bearer token in the Authorization header.
    */
   query(key: "secret"): Promise<string>;
+  query(key: "secret", options: CallOptions): Promise<string>;
   /** Returns current service health, uptime, and version. */
   query(key: "status"): Promise<ServiceStatus>;
+  query(key: "status", options: CallOptions): Promise<ServiceStatus>;
   /** Returns the current server time as a Unix timestamp. */
   query(key: "time"): Promise<TimeResponse>;
+  query(key: "time", options: CallOptions): Promise<TimeResponse>;
   /**
    * Greet a user by name.
    * Returns a personalized greeting string.
    */
   query(key: "hello", input: string): Promise<string>;
+  query(key: "hello", input: string, options: CallOptions): Promise<string>;
   /** Perform a math operation. Returns an error on division by zero. */
   query(key: "math", input: MathInput): Promise<MathResult>;
+  query(key: "math", input: MathInput, options: CallOptions): Promise<MathResult>;
   /**
    * Look up a user profile by ID.
    * 
@@ -185,8 +202,10 @@ export interface RpcClient {
    * on structs and enums to demonstrate TypeScript codegen fidelity.
    */
   query(key: "profile", input: number): Promise<UserProfile>;
+  query(key: "profile", input: number, options: CallOptions): Promise<UserProfile>;
   /** Compute descriptive statistics for a list of numbers. */
   query(key: "stats", input: number[]): Promise<Stats>;
+  query(key: "stats", input: number[], options: CallOptions): Promise<Stats>;
   /**
    * Return a type showcase demonstrating expanded type mappings.
    * 
@@ -195,18 +214,23 @@ export interface RpcClient {
    * natural TypeScript equivalents.
    */
   query(key: "types", input: string): Promise<TypeShowcase>;
+  query(key: "types", input: string, options: CallOptions): Promise<TypeShowcase>;
 
   /** Echo a message back, optionally transforming it to uppercase. */
   mutate(key: "echo", input: EchoInput): Promise<EchoOutput>;
+  mutate(key: "echo", input: EchoInput, options: CallOptions): Promise<EchoOutput>;
 }
 
 export function createRpcClient(config: RpcClientConfig): RpcClient {
   return {
     query(key: QueryKey, ...args: unknown[]): Promise<unknown> {
-      return rpcFetch(config, "GET", key, args[0]);
+      if (VOID_QUERIES.has(key)) {
+        return rpcFetch(config, "GET", key, undefined, args[0] as CallOptions | undefined);
+      }
+      return rpcFetch(config, "GET", key, args[0], args[1] as CallOptions | undefined);
     },
     mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {
-      return rpcFetch(config, "POST", key, args[0]);
+      return rpcFetch(config, "POST", key, args[0], args[1] as CallOptions | undefined);
     },
   } as RpcClient;
 }

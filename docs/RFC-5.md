@@ -1,6 +1,6 @@
 # RFC-5: Per-Call Options
 
-- **Status:** Proposed
+- **Status:** Implemented
 - **Topic:** Optional per-call `signal`, `headers`, and `timeout` for `query()` and `mutate()`
 - **Date:** February 2026
 
@@ -12,11 +12,11 @@ Add an optional trailing `CallOptions` argument to every `query()` and `mutate()
 
 `RpcClientConfig` (RFC-4) sets global defaults for the entire client — timeout, headers, abort signal, etc. But real applications need per-call granularity:
 
-| Scenario | Global config insufficient because… |
-|---|---|
+| Scenario                                                | Global config insufficient because…             |
+|---------------------------------------------------------|-------------------------------------------------|
 | Cancel a single long-polling query on component unmount | `config.signal` aborts *all* in-flight requests |
-| Add an idempotency key to one mutation | `config.headers` applies to every call |
-| Allow a slow report to take 30s while most calls use 5s | `config.timeout` is one value |
+| Add an idempotency key to one mutation                  | `config.headers` applies to every call          |
+| Allow a slow report to take 30s while most calls use 5s | `config.timeout` is one value                   |
 
 The roadmap already describes this feature under Phase 2 — Client. Every major RPC/HTTP client (tRPC, ky, ofetch) supports per-call overrides.
 
@@ -236,33 +236,33 @@ const time = await rpc.query("time", { signal: controller.signal });
 
 ## 10. Codegen Changes (`client.rs`)
 
-| Area | Change |
-|---|---|
-| New constant | `CALL_OPTIONS_INTERFACE` — the `CallOptions` interface literal |
-| `generate_client_file()` | Emit `CallOptions` interface after `RpcClientConfig` |
-| `FETCH_HELPER` | Add `callOptions?: CallOptions` parameter; merge headers, resolve effective timeout, combine signals |
-| `generate_query_overloads()` | Emit two overloads per procedure: without and with `CallOptions` |
-| `generate_mutation_overloads()` | Same — two overloads per procedure |
-| `generate_client_factory()` | Emit `VOID_QUERIES` / `VOID_MUTATIONS` sets when mixed void/non-void exists; route `args` accordingly |
+| Area                            | Change                                                                                                |
+|---------------------------------|-------------------------------------------------------------------------------------------------------|
+| New constant                    | `CALL_OPTIONS_INTERFACE` — the `CallOptions` interface literal                                        |
+| `generate_client_file()`        | Emit `CallOptions` interface after `RpcClientConfig`                                                  |
+| `FETCH_HELPER`                  | Add `callOptions?: CallOptions` parameter; merge headers, resolve effective timeout, combine signals  |
+| `generate_query_overloads()`    | Emit two overloads per procedure: without and with `CallOptions`                                      |
+| `generate_mutation_overloads()` | Same — two overloads per procedure                                                                    |
+| `generate_client_factory()`     | Emit `VOID_QUERIES` / `VOID_MUTATIONS` sets when mixed void/non-void exists; route `args` accordingly |
 
 ## 11. Test Plan
 
 ### Unit tests (codegen)
 
-| Test | Description |
-|---|---|
-| `contains_call_options_interface` | Output includes `CallOptions` interface with `signal`, `headers`, `timeout` |
-| `query_overload_with_options` | Non-void query has overload with trailing `CallOptions` |
-| `query_void_overload_with_options` | Void-input query has overload with `CallOptions` as only argument |
-| `mutation_overload_with_options` | Non-void mutation has overload with trailing `CallOptions` |
-| `mutation_void_overload_with_options` | Void-input mutation has overload with `CallOptions` |
-| `fetch_helper_accepts_call_options` | `rpcFetch` signature includes `callOptions?: CallOptions` |
-| `fetch_helper_merges_call_headers` | Body references `callOptions?.headers` |
-| `fetch_helper_uses_call_timeout` | Body references `callOptions?.timeout` |
-| `fetch_helper_uses_call_signal` | Body references `callOptions?.signal` |
-| `void_query_set_generated` | When mixed void/non-void queries exist, `VOID_QUERIES` set is emitted |
-| `void_query_set_omitted_when_all_same` | When all queries are non-void, no set is emitted |
-| `snapshot_client_with_call_options` | Insta snapshot of full client with mixed void/non-void procedures |
+| Test                                   | Description                                                                 |
+|----------------------------------------|-----------------------------------------------------------------------------|
+| `contains_call_options_interface`      | Output includes `CallOptions` interface with `signal`, `headers`, `timeout` |
+| `query_overload_with_options`          | Non-void query has overload with trailing `CallOptions`                     |
+| `query_void_overload_with_options`     | Void-input query has overload with `CallOptions` as only argument           |
+| `mutation_overload_with_options`       | Non-void mutation has overload with trailing `CallOptions`                  |
+| `mutation_void_overload_with_options`  | Void-input mutation has overload with `CallOptions`                         |
+| `fetch_helper_accepts_call_options`    | `rpcFetch` signature includes `callOptions?: CallOptions`                   |
+| `fetch_helper_merges_call_headers`     | Body references `callOptions?.headers`                                      |
+| `fetch_helper_uses_call_timeout`       | Body references `callOptions?.timeout`                                      |
+| `fetch_helper_uses_call_signal`        | Body references `callOptions?.signal`                                       |
+| `void_query_set_generated`             | When mixed void/non-void queries exist, `VOID_QUERIES` set is emitted       |
+| `void_query_set_omitted_when_all_same` | When all queries are non-void, no set is emitted                            |
+| `snapshot_client_with_call_options`    | Insta snapshot of full client with mixed void/non-void procedures           |
 
 ### Snapshot tests
 
