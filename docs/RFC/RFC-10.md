@@ -1,6 +1,6 @@
 # RFC-10: SolidJS Reactive Wrappers
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Generated SolidJS primitives for queries and mutations
 - **Date:** February 2026
 
@@ -388,7 +388,7 @@ The generated file uses `.ts` extension. Solid components and primitives work in
 ```typescript
 // rpc.solid.ts (generated)
 
-import { createSignal, createEffect, onCleanup } from "solid-js";
+import { createSignal, createEffect, createMemo, onCleanup, batch } from "solid-js";
 import { type RpcClient, RpcError, type CallOptions } from "./rpc-client";
 import type { Procedures } from "./rpc-types";
 
@@ -407,10 +407,17 @@ export function createQuery<K extends QueryKey>(
     | QueryOptions<K>
     | undefined;
 
+  const initialEnabled = typeof options?.enabled === "function"
+    ? options.enabled()
+    : (options?.enabled ?? true);
+
   const [data, setData] = createSignal<QueryOutput<K> | undefined>(options?.placeholderData);
   const [error, setError] = createSignal<RpcError | undefined>();
-  const [isLoading, setIsLoading] = createSignal(false);
+  const [isLoading, setIsLoading] = createSignal(initialEnabled);
   const [hasFetched, setHasFetched] = createSignal(false);
+
+  const isSuccess = createMemo(() => hasFetched() && error() === undefined);
+  const isError = createMemo(() => error() !== undefined);
 
   async function fetchData(input?: QueryInput<K>) {
     setIsLoading(true);
@@ -422,12 +429,12 @@ export function createQuery<K extends QueryKey>(
       const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as QueryOutput<K>;
-      setData(() => result);
+      setData(result as Exclude<QueryOutput<K> | undefined, Function>);
       setHasFetched(true);
       options?.onSuccess?.(result);
     } catch (e) {
       const err = e as RpcError;
-      setError(() => err);
+      setError(err as Exclude<RpcError | undefined, Function>);
       options?.onError?.(err);
     } finally {
       setIsLoading(false);
@@ -451,17 +458,17 @@ export function createQuery<K extends QueryKey>(
   });
 
   return {
-    data,
+    data: data as () => QueryOutput<K> | undefined,
     error,
     isLoading,
-    isSuccess: () => hasFetched() && error() === undefined,
-    isError: () => error() !== undefined,
+    isSuccess,
+    isError,
     refetch: () => fetchData(inputFn?.()),
   };
 }
 ```
 
-### 7.3 `useMutation` Implementation Sketch
+### 7.3 `createMutation` Implementation Sketch
 
 ```typescript
 export function createMutation<K extends MutationKey>(
@@ -474,6 +481,9 @@ export function createMutation<K extends MutationKey>(
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSucceeded, setHasSucceeded] = createSignal(false);
 
+  const isSuccess = createMemo(() => hasSucceeded() && error() === undefined);
+  const isError = createMemo(() => error() !== undefined);
+
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
     setIsLoading(true);
     setError(undefined);
@@ -485,13 +495,13 @@ export function createMutation<K extends MutationKey>(
       const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as MutationOutput<K>;
-      setData(() => result);
+      setData(result as Exclude<MutationOutput<K> | undefined, Function>);
       setHasSucceeded(true);
       options?.onSuccess?.(result);
       return result;
     } catch (e) {
       const err = e as RpcError;
-      setError(() => err);
+      setError(err as Exclude<RpcError | undefined, Function>);
       options?.onError?.(err);
       throw e;
     } finally {
@@ -500,22 +510,15 @@ export function createMutation<K extends MutationKey>(
     }
   }
 
-  function reset() {
-    setData(undefined);
-    setError(undefined);
-    setIsLoading(false);
-    setHasSucceeded(false);
-  }
-
   return {
     mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
     mutateAsync: (...args: MutationArgs<K>) => execute(...args),
-    data,
+    data: data as () => MutationOutput<K> | undefined,
     error,
     isLoading,
-    isSuccess: () => hasSucceeded() && error() === undefined,
-    isError: () => error() !== undefined,
-    reset,
+    isSuccess,
+    isError,
+    reset: () => batch(() => { setData(undefined); setError(undefined); setIsLoading(false); setHasSucceeded(false); }),
   };
 }
 ```
@@ -525,7 +528,10 @@ export function createMutation<K extends MutationKey>(
 | Feature                      | Mechanism                                                                      |
 |------------------------------|--------------------------------------------------------------------------------|
 | `data`, `error`, `isLoading` | `createSignal()` — accessed via getter function, triggers fine-grained updates |
-| `isSuccess`, `isError`       | Derived getters composing signal reads                                         |
+| `isSuccess`, `isError`       | `createMemo()` — cached derived signals, proper reactivity outside effects     |
+| `isLoading` initial value    | Starts `true` when `enabled !== false` to avoid UI flash before first effect   |
+| Signal setters               | Direct value `setData(result)` — avoids Solid treating value as updater fn     |
+| `reset()`                    | `batch()` — coalesces multiple signal updates into a single render pass        |
 | Auto-refetch on input change | `createEffect()` reads `inputFn()` — Solid tracks the dependency               |
 | `enabled` flag               | Read inside `createEffect` — reactive when passed as a getter                  |
 | Polling cleanup              | `onCleanup()` inside `createEffect` clears interval on re-run                  |
@@ -538,15 +544,17 @@ SolidJS and Svelte 5 share a similar reactivity model, making the generated code
 | Aspect              | SolidJS                  | Svelte 5              |
 |---------------------|--------------------------|-----------------------|
 | State primitive     | `createSignal()`         | `$state()`            |
+| Derived state       | `createMemo()`           | `$derived()`          |
 | Side effects        | `createEffect()`         | `$effect()`           |
 | Cleanup             | `onCleanup()`            | Return from `$effect` |
+| Batching            | `batch()`                | Automatic             |
 | Value access        | `signal()` (getter call) | `variable` (direct)   |
 | Value mutation      | `setSignal(value)`       | `variable = value`    |
 | Dependency tracking | Automatic (getter calls) | Automatic (compiler)  |
 | File extension      | `.ts`                    | `.svelte.ts`          |
 | Primitive name      | `createQuery`            | `createQuery`         |
 
-Key difference: Solid signals are accessed via function calls (`data()`), while Svelte 5 runes use direct variable access. The generated `QueryResult`/`MutationResult` interfaces reflect this — Solid exposes `data: () => T` accessors, Svelte uses `get data()` property getters.
+Key difference: Solid signals are accessed via function calls (`data()`), while Svelte 5 runes use direct variable access. The generated `QueryResult`/`MutationResult` interfaces reflect this — Solid exposes `data: () => T` accessors, Svelte uses `get data()` property getters. Solid also requires explicit `createMemo()` for cached derived values and `batch()` for coalescing multiple signal updates, whereas Svelte handles both automatically.
 
 ## 8. Codegen Changes
 
@@ -567,7 +575,7 @@ pub fn generate_solid_file(
 
 ```
 // Header
-// Import { createSignal, createEffect, onCleanup } from "solid-js"
+// Import { createSignal, createEffect, createMemo, onCleanup, batch } from "solid-js"
 // Import { type RpcClient, RpcError, type CallOptions } from "./rpc-client"
 // Import { type Procedures, ...types } from "./rpc-types"
 // Re-export types
@@ -597,7 +605,7 @@ pub fn generate_solid_file(
 | Test                                 | Description                                                                  |
 |--------------------------------------|------------------------------------------------------------------------------|
 | `solid_imports_client_and_types`     | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures`          |
-| `solid_imports_solid`                | Output imports `createSignal`, `createEffect`, `onCleanup` from `"solid-js"` |
+| `solid_imports_solid`                | Output imports `createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch` from `"solid-js"` |
 | `solid_contains_create_query`        | Output contains `createQuery` function                                       |
 | `solid_contains_create_mutation`     | Output contains `createMutation` function                                    |
 | `solid_void_query_no_input_overload` | Void-input queries have overload without `input` parameter                   |
@@ -614,6 +622,10 @@ pub fn generate_solid_file(
 | `solid_mutation_has_reset`           | `MutationResult` includes `reset` method                                     |
 | `solid_mutation_has_mutate_async`    | `MutationResult` includes `mutateAsync` method                               |
 | `solid_custom_import_paths`          | Custom import paths are used in generated imports                            |
+| `solid_uses_create_memo_for_derived` | `isSuccess`/`isError` use `createMemo()` for cached derived state            |
+| `solid_reset_uses_batch`            | `reset()` wraps signal updates in `batch()`                                  |
+| `solid_is_loading_initial_true`     | `isLoading` starts `true` when enabled, avoids UI flash                      |
+| `solid_set_data_uses_direct_value`  | `setData(result)` uses direct value, not updater function form               |
 | `snapshot_solid_full`                | Insta snapshot with mixed queries and mutations                              |
 | `snapshot_solid_queries_only`        | Insta snapshot with queries only                                             |
 | `snapshot_solid_mutations_only`      | Insta snapshot with mutations only                                           |
@@ -649,7 +661,21 @@ Solid has a built-in `createResource` primitive for async data fetching. Our `cr
 
 `createResource` is a general-purpose primitive; `createQuery` is purpose-built for the RPC client with zero-config type safety.
 
-## 12. Future Extensions
+## 12. Implementation Notes
+
+Implemented in PR [#66](https://github.com/misha-mad/vercel-rpc/pull/66). Key deviations from the initial draft:
+
+1. **`createMemo` for derived state** — `isSuccess` and `isError` use `createMemo()` instead of plain derived functions. This caches the result and provides proper signal semantics outside reactive contexts.
+
+2. **`batch()` for `reset()`** — The `reset()` method wraps four signal updates in `batch()` to coalesce them into a single render pass, avoiding intermediate re-renders.
+
+3. **`isLoading` initial value** — `isLoading` starts as `true` (when `enabled !== false`) instead of `false`. This avoids a UI flash where components briefly see `isLoading() === false` before the first `createEffect` runs.
+
+4. **Direct signal setters** — Uses `setData(result as Exclude<T, Function>)` instead of `setData(() => result)`. The updater function form `() => result` would break if `result` itself is a function (Solid would call it as an updater). The `Exclude<T, Function>` cast satisfies TypeScript while keeping the direct value form.
+
+5. **Additional imports** — `createMemo` and `batch` added to the `solid-js` import alongside `createSignal`, `createEffect`, `onCleanup`.
+
+## 13. Future Extensions
 
 - **`createInfiniteQuery`** — cursor/offset-based pagination with accumulated pages signal.
 - **Suspense integration** — Solid supports Suspense natively via `createResource`. A future version could integrate with Solid's Suspense boundary by throwing a promise.

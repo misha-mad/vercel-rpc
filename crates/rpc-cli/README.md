@@ -53,7 +53,7 @@ rpc generate \
   --types-import ./rpc-types
 ```
 
-This produces two files (plus optional framework wrappers when `output.svelte`, `output.react`, or `output.vue` are configured):
+This produces two files (plus optional framework wrappers when `output.svelte`, `output.react`, `output.vue`, or `output.solid` are configured):
 
 **`rpc-types.ts`** — TypeScript interfaces and a `Procedures` type map:
 
@@ -131,6 +131,7 @@ client = "src/lib/rpc-client.ts"     # generated client file path
 # svelte = "src/lib/rpc.svelte.ts"   # opt-in Svelte 5 reactive wrappers
 # react  = "src/lib/rpc.react.ts"   # opt-in React hooks
 # vue    = "src/lib/rpc.vue.ts"     # opt-in Vue 3 composables
+# solid  = "src/lib/rpc.solid.ts"  # opt-in SolidJS primitives
 
 [output.imports]
 types_path = "./rpc-types"           # import specifier used in client file
@@ -315,6 +316,7 @@ A config file sets project-level defaults; CLI flags override them per invocatio
 | `--svelte-output` |       | *(none)*                | generate, watch       | Output path for Svelte 5 reactive wrapper (opt-in)    |
 | `--react-output`  |       | *(none)*                | generate, watch       | Output path for React hooks wrapper (opt-in)          |
 | `--vue-output`    |       | *(none)*                | generate, watch       | Output path for Vue 3 composable wrapper (opt-in)     |
+| `--solid-output`  |       | *(none)*                | generate, watch       | Output path for SolidJS primitives wrapper (opt-in)   |
 | `--types-import`  |       | `./rpc-types`           | generate, watch       | Import path for types in the client file              |
 | `--extension`     |       | `""`                    | generate, watch       | Suffix appended to types import (e.g. `.js` for ESM)  |
 | `--preserve-docs` |       | `false`                 | generate, watch       | Forward Rust doc comments as JSDoc                    |
@@ -807,6 +809,88 @@ const item = await createItem.mutateAsync({ title: "New Item" });
 | `reset`       | `() => void`                          | Reset state back to idle                             |
 
 See [RFC-9](../../docs/RFC/RFC-9.md) for the full design and implementation details.
+
+## SolidJS primitives
+
+When `output.solid` is configured (or `--solid-output` is passed), the CLI generates a `.ts` file with `createQuery` and `createMutation` primitives that wrap the `RpcClient` with SolidJS reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`).
+
+```toml
+[output]
+solid = "src/lib/rpc.solid.ts"
+```
+
+### `createQuery`
+
+Wraps `client.query()` with reactive state. Void-input queries omit the `input` parameter:
+
+```typescript
+// Void query — no input needed
+const health = createQuery(rpc, "health_check");
+
+// Non-void query — input is a getter for reactive dependency tracking
+const user = createQuery(rpc, "get_user", () => ({ id: userId() }));
+
+// With options
+const stats = createQuery(rpc, "server_stats", {
+  refetchInterval: 5000,
+  enabled: () => isAuthenticated(),
+  onSuccess: (data) => console.log("got stats", data),
+});
+```
+
+**`QueryOptions<K>`:**
+
+| Option            | Type                         | Description                                        |
+|-------------------|------------------------------|----------------------------------------------------|
+| `enabled`         | `boolean \| (() => boolean)` | Whether to execute the query (default: `true`)     |
+| `refetchInterval` | `number`                     | Auto-refetch interval in ms (0 or omit to disable) |
+| `placeholderData` | `QueryOutput<K>`             | Initial data before the first fetch completes      |
+| `callOptions`     | `CallOptions`                | Per-call options forwarded to `client.query()`     |
+| `onSuccess`       | `(data) => void`             | Called when the query succeeds                     |
+| `onError`         | `(error) => void`            | Called when the query fails                        |
+| `onSettled`       | `() => void`                 | Called when the query settles (success or failure) |
+
+**`QueryResult<K>`:**
+
+| Property    | Type                                 | Description                                        |
+|-------------|--------------------------------------|----------------------------------------------------|
+| `data`      | `Accessor<QueryOutput<K> \| undefined>` | Signal accessor for latest resolved data        |
+| `error`     | `Accessor<RpcError \| undefined>`    | Signal accessor for error from the most recent fetch |
+| `isLoading` | `Accessor<boolean>`                  | Signal — true while a fetch is in-flight           |
+| `isSuccess` | `Accessor<boolean>`                  | Memo — true after the first successful fetch       |
+| `isError`   | `Accessor<boolean>`                  | Memo — true when `error` is set                    |
+| `refetch`   | `() => Promise<void>`               | Manually trigger a refetch                         |
+
+### `createMutation`
+
+Wraps `client.mutate()` with reactive state:
+
+```typescript
+const createItem = createMutation(rpc, "create_item", {
+  onSuccess: (item) => console.log("created", item.id),
+});
+
+// Fire-and-forget
+createItem.mutate({ title: "New Item" });
+
+// Await the result
+const item = await createItem.mutateAsync({ title: "New Item" });
+```
+
+**`MutationResult<K>`:**
+
+| Property      | Type                                        | Description                                          |
+|---------------|---------------------------------------------|------------------------------------------------------|
+| `mutate`      | `(input) => Promise<void>`                 | Execute the mutation (void for void-input mutations) |
+| `mutateAsync` | `(input) => Promise<Output>`               | Execute and return the result                        |
+| `data`        | `Accessor<MutationOutput<K> \| undefined>` | Signal accessor for latest resolved data             |
+| `error`       | `Accessor<RpcError \| undefined>`          | Signal accessor for error from the most recent mutation |
+| `isLoading`   | `Accessor<boolean>`                        | Signal — true while a mutation is in-flight          |
+| `isSuccess`   | `Accessor<boolean>`                        | Memo — true after the most recent mutation succeeded |
+| `isError`     | `Accessor<boolean>`                        | Memo — true when `error` is set                      |
+| `reset`       | `() => void`                               | Reset state back to idle (batched update)            |
+
+See [RFC-10](../../docs/RFC/RFC-10.md) for the full design and implementation details.
 
 ## Related crates
 

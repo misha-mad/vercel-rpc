@@ -10,6 +10,8 @@
 //!   `useQuery`, `useMutation`).
 //! - [`vue`] — generates `rpc.vue.ts` (Vue 3 Composition API wrappers:
 //!   `useQuery`, `useMutation`).
+//! - [`solid`] — generates `rpc.solid.ts` (SolidJS reactive primitives:
+//!   `createQuery`, `createMutation`).
 
 /// Shorthand for `let _ = writeln!(...)` when writing to a `String` buffer.
 ///
@@ -27,4 +29,5 @@ pub mod client;
 pub mod react;
 pub mod svelte;
 pub mod typescript;
+pub mod solid;
 pub mod vue;

@@ -30,6 +30,7 @@ pub struct OutputConfig {
     pub svelte: Option<PathBuf>,
     pub react: Option<PathBuf>,
     pub vue: Option<PathBuf>,
+    pub solid: Option<PathBuf>,
     pub imports: ImportsConfig,
 }
 
@@ -89,6 +90,7 @@ impl Default for OutputConfig {
             svelte: None,
             react: None,
             vue: None,
+            solid: None,
             imports: ImportsConfig::default(),
         }
     }
@@ -156,6 +158,7 @@ pub struct CliOverrides {
     pub svelte_output: Option<PathBuf>,
     pub react_output: Option<PathBuf>,
     pub vue_output: Option<PathBuf>,
+    pub solid_output: Option<PathBuf>,
     pub types_import: Option<String>,
     pub extension: Option<String>,
     // codegen
@@ -204,6 +207,9 @@ pub fn resolve(cli: CliOverrides) -> Result<RpcConfig> {
     }
     if let Some(vue_output) = cli.vue_output {
         config.output.vue = Some(vue_output);
+    }
+    if let Some(solid_output) = cli.solid_output {
+        config.output.solid = Some(solid_output);
     }
     if let Some(types_import) = cli.types_import {
         config.output.imports.types_path = types_import;

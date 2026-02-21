@@ -144,6 +144,31 @@ pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
         }
     }
 
+    // Generate solid wrapper file (opt-in)
+    if let Some(solid_path) = &config.output.solid {
+        let client_stem = config
+            .output
+            .client
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
+        let solid_content = codegen::solid::generate_solid_file(
+            &manifest,
+            &client_import,
+            &config.output.imports.types_specifier(),
+            config.codegen.preserve_docs,
+        );
+        if !solid_content.is_empty() {
+            write_file(solid_path, &solid_content)?;
+            println!(
+                "Generated {} -> {}",
+                solid_path.display(),
+                bytecount(&solid_content),
+            );
+        }
+    }
+
     // Generate vue wrapper file (opt-in)
     if let Some(vue_path) = &config.output.vue {
         let client_stem = config

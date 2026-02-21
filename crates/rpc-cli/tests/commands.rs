@@ -442,3 +442,84 @@ async fn ping() -> String {
 
     assert!(!vue_path.exists());
 }
+
+#[test]
+fn cmd_generate_writes_solid_file() {
+    let tmp = TempDir::new().unwrap();
+    let api_dir = tmp.path().join("api");
+    fs::create_dir(&api_dir).unwrap();
+    fs::write(
+        api_dir.join("ping.rs"),
+        r#"
+#[rpc_query]
+async fn ping() -> String {
+    "pong".to_string()
+}
+"#,
+    )
+    .unwrap();
+
+    let types_path = tmp.path().join("out/rpc-types.ts");
+    let client_path = tmp.path().join("out/rpc-client.ts");
+    let solid_path = tmp.path().join("out/rpc.solid.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: api_dir,
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path,
+            client: client_path,
+            solid: Some(solid_path.clone()),
+            ..config::OutputConfig::default()
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_generate(&cfg).unwrap();
+
+    let solid = fs::read_to_string(&solid_path).unwrap();
+    assert!(solid.contains("createQuery"));
+    assert!(solid.contains("createSignal"));
+    assert!(solid.contains("createEffect"));
+}
+
+#[test]
+fn cmd_generate_skips_solid_when_not_configured() {
+    let tmp = TempDir::new().unwrap();
+    let api_dir = tmp.path().join("api");
+    fs::create_dir(&api_dir).unwrap();
+    fs::write(
+        api_dir.join("ping.rs"),
+        r#"
+#[rpc_query]
+async fn ping() -> String {
+    "pong".to_string()
+}
+"#,
+    )
+    .unwrap();
+
+    let types_path = tmp.path().join("out/rpc-types.ts");
+    let client_path = tmp.path().join("out/rpc-client.ts");
+    let solid_path = tmp.path().join("out/rpc.solid.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: api_dir,
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path,
+            client: client_path,
+            solid: None, // Not configured
+            ..config::OutputConfig::default()
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_generate(&cfg).unwrap();
+
+    assert!(!solid_path.exists());
+}
