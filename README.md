@@ -27,7 +27,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 
 - 🦀 **Write plain Rust functions** with `#[rpc_query]` / `#[rpc_mutation]`
 - 🔄 **Auto-generate TypeScript types & client** from Rust source code
-- ⚛️ **Framework hooks** — opt-in React (`useQuery`) and Svelte 5 (`createQuery`) wrappers
+- ⚛️ **Framework hooks** — opt-in React, Vue 3, and Svelte 5 reactive wrappers
 - 👀 **Watch mode** — types regenerate on every save
 - 🚀 **Deploy to Vercel** — each function becomes a serverless lambda
 - 🛡️ **End-to-end type safety** — Rust types → TypeScript types, no manual sync
@@ -40,6 +40,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 │  #[rpc_query]│   (syn)      │  procedures │   (rust→ts)  │  rpc-client.ts       │
 │  #[rpc_mut.] │              │  structs    │              │  rpc.svelte.ts (opt) │
 │              │              │             │              │  rpc.react.ts  (opt) │
+│              │              │             │              │  rpc.vue.ts    (opt) │
 └──────────────┘              └─────────────┘              └──────────────────────┘
        │                                                           │
        │  deploy (vercel)                              import (ts) │
@@ -83,7 +84,7 @@ npm run generate
 cargo run -p vercel-rpc-cli -- generate --dir api --output demo/src/lib/rpc-types.ts --client-output demo/src/lib/rpc-client.ts
 ```
 
-This produces two files (plus optional framework wrappers — see [Svelte 5](#svelte-5-reactive-wrappers-opt-in) and [React](#react-hooks-opt-in) below):
+This produces two files (plus optional framework wrappers — see [Svelte 5](#svelte-5-reactive-wrappers-opt-in), [React](#react-hooks-opt-in), and [Vue 3](#vue-3-composables-opt-in) below):
 
 **`src/lib/rpc-types.ts`** — type definitions:
 ```typescript
@@ -195,6 +196,7 @@ cargo run -p vercel-rpc-cli -- generate \
 | `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path                       |
 | `--svelte-output`       | *(none)*                | Svelte 5 wrapper output path (opt-in)    |
 | `--react-output`        | *(none)*                | React hooks output path (opt-in)         |
+| `--vue-output`          | *(none)*                | Vue 3 composable output path (opt-in)    |
 | `--types-import`        | `./rpc-types`           | Import path for types in client          |
 | `--config`              | *(auto-discover)*       | Path to config file                      |
 | `--no-config`           | `false`                 | Disable config file loading              |
@@ -224,6 +226,7 @@ types = "src/lib/rpc-types.ts"
 client = "src/lib/rpc-client.ts"
 svelte = "src/lib/rpc.svelte.ts"  # opt-in Svelte 5 wrappers
 # react = "src/lib/rpc.react.ts" # opt-in React hooks
+# vue   = "src/lib/rpc.vue.ts"   # opt-in Vue 3 composables
 
 [output.imports]
 types_path = "./rpc-types"
@@ -496,6 +499,42 @@ function UserProfile() {
 ```
 
 See the [rpc-cli README](./crates/rpc-cli/README.md#react-hooks) and [RFC-8](./docs/RFC/RFC-8.md) for full API details.
+
+### Vue 3 composables (opt-in)
+
+When `output.vue` is configured, the CLI generates a `.ts` file with `useQuery` and `useMutation` composables that wrap the `RpcClient` with Vue 3 Composition API (`ref`, `computed`, `watch`):
+
+```toml
+# rpc.config.toml
+[output]
+vue = "src/lib/rpc.vue.ts"
+```
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { rpc } from './rpc';
+import { useQuery, useMutation } from './rpc.vue';
+
+const userId = ref(1);
+
+// Reactive query — auto-refetches when input changes
+const user = useQuery(rpc, "get_user", () => ({ id: userId.value }));
+
+// Mutation with lifecycle callbacks
+const updateName = useMutation(rpc, "update_profile", {
+  onSuccess: () => alert("Saved!"),
+});
+</script>
+
+<template>
+  <Spinner v-if="user.isLoading" />
+  <ErrorBanner v-else-if="user.isError" :error="user.error" />
+  <p v-else>Hello, {{ user.data?.name }}</p>
+</template>
+```
+
+See the [rpc-cli README](./crates/rpc-cli/README.md#vue-3-composables) and [RFC-9](./docs/RFC/RFC-9.md) for full API details.
 
 ## Rust Macros
 

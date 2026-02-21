@@ -161,6 +161,7 @@ async fn ping() -> String {
             types: types_path.clone(),
             client: client_path.clone(),
             svelte: None,
+            vue: None,
             ..config::OutputConfig::default()
         },
         ..config::RpcConfig::default()
@@ -190,6 +191,7 @@ fn cmd_generate_empty_dir_errors() {
             types: types_path,
             client: client_path,
             svelte: None,
+            vue: None,
             ..config::OutputConfig::default()
         },
         ..config::RpcConfig::default()
@@ -358,4 +360,85 @@ async fn ping() -> String {
     cmd_generate(&cfg).unwrap();
 
     assert!(!react_path.exists());
+}
+
+#[test]
+fn cmd_generate_writes_vue_file() {
+    let tmp = TempDir::new().unwrap();
+    let api_dir = tmp.path().join("api");
+    fs::create_dir(&api_dir).unwrap();
+    fs::write(
+        api_dir.join("ping.rs"),
+        r#"
+#[rpc_query]
+async fn ping() -> String {
+    "pong".to_string()
+}
+"#,
+    )
+    .unwrap();
+
+    let types_path = tmp.path().join("out/rpc-types.ts");
+    let client_path = tmp.path().join("out/rpc-client.ts");
+    let vue_path = tmp.path().join("out/rpc.vue.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: api_dir,
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path,
+            client: client_path,
+            vue: Some(vue_path.clone()),
+            ..config::OutputConfig::default()
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_generate(&cfg).unwrap();
+
+    let vue = fs::read_to_string(&vue_path).unwrap();
+    assert!(vue.contains("useQuery"));
+    assert!(vue.contains("watch("));
+    assert!(vue.contains("onScopeDispose"));
+}
+
+#[test]
+fn cmd_generate_skips_vue_when_not_configured() {
+    let tmp = TempDir::new().unwrap();
+    let api_dir = tmp.path().join("api");
+    fs::create_dir(&api_dir).unwrap();
+    fs::write(
+        api_dir.join("ping.rs"),
+        r#"
+#[rpc_query]
+async fn ping() -> String {
+    "pong".to_string()
+}
+"#,
+    )
+    .unwrap();
+
+    let types_path = tmp.path().join("out/rpc-types.ts");
+    let client_path = tmp.path().join("out/rpc-client.ts");
+    let vue_path = tmp.path().join("out/rpc.vue.ts");
+
+    let cfg = config::RpcConfig {
+        input: config::InputConfig {
+            dir: api_dir,
+            include: vec!["**/*.rs".into()],
+            exclude: vec![],
+        },
+        output: config::OutputConfig {
+            types: types_path,
+            client: client_path,
+            vue: None, // Not configured
+            ..config::OutputConfig::default()
+        },
+        ..config::RpcConfig::default()
+    };
+    cmd_generate(&cfg).unwrap();
+
+    assert!(!vue_path.exists());
 }

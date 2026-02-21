@@ -152,6 +152,25 @@ fn generate(config: &RpcConfig) -> Result<()> {
         }
     }
 
+    if let Some(vue_path) = &config.output.vue {
+        let client_stem = config
+            .output
+            .client
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
+        let vue_content = codegen::vue::generate_vue_file(
+            &manifest,
+            &client_import,
+            &config.output.imports.types_specifier(),
+            config.codegen.preserve_docs,
+        );
+        if !vue_content.is_empty() {
+            write_file(vue_path, &vue_content)?;
+        }
+    }
+
     let elapsed = start.elapsed();
     let proc_count = manifest.procedures.len();
     let struct_count = manifest.structs.len();
@@ -187,6 +206,13 @@ fn generate(config: &RpcConfig) -> Result<()> {
             react.display().to_string().dimmed(),
         );
     }
+    if let Some(vue) = &config.output.vue {
+        println!(
+            "    {} {}",
+            "→".dimmed(),
+            vue.display().to_string().dimmed(),
+        );
+    }
 
     Ok(())
 }
@@ -207,6 +233,9 @@ fn print_banner(config: &RpcConfig) {
     }
     if let Some(react) = &config.output.react {
         println!("  {} {}", "react:".dimmed(), react.display(),);
+    }
+    if let Some(vue) = &config.output.vue {
+        println!("  {} {}", "vue:".dimmed(), vue.display(),);
     }
     println!();
 }

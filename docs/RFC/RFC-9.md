@@ -1,6 +1,6 @@
 # RFC-9: Vue 3 Reactive Wrappers
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Generated Vue 3 composables for queries and mutations
 - **Date:** February 2026
 
@@ -545,16 +545,16 @@ export function useMutation<K extends MutationKey>(
 
 ### 7.5 Vue vs React vs Svelte Comparison
 
-| Aspect              | Vue 3                     | React                     | Svelte 5                  |
-|----------------------|---------------------------|---------------------------|---------------------------|
-| State primitive      | `ref()`                   | `useState()`              | `$state()`                |
-| Side effects         | `watch()`                 | `useEffect()`             | `$effect()`               |
-| Input parameter      | `() => value` (getter)    | `value` (plain)           | `() => value` (getter)    |
-| `enabled`            | `boolean \| () => boolean` | `boolean`                 | `boolean \| () => boolean` |
-| Cleanup              | `onUnmounted()`           | `useEffect` return        | `$effect` return          |
-| Dependency tracking  | Automatic (proxy-based)   | Manual (deps array)       | Automatic (compiler)      |
-| File extension       | `.ts`                     | `.ts`                     | `.svelte.ts`              |
-| Hook/composable name | `useQuery`                | `useQuery`                | `createQuery`             |
+| Aspect               | Vue 3                      | React               | Svelte 5                   |
+|----------------------|----------------------------|---------------------|----------------------------|
+| State primitive      | `ref()`                    | `useState()`        | `$state()`                 |
+| Side effects         | `watch()`                  | `useEffect()`       | `$effect()`                |
+| Input parameter      | `() => value` (getter)     | `value` (plain)     | `() => value` (getter)     |
+| `enabled`            | `boolean \| () => boolean` | `boolean`           | `boolean \| () => boolean` |
+| Cleanup              | `onUnmounted()`            | `useEffect` return  | `$effect` return           |
+| Dependency tracking  | Automatic (proxy-based)    | Manual (deps array) | Automatic (compiler)       |
+| File extension       | `.ts`                      | `.ts`               | `.svelte.ts`               |
+| Hook/composable name | `useQuery`                 | `useQuery`          | `createQuery`              |
 
 ## 8. Codegen Changes
 
@@ -602,28 +602,28 @@ pub fn generate_vue_file(
 
 ### Unit Tests
 
-| Test                                    | Description                                                        |
-|-----------------------------------------|--------------------------------------------------------------------|
-| `vue_imports_client_and_types`          | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures`|
-| `vue_imports_vue`                       | Output imports `ref`, `watch`, `onUnmounted` from `"vue"`          |
-| `vue_contains_use_query`               | Output contains `useQuery` function                                |
-| `vue_contains_use_mutation`            | Output contains `useMutation` function                             |
-| `vue_void_query_no_input_overload`     | Void-input queries have overload without `input` parameter         |
-| `vue_non_void_query_input_getter`      | Non-void queries take `input: () => QueryInput<K>`                 |
-| `vue_queries_only_no_mutation`         | Queries-only manifest omits `useMutation`                          |
-| `vue_mutations_only_no_query`          | Mutations-only manifest omits `useQuery`                           |
-| `vue_empty_manifest_not_generated`     | Empty manifest produces empty string                               |
-| `vue_uses_ref`                         | Output contains `ref(` calls                                       |
-| `vue_uses_watch`                       | Output contains `watch(` call                                      |
-| `vue_uses_on_unmounted`               | Output contains `onUnmounted` call                                 |
-| `vue_enabled_accepts_getter`           | `enabled` option typed as `boolean \| (() => boolean)`             |
-| `vue_refetch_interval_cleanup`         | Watch callback clears interval on re-run                           |
-| `vue_mutation_has_reset`               | `MutationResult` includes `reset` method                           |
-| `vue_mutation_has_mutate_async`        | `MutationResult` includes `mutateAsync` method                     |
-| `vue_custom_import_paths`              | Custom import paths are used in generated imports                  |
-| `snapshot_vue_full`                    | Insta snapshot with mixed queries and mutations                    |
-| `snapshot_vue_queries_only`            | Insta snapshot with queries only                                   |
-| `snapshot_vue_mutations_only`          | Insta snapshot with mutations only                                 |
+| Test                               | Description                                                         |
+|------------------------------------|---------------------------------------------------------------------|
+| `vue_imports_client_and_types`     | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures` |
+| `vue_imports_vue`                  | Output imports `ref`, `watch`, `onUnmounted` from `"vue"`           |
+| `vue_contains_use_query`           | Output contains `useQuery` function                                 |
+| `vue_contains_use_mutation`        | Output contains `useMutation` function                              |
+| `vue_void_query_no_input_overload` | Void-input queries have overload without `input` parameter          |
+| `vue_non_void_query_input_getter`  | Non-void queries take `input: () => QueryInput<K>`                  |
+| `vue_queries_only_no_mutation`     | Queries-only manifest omits `useMutation`                           |
+| `vue_mutations_only_no_query`      | Mutations-only manifest omits `useQuery`                            |
+| `vue_empty_manifest_not_generated` | Empty manifest produces empty string                                |
+| `vue_uses_ref`                     | Output contains `ref(` calls                                        |
+| `vue_uses_watch`                   | Output contains `watch(` call                                       |
+| `vue_uses_on_unmounted`            | Output contains `onUnmounted` call                                  |
+| `vue_enabled_accepts_getter`       | `enabled` option typed as `boolean \| (() => boolean)`              |
+| `vue_refetch_interval_cleanup`     | Watch callback clears interval on re-run                            |
+| `vue_mutation_has_reset`           | `MutationResult` includes `reset` method                            |
+| `vue_mutation_has_mutate_async`    | `MutationResult` includes `mutateAsync` method                      |
+| `vue_custom_import_paths`          | Custom import paths are used in generated imports                   |
+| `snapshot_vue_full`                | Insta snapshot with mixed queries and mutations                     |
+| `snapshot_vue_queries_only`        | Insta snapshot with queries only                                    |
+| `snapshot_vue_mutations_only`      | Insta snapshot with mutations only                                  |
 
 ### Config Tests
 
@@ -640,7 +640,27 @@ pub fn generate_vue_file(
 - The generated `rpc-client.ts` and `rpc-types.ts` are unchanged.
 - The existing Svelte and React wrappers are unaffected.
 
-## 11. Future Extensions
+## 11. Implementation Notes
+
+The following deviations from the original draft were made during implementation based on code review:
+
+### 11.1 `computed()` for `isSuccess` / `isError`
+
+The draft specified `isSuccess` and `isError` as plain object getters (`get isSuccess() { ... }`). In the implementation, these are `computed()` refs returning `ComputedRef<boolean>`. Plain getters lose reactivity in Vue templates — only `Ref` and `ComputedRef` values trigger re-renders when used in `<template>`.
+
+### 11.2 `onScopeDispose` instead of `onUnmounted`
+
+The draft used `onUnmounted()` for cleanup. The implementation uses `onScopeDispose()` instead, which works with any Vue effect scope (not just component lifecycles). This is more flexible — composables can be used in `effectScope()` contexts outside of components.
+
+### 11.3 `JSON.stringify` instead of `deep: true`
+
+The draft used `watch(..., { immediate: true, deep: true })` for reactive input tracking. The implementation replaces `deep: true` with a `serialized: JSON.stringify(input)` field in the watch source. This avoids expensive deep object comparison and uses string equality instead.
+
+### 11.4 Typed watch callback
+
+The watch callback destructures `{ enabled, input }` with an explicit type annotation `{ enabled: boolean; input: QueryInput<K> | undefined; serialized: string }` to avoid TypeScript implicit-any errors (TS7031).
+
+## 12. Future Extensions
 
 - **`useInfiniteQuery`** — cursor/offset-based pagination with accumulated `pages` ref.
 - **Suspense integration** — Vue 3 `<Suspense>` support via async setup.

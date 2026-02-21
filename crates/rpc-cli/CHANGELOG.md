@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- *(rpc-cli)* add Vue 3 composables codegen with `useQuery` and `useMutation` (RFC-9)
+- *(rpc-cli)* add `--vue-output` CLI flag and `output.vue` config field
 - *(rpc-cli)* add React hooks wrapper codegen with `useQuery` and `useMutation` (RFC-8)
 - *(rpc-cli)* add `--react-output` CLI flag and `output.react` config field
 
