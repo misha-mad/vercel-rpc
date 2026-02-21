@@ -46,10 +46,10 @@ const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends Q
   readonly isLoading: Ref<boolean>;
 
   /** True after the first successful fetch. Stays true across refetches. */
-  readonly isSuccess: boolean;
+  readonly isSuccess: ComputedRef<boolean>;
 
   /** True when the most recent fetch failed. */
-  readonly isError: boolean;
+  readonly isError: ComputedRef<boolean>;
 
   /** Manually trigger a refetch. */
   refetch: () => Promise<void>;
@@ -86,10 +86,10 @@ const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K ext
   readonly isLoading: Ref<boolean>;
 
   /** True after the most recent mutation succeeded. */
-  readonly isSuccess: boolean;
+  readonly isSuccess: ComputedRef<boolean>;
 
   /** True when the most recent mutation failed. */
-  readonly isError: boolean;
+  readonly isError: ComputedRef<boolean>;
 
   /** Reset state back to idle (clear data, error, status). */
   reset: () => void;
@@ -112,6 +112,8 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   const error = ref<RpcError | undefined>();
   const hasFetched = ref(false);
   const isLoading = ref(false);
+  const isSuccess = computed(() => hasFetched.value && error.value === undefined);
+  const isError = computed(() => error.value !== undefined);
 
   async function fetchData(input?: QueryInput<K>) {
     isLoading.value = true;
@@ -142,19 +144,19 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
         ? options.enabled()
         : (options?.enabled ?? true);
       const input = inputFn?.();
-      return { enabled, input };
+      return { enabled, serialized: JSON.stringify(input) };
     },
-    ({ enabled, input }) => {
+    ({ enabled }) => {
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
       if (!enabled) return;
 
-      void fetchData(input);
+      void fetchData(inputFn?.());
 
       if (options?.refetchInterval) {
         intervalId = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
       }
     },
-    { immediate: true, deep: true },
+    { immediate: true },
   );
 
   onScopeDispose(() => {
@@ -166,8 +168,8 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     data,
     error,
     isLoading,
-    get isSuccess() { return hasFetched.value && error.value === undefined; },
-    get isError() { return error.value !== undefined; },
+    isSuccess,
+    isError,
     refetch: () => fetchData(inputFn?.()),
   };
 }"#;
@@ -181,6 +183,8 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
   const error = ref<RpcError | undefined>();
   const isLoading = ref(false);
   const hasSucceeded = ref(false);
+  const isSuccess = computed(() => hasSucceeded.value && error.value === undefined);
+  const isError = computed(() => error.value !== undefined);
 
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
     isLoading.value = true;
@@ -213,8 +217,8 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
     data,
     error,
     isLoading,
-    get isSuccess() { return hasSucceeded.value && error.value === undefined; },
-    get isError() { return error.value !== undefined; },
+    isSuccess,
+    isError,
     reset: () => { data.value = undefined; error.value = undefined; isLoading.value = false; hasSucceeded.value = false; },
   };
 }"#;
@@ -256,7 +260,7 @@ pub fn generate_vue_file(
     // Vue imports
     emit!(
         out,
-        "import {{ ref, watch, onScopeDispose, type Ref }} from \"vue\";\n"
+        "import {{ ref, computed, watch, onScopeDispose, type Ref, type ComputedRef }} from \"vue\";\n"
     );
 
     // Imports from client

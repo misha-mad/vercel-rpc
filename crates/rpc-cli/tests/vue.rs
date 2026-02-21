@@ -24,7 +24,8 @@ fn vue_imports_client_and_types() {
 fn vue_imports_vue() {
     let manifest = common::make_test_manifest();
     let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("import { ref, watch, onScopeDispose, type Ref } from \"vue\""));
+    assert!(output
+        .contains("import { ref, computed, watch, onScopeDispose, type Ref, type ComputedRef } from \"vue\""));
 }
 
 #[test]
@@ -108,6 +109,17 @@ fn vue_contains_mutation_result() {
 // --- Vue reactivity ---
 
 #[test]
+fn vue_uses_computed() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("computed("));
+}
+
+#[test]
 fn vue_uses_ref() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
@@ -151,6 +163,8 @@ fn vue_query_result_uses_ref_type() {
     assert!(output.contains("readonly data: Ref<QueryOutput<K> | undefined>"));
     assert!(output.contains("readonly error: Ref<RpcError | undefined>"));
     assert!(output.contains("readonly isLoading: Ref<boolean>"));
+    assert!(output.contains("readonly isSuccess: ComputedRef<boolean>"));
+    assert!(output.contains("readonly isError: ComputedRef<boolean>"));
 }
 
 // --- Void/non-void ---
@@ -361,6 +375,20 @@ fn vue_void_mutation_key() {
     )]);
     let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type VoidMutationKey = \"reset\""));
+}
+
+// --- Watch uses JSON.stringify instead of deep: true ---
+
+#[test]
+fn vue_watch_uses_serialized_input() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("JSON.stringify(input)"));
+    assert!(!output.contains("deep: true"));
 }
 
 // --- Vue-specific: enabled supports getter ---
