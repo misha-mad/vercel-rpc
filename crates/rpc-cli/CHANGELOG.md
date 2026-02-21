@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.2.1...vercel-rpc-cli-v0.2.2) - 2026-02-21
+
+### Added
+
+- *(rpc-cli)* implement request deduplication for queries (RFC-6)
+- *(rpc-cli)* implement per-call options for query/mutate (RFC-5)
+
+### Other
+
+- *(rpc-cli, rpc-macro)* apply architecture audit improvements
+- *(rpc, rpc-cli)* document per-call options and request deduplication
+
 ## [0.2.1](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.2.0...vercel-rpc-cli-v0.2.1) - 2026-02-20
 
 ### Added
