@@ -27,7 +27,7 @@ macro_rules! emit {
 
 pub mod client;
 pub mod react;
+pub mod solid;
 pub mod svelte;
 pub mod typescript;
-pub mod solid;
 pub mod vue;

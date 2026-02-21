@@ -602,33 +602,33 @@ pub fn generate_solid_file(
 
 ### Unit Tests
 
-| Test                                 | Description                                                                  |
-|--------------------------------------|------------------------------------------------------------------------------|
-| `solid_imports_client_and_types`     | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures`          |
+| Test                                 | Description                                                                                         |
+|--------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `solid_imports_client_and_types`     | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures`                                 |
 | `solid_imports_solid`                | Output imports `createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch` from `"solid-js"` |
-| `solid_contains_create_query`        | Output contains `createQuery` function                                       |
-| `solid_contains_create_mutation`     | Output contains `createMutation` function                                    |
-| `solid_void_query_no_input_overload` | Void-input queries have overload without `input` parameter                   |
-| `solid_non_void_query_input_getter`  | Non-void queries take `input: () => QueryInput<K>`                           |
-| `solid_queries_only_no_mutation`     | Queries-only manifest omits `createMutation`                                 |
-| `solid_mutations_only_no_query`      | Mutations-only manifest omits `createQuery`                                  |
-| `solid_empty_manifest_not_generated` | Empty manifest produces empty string                                         |
-| `solid_uses_create_signal`           | Output contains `createSignal(` calls                                        |
-| `solid_uses_create_effect`           | Output contains `createEffect(` call                                         |
-| `solid_uses_on_cleanup`              | Output contains `onCleanup(` call                                            |
-| `solid_accessor_return_type`         | `QueryResult` uses `() => T` accessor pattern, not plain `T`                 |
-| `solid_enabled_accepts_getter`       | `enabled` option typed as `boolean \| (() => boolean)`                       |
-| `solid_refetch_interval_cleanup`     | `onCleanup` clears interval inside `createEffect`                            |
-| `solid_mutation_has_reset`           | `MutationResult` includes `reset` method                                     |
-| `solid_mutation_has_mutate_async`    | `MutationResult` includes `mutateAsync` method                               |
-| `solid_custom_import_paths`          | Custom import paths are used in generated imports                            |
-| `solid_uses_create_memo_for_derived` | `isSuccess`/`isError` use `createMemo()` for cached derived state            |
-| `solid_reset_uses_batch`            | `reset()` wraps signal updates in `batch()`                                  |
-| `solid_is_loading_initial_true`     | `isLoading` starts `true` when enabled, avoids UI flash                      |
-| `solid_set_data_uses_direct_value`  | `setData(result)` uses direct value, not updater function form               |
-| `snapshot_solid_full`                | Insta snapshot with mixed queries and mutations                              |
-| `snapshot_solid_queries_only`        | Insta snapshot with queries only                                             |
-| `snapshot_solid_mutations_only`      | Insta snapshot with mutations only                                           |
+| `solid_contains_create_query`        | Output contains `createQuery` function                                                              |
+| `solid_contains_create_mutation`     | Output contains `createMutation` function                                                           |
+| `solid_void_query_no_input_overload` | Void-input queries have overload without `input` parameter                                          |
+| `solid_non_void_query_input_getter`  | Non-void queries take `input: () => QueryInput<K>`                                                  |
+| `solid_queries_only_no_mutation`     | Queries-only manifest omits `createMutation`                                                        |
+| `solid_mutations_only_no_query`      | Mutations-only manifest omits `createQuery`                                                         |
+| `solid_empty_manifest_not_generated` | Empty manifest produces empty string                                                                |
+| `solid_uses_create_signal`           | Output contains `createSignal(` calls                                                               |
+| `solid_uses_create_effect`           | Output contains `createEffect(` call                                                                |
+| `solid_uses_on_cleanup`              | Output contains `onCleanup(` call                                                                   |
+| `solid_accessor_return_type`         | `QueryResult` uses `() => T` accessor pattern, not plain `T`                                        |
+| `solid_enabled_accepts_getter`       | `enabled` option typed as `boolean \| (() => boolean)`                                              |
+| `solid_refetch_interval_cleanup`     | `onCleanup` clears interval inside `createEffect`                                                   |
+| `solid_mutation_has_reset`           | `MutationResult` includes `reset` method                                                            |
+| `solid_mutation_has_mutate_async`    | `MutationResult` includes `mutateAsync` method                                                      |
+| `solid_custom_import_paths`          | Custom import paths are used in generated imports                                                   |
+| `solid_uses_create_memo_for_derived` | `isSuccess`/`isError` use `createMemo()` for cached derived state                                   |
+| `solid_reset_uses_batch`             | `reset()` wraps signal updates in `batch()`                                                         |
+| `solid_is_loading_initial_true`      | `isLoading` starts `true` when enabled, avoids UI flash                                             |
+| `solid_set_data_uses_direct_value`   | `setData(result)` uses direct value, not updater function form                                      |
+| `snapshot_solid_full`                | Insta snapshot with mixed queries and mutations                                                     |
+| `snapshot_solid_queries_only`        | Insta snapshot with queries only                                                                    |
+| `snapshot_solid_mutations_only`      | Insta snapshot with mutations only                                                                  |
 
 ### Config Tests
 

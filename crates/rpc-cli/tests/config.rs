@@ -443,8 +443,5 @@ fn test_cli_solid_override() {
         ..CliOverrides::default()
     };
     let config = resolve(overrides).unwrap();
-    assert_eq!(
-        config.output.solid,
-        Some(PathBuf::from("custom.solid.ts"))
-    );
+    assert_eq!(config.output.solid, Some(PathBuf::from("custom.solid.ts")));
 }
