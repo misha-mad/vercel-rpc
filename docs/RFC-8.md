@@ -171,6 +171,8 @@ interface QueryOptions<K extends QueryKey> {
 #### `QueryResult<K>`
 
 ```typescript
+type QueryStatus = "idle" | "loading" | "success" | "error";
+
 interface QueryResult<K extends QueryKey> {
   /** The latest successfully resolved data, or placeholderData. */
   readonly data: QueryOutput<K> | undefined;
@@ -178,14 +180,20 @@ interface QueryResult<K extends QueryKey> {
   /** The error from the most recent failed fetch, cleared on success. */
   readonly error: RpcError | undefined;
 
+  /** Current status of the query state machine. */
+  readonly status: QueryStatus;
+
   /** True while a fetch is in-flight (including the initial fetch). */
   readonly isLoading: boolean;
 
   /** True after the first successful fetch. Stays true across refetches. */
   readonly isSuccess: boolean;
 
-  /** True when error is set. */
+  /** True when the most recent fetch failed. */
   readonly isError: boolean;
+
+  /** True when placeholderData is being shown and no real fetch has completed yet. */
+  readonly isPlaceholderData: boolean;
 
   /** Manually trigger a refetch. */
   refetch: () => Promise<void>;
@@ -225,6 +233,8 @@ interface MutationOptions<K extends MutationKey> {
 For mutations with input (non-void):
 
 ```typescript
+type MutationStatus = "idle" | "loading" | "success" | "error";
+
 interface MutationResult<K extends MutationKey> {
   /** Execute the mutation with the given input. Rejects on error. */
   mutate: (input: MutationInput<K>) => Promise<void>;
@@ -238,13 +248,16 @@ interface MutationResult<K extends MutationKey> {
   /** The error from the most recent failed mutation, cleared on next attempt. */
   readonly error: RpcError | undefined;
 
+  /** Current status of the mutation state machine. */
+  readonly status: MutationStatus;
+
   /** True while a mutation is in-flight. */
   readonly isLoading: boolean;
 
   /** True after the most recent mutation succeeded. */
   readonly isSuccess: boolean;
 
-  /** True when error is set. */
+  /** True when the most recent mutation failed. */
   readonly isError: boolean;
 
   /** Reset state back to idle (clear data, error, status). */
@@ -417,7 +430,7 @@ export function useQuery<K extends QueryKey>(
     options?.placeholderData,
   );
   const [error, setError] = useState<RpcError | undefined>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState<QueryStatus>("idle");
 
   // Stable refs for callbacks to avoid re-triggering effects
   const optionsRef = useRef(options);
@@ -428,19 +441,20 @@ export function useQuery<K extends QueryKey>(
     const enabled = opts?.enabled ?? true;
     if (!enabled) return;
 
-    setIsLoading(true);
+    setStatus("loading");
     setError(undefined);
     try {
       const result = await client.query(key, ...(input !== undefined ? [input] : []),
         ...(opts?.callOptions ? [opts.callOptions] : [])) as QueryOutput<K>;
       setData(result);
+      setStatus("success");
       opts?.onSuccess?.(result);
     } catch (e) {
       const err = e as RpcError;
       setError(err);
+      setStatus("error");
       opts?.onError?.(err);
     } finally {
-      setIsLoading(false);
       opts?.onSettled?.();
     }
   }, [client, key, JSON.stringify(input)]);
@@ -460,9 +474,11 @@ export function useQuery<K extends QueryKey>(
   return {
     data,
     error,
-    isLoading,
-    isSuccess: data !== undefined,
-    isError: error !== undefined,
+    status,
+    isLoading: status === "loading",
+    isSuccess: status === "success",
+    isError: status === "error",
+    isPlaceholderData: status !== "success" && data !== undefined,
     refetch: fetch,
   };
 }
@@ -478,7 +494,7 @@ export function useMutation<K extends MutationKey>(
 ): MutationResult<K> {
   const [data, setData] = useState<MutationOutput<K> | undefined>();
   const [error, setError] = useState<RpcError | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<MutationStatus>("idle");
 
   // Stable ref for callbacks
   const optionsRef = useRef(options);
@@ -487,21 +503,22 @@ export function useMutation<K extends MutationKey>(
   const execute = useCallback(
     async (input?: MutationInput<K>): Promise<MutationOutput<K>> => {
       const opts = optionsRef.current;
-      setIsLoading(true);
+      setStatus("loading");
       setError(undefined);
       try {
         const result = await client.mutate(key, ...(input !== undefined ? [input] : []),
           ...(opts?.callOptions ? [opts.callOptions] : [])) as MutationOutput<K>;
         setData(result);
+        setStatus("success");
         opts?.onSuccess?.(result);
         return result;
       } catch (e) {
         const err = e as RpcError;
         setError(err);
+        setStatus("error");
         opts?.onError?.(err);
         throw e;
       } finally {
-        setIsLoading(false);
         opts?.onSettled?.();
       }
     },
@@ -511,7 +528,7 @@ export function useMutation<K extends MutationKey>(
   const reset = useCallback(() => {
     setData(undefined);
     setError(undefined);
-    setIsLoading(false);
+    setStatus("idle");
   }, []);
 
   return {
@@ -519,9 +536,10 @@ export function useMutation<K extends MutationKey>(
     mutateAsync: (input?: MutationInput<K>) => execute(input),
     data,
     error,
-    isLoading,
-    isSuccess: data !== undefined && error === undefined,
-    isError: error !== undefined,
+    status,
+    isLoading: status === "loading",
+    isSuccess: status === "success",
+    isError: status === "error",
     reset,
   };
 }
@@ -529,14 +547,16 @@ export function useMutation<K extends MutationKey>(
 
 ### 7.4 Reactivity Model
 
-| Feature                      | Mechanism                                                          |
-|------------------------------|--------------------------------------------------------------------|
-| `data`, `error`, `isLoading` | `useState` — triggers re-render on change                          |
-| `isSuccess`, `isError`       | Derived inline each render — plain boolean expressions             |
-| Auto-refetch on input change | `useEffect` with `JSON.stringify(input)` in `useCallback` deps     |
-| `enabled` flag               | Checked in `useEffect` deps — plain boolean, no getter needed      |
-| Polling cleanup              | `useEffect` returns cleanup function for `clearInterval`           |
-| Stable callbacks             | `useCallback` for `fetch`/`execute`/`reset`; `useRef` for options  |
+| Feature                      | Mechanism                                                              |
+|------------------------------|------------------------------------------------------------------------|
+| `data`, `error`              | `useState` — triggers re-render on change                              |
+| `status`                     | `useState<Status>` — single enum for the state machine                 |
+| `isLoading`, `isSuccess`, …  | Derived inline: `status === "loading"`, `status === "success"`, etc.   |
+| `isPlaceholderData`          | `status !== "success" && data !== undefined` — true only before fetch  |
+| Auto-refetch on input change | `useEffect` with `JSON.stringify(input)` in `useCallback` deps         |
+| `enabled` flag               | Checked in `useEffect` deps — plain boolean, no getter needed          |
+| Polling cleanup              | `useEffect` returns cleanup function for `clearInterval`               |
+| Stable callbacks             | `useCallback` for `fetch`/`execute`/`reset`; `useRef` for options      |
 
 ### 7.5 `JSON.stringify` for Input Dependencies
 
@@ -686,6 +706,10 @@ Register the new CLI flag:
 | `react_queries_only_no_mutation`         | Queries-only manifest omits `useMutation`                           |
 | `react_mutations_only_no_query`          | Mutations-only manifest omits `useQuery`                            |
 | `react_empty_manifest_not_generated`     | Empty manifest produces empty string                                |
+| `react_query_status_enum`                | Output contains `QueryStatus` type with idle/loading/success/error  |
+| `react_mutation_status_enum`             | Output contains `MutationStatus` type with idle/loading/success/error |
+| `react_query_result_has_is_placeholder`  | `QueryResult` includes `isPlaceholderData` boolean field            |
+| `react_status_derives_booleans`          | `isLoading`/`isSuccess`/`isError` derived from `status` comparisons |
 | `react_uses_use_state`                   | Output contains `useState` calls                                    |
 | `react_uses_use_effect`                  | Output contains `useEffect` call                                    |
 | `react_uses_use_callback`                | Output contains `useCallback` calls                                 |
