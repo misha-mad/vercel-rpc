@@ -50,6 +50,32 @@ This document outlines the planned features and improvements for vercel-rpc, org
 >
 > **React** — Implemented in RFC-8. Optional hook file (`rpc.react.ts`) with `useQuery` and `useMutation` hooks that wrap `RpcClient` with `useState` / `useEffect`. Opt-in via `output.react` config field or `--react-output` CLI flag.
 
+### Query Race Condition Handling (AbortController)
+
+When input changes rapidly (e.g. `userId: 1 → 2 → 3`), multiple fetch requests fire in parallel and responses may arrive out of order. A late response from an earlier input can overwrite the correct data:
+
+```typescript
+// userId changes: 1 → 2 → 3
+// Requests fire in parallel, responses may arrive: 3, 1, 2
+// setData(user2) overwrites the correct user3
+```
+
+The fix is to abort stale requests via `AbortController` in the `useEffect`/`$effect` cleanup:
+
+```typescript
+const fetchData = useCallback(async (signal: AbortSignal) => {
+  // ... pass signal via callOptions
+}, [...]);
+
+useEffect(() => {
+  const controller = new AbortController();
+  fetchData(controller.signal);
+  return () => controller.abort();
+}, [fetchData]);
+```
+
+This is a known pattern — TanStack Query also didn't ship abort-on-stale in early versions. The current implementation is sufficient for most use cases.
+
 ### Serde Enum Representations
 
 Serde supports four enum tagging strategies. Currently, only the default (externally tagged) is handled.
