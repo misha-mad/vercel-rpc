@@ -74,6 +74,7 @@ const CONFIG_INTERFACE: &str = r#"export interface RpcClientConfig {
   deserialize?: (text: string) => unknown;
   // AbortSignal for cancelling all requests made by this client.
   signal?: AbortSignal;
+  dedupe?: boolean;
 }"#;
 
 /// Per-call options that override client-level defaults for a single request.
@@ -81,6 +82,31 @@ const CALL_OPTIONS_INTERFACE: &str = r#"export interface CallOptions {
   headers?: Record<string, string>;
   timeout?: number;
   signal?: AbortSignal;
+  dedupe?: boolean;
+}"#;
+
+/// Computes a dedup map key from procedure name and serialized input.
+const DEDUP_KEY_FN: &str = r#"function dedupKey(procedure: string, input: unknown, config: RpcClientConfig): string {
+  const serialized = input === undefined
+    ? ""
+    : config.serialize
+      ? config.serialize(input)
+      : JSON.stringify(input);
+  return procedure + ":" + serialized;
+}"#;
+
+/// Wraps a shared promise so that a per-caller AbortSignal can reject independently.
+const WRAP_WITH_SIGNAL_FN: &str = r#"function wrapWithSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(signal.reason);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => { signal.removeEventListener("abort", onAbort); resolve(value); },
+      (error) => { signal.removeEventListener("abort", onAbort); reject(error); },
+    );
+  });
 }"#;
 
 /// Internal fetch helper shared by query and mutate methods.
@@ -239,6 +265,16 @@ pub fn generate_client_file(
     // Internal fetch helper
     let _ = writeln!(out, "{FETCH_HELPER}\n");
 
+    // Dedup helpers (only when the manifest has queries)
+    let has_queries = manifest
+        .procedures
+        .iter()
+        .any(|p| p.kind == ProcedureKind::Query);
+    if has_queries {
+        let _ = writeln!(out, "{DEDUP_KEY_FN}\n");
+        let _ = writeln!(out, "{WRAP_WITH_SIGNAL_FN}\n");
+    }
+
     // Type helpers for ergonomic API
     generate_type_helpers(&mut out);
     out.push('\n');
@@ -343,6 +379,14 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
         out,
         "export function createRpcClient(config: RpcClientConfig): RpcClient {{"
     );
+
+    if has_queries {
+        let _ = writeln!(
+            out,
+            "  const inflight = new Map<string, Promise<unknown>>();\n"
+        );
+    }
+
     let _ = writeln!(out, "  return {{");
 
     if has_queries {
@@ -350,31 +394,77 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             out,
             "    query(key: QueryKey, ...args: unknown[]): Promise<unknown> {{"
         );
+
+        // Extract input and callOptions into locals based on void/non-void branching
         if query_mixed {
-            // Mixed: use VOID_QUERIES set to branch at runtime
-            let _ = writeln!(out, "      if (VOID_QUERIES.has(key)) {{");
+            let _ = writeln!(out, "      let input: unknown;");
             let _ = writeln!(
                 out,
-                "        return rpcFetch(config, \"GET\", key, undefined, args[0] as CallOptions | undefined);"
+                "      let callOptions: CallOptions | undefined;"
+            );
+            let _ = writeln!(out, "      if (VOID_QUERIES.has(key)) {{");
+            let _ = writeln!(out, "        input = undefined;");
+            let _ = writeln!(
+                out,
+                "        callOptions = args[0] as CallOptions | undefined;"
+            );
+            let _ = writeln!(out, "      }} else {{");
+            let _ = writeln!(out, "        input = args[0];");
+            let _ = writeln!(
+                out,
+                "        callOptions = args[1] as CallOptions | undefined;"
             );
             let _ = writeln!(out, "      }}");
-            let _ = writeln!(
-                out,
-                "      return rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined);"
-            );
         } else if !void_queries.is_empty() {
-            // All void: args[0] is always CallOptions
+            let _ = writeln!(out, "      const input = undefined;");
             let _ = writeln!(
                 out,
-                "      return rpcFetch(config, \"GET\", key, undefined, args[0] as CallOptions | undefined);"
+                "      const callOptions = args[0] as CallOptions | undefined;"
             );
         } else {
-            // All non-void: args[0] is input, args[1] is CallOptions
+            let _ = writeln!(out, "      const input = args[0];");
             let _ = writeln!(
                 out,
-                "      return rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined);"
+                "      const callOptions = args[1] as CallOptions | undefined;"
             );
         }
+
+        // Dedup logic
+        let _ = writeln!(
+            out,
+            "      const shouldDedupe = callOptions?.dedupe ?? config.dedupe ?? true;"
+        );
+        let _ = writeln!(out, "      if (shouldDedupe) {{");
+        let _ = writeln!(
+            out,
+            "        const k = dedupKey(key, input, config);"
+        );
+        let _ = writeln!(
+            out,
+            "        const existing = inflight.get(k);"
+        );
+        let _ = writeln!(
+            out,
+            "        if (existing) return wrapWithSignal(existing, callOptions?.signal);"
+        );
+        let _ = writeln!(
+            out,
+            "        const promise = rpcFetch(config, \"GET\", key, input, callOptions)"
+        );
+        let _ = writeln!(
+            out,
+            "          .finally(() => inflight.delete(k));"
+        );
+        let _ = writeln!(out, "        inflight.set(k, promise);");
+        let _ = writeln!(
+            out,
+            "        return wrapWithSignal(promise, callOptions?.signal);"
+        );
+        let _ = writeln!(out, "      }}");
+        let _ = writeln!(
+            out,
+            "      return rpcFetch(config, \"GET\", key, input, callOptions);"
+        );
         let _ = writeln!(out, "    }},");
     }
 

@@ -51,11 +51,7 @@ fn generates_query_method() {
     )]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("query(key: \"hello\", input: string): Promise<string>"));
-    assert!(
-        output.contains(
-            "rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined)"
-        )
-    );
+    assert!(output.contains("rpcFetch(config, \"GET\", key, input, callOptions)"));
     assert!(output.contains("export interface RpcClient"));
 }
 
@@ -179,11 +175,7 @@ fn uses_get_for_queries_post_for_mutations() {
         ),
     ]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
-    assert!(
-        output.contains(
-            "rpcFetch(config, \"GET\", key, args[0], args[1] as CallOptions | undefined)"
-        )
-    );
+    assert!(output.contains("rpcFetch(config, \"GET\", key, input, callOptions)"));
     assert!(
         output.contains(
             "rpcFetch(config, \"POST\", key, args[0], args[1] as CallOptions | undefined)"
@@ -710,6 +702,121 @@ fn fetch_helper_uses_call_signal() {
     let manifest = common::make_manifest(vec![]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("callOptions?.signal"));
+}
+
+// --- Dedup tests ---
+
+#[test]
+fn config_has_dedupe_option() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("dedupe?: boolean"));
+}
+
+#[test]
+fn call_options_has_dedupe_field() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let config_idx = output.find("export interface RpcClientConfig").unwrap();
+    let call_opts_idx = output.find("export interface CallOptions").unwrap();
+    // Both interfaces should contain dedupe
+    let config_section = &output[config_idx..call_opts_idx];
+    let call_opts_end = output[call_opts_idx..].find('}').unwrap();
+    let call_opts_section = &output[call_opts_idx..call_opts_idx + call_opts_end];
+    assert!(config_section.contains("dedupe?: boolean"));
+    assert!(call_opts_section.contains("dedupe?: boolean"));
+}
+
+#[test]
+fn contains_dedup_key_function() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("function dedupKey("));
+}
+
+#[test]
+fn contains_wrap_with_signal_function() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("function wrapWithSignal<T>("));
+}
+
+#[test]
+fn factory_contains_inflight_map() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("new Map<string, Promise<unknown>>()"));
+}
+
+#[test]
+fn query_body_contains_dedup_logic() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("shouldDedupe"));
+    assert!(output.contains("inflight.get"));
+}
+
+#[test]
+fn mutate_body_has_no_dedup() {
+    let manifest = common::make_manifest(vec![common::make_mutation(
+        "create_item",
+        Some(RustType::simple("CreateInput")),
+        Some(RustType::simple("Item")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let mutate_idx = output.find("mutate(key: MutationKey").unwrap();
+    let mutate_section = &output[mutate_idx..];
+    assert!(!mutate_section.contains("inflight"));
+    assert!(!mutate_section.contains("dedupKey"));
+}
+
+#[test]
+fn dedup_omitted_when_no_queries() {
+    let manifest = common::make_manifest(vec![common::make_mutation(
+        "create_item",
+        Some(RustType::simple("CreateInput")),
+        Some(RustType::simple("Item")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(!output.contains("dedupKey"));
+    assert!(!output.contains("wrapWithSignal"));
+    assert!(!output.contains("inflight"));
+}
+
+#[test]
+fn snapshot_client_with_dedup() {
+    let manifest = common::make_manifest(vec![
+        common::make_query(
+            "get_user",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("User")),
+        ),
+        common::make_query("version", None, Some(RustType::simple("String"))),
+        common::make_mutation(
+            "create_item",
+            Some(RustType::simple("CreateInput")),
+            Some(RustType::simple("Item")),
+        ),
+        common::make_mutation("reset", None, Some(RustType::simple("bool"))),
+    ]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    insta::assert_snapshot!(output);
 }
 
 #[test]
