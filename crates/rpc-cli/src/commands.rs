@@ -144,6 +144,31 @@ pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
         }
     }
 
+    // Generate vue wrapper file (opt-in)
+    if let Some(vue_path) = &config.output.vue {
+        let client_stem = config
+            .output
+            .client
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
+        let vue_content = codegen::vue::generate_vue_file(
+            &manifest,
+            &client_import,
+            &config.output.imports.types_specifier(),
+            config.codegen.preserve_docs,
+        );
+        if !vue_content.is_empty() {
+            write_file(vue_path, &vue_content)?;
+            println!(
+                "Generated {} -> {}",
+                vue_path.display(),
+                bytecount(&vue_content),
+            );
+        }
+    }
+
     Ok(())
 }
 

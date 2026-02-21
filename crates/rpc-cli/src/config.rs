@@ -29,6 +29,7 @@ pub struct OutputConfig {
     pub client: PathBuf,
     pub svelte: Option<PathBuf>,
     pub react: Option<PathBuf>,
+    pub vue: Option<PathBuf>,
     pub imports: ImportsConfig,
 }
 
@@ -87,6 +88,7 @@ impl Default for OutputConfig {
             client: PathBuf::from("src/lib/rpc-client.ts"),
             svelte: None,
             react: None,
+            vue: None,
             imports: ImportsConfig::default(),
         }
     }
@@ -153,6 +155,7 @@ pub struct CliOverrides {
     pub client_output: Option<PathBuf>,
     pub svelte_output: Option<PathBuf>,
     pub react_output: Option<PathBuf>,
+    pub vue_output: Option<PathBuf>,
     pub types_import: Option<String>,
     pub extension: Option<String>,
     // codegen
@@ -198,6 +201,9 @@ pub fn resolve(cli: CliOverrides) -> Result<RpcConfig> {
     }
     if let Some(react_output) = cli.react_output {
         config.output.react = Some(react_output);
+    }
+    if let Some(vue_output) = cli.vue_output {
+        config.output.vue = Some(vue_output);
     }
     if let Some(types_import) = cli.types_import {
         config.output.imports.types_path = types_import;

@@ -8,6 +8,8 @@
 //!   `createQuery`, `createMutation`).
 //! - [`react`] — generates `rpc.react.ts` (React hooks wrappers:
 //!   `useQuery`, `useMutation`).
+//! - [`vue`] — generates `rpc.vue.ts` (Vue 3 Composition API wrappers:
+//!   `useQuery`, `useMutation`).
 
 /// Shorthand for `let _ = writeln!(...)` when writing to a `String` buffer.
 ///
@@ -25,3 +27,4 @@ pub mod client;
 pub mod react;
 pub mod svelte;
 pub mod typescript;
+pub mod vue;

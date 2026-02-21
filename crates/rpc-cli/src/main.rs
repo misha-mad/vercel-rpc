@@ -62,6 +62,10 @@ struct GenerateArgs {
     #[arg(long)]
     react_output: Option<PathBuf>,
 
+    /// Output path for the generated Vue 3 composable wrapper file
+    #[arg(long)]
+    vue_output: Option<PathBuf>,
+
     /// Import path for the types file used in the client (relative, without extension)
     #[arg(long)]
     types_import: Option<String>,
@@ -135,6 +139,7 @@ fn main() -> Result<()> {
                 client_output: args.client_output,
                 svelte_output: args.svelte_output,
                 react_output: args.react_output,
+                vue_output: args.vue_output,
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,
@@ -158,6 +163,7 @@ fn main() -> Result<()> {
                 client_output: args.client_output,
                 svelte_output: args.svelte_output,
                 react_output: args.react_output,
+                vue_output: args.vue_output,
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,
