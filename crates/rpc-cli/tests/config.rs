@@ -15,6 +15,7 @@ fn test_default_matches_current_behavior() {
     assert!(config.output.svelte.is_none());
     assert!(config.output.react.is_none());
     assert!(config.output.vue.is_none());
+    assert!(config.output.solid.is_none());
     assert_eq!(config.output.imports.types_path, "./rpc-types");
     assert_eq!(config.output.imports.extension, "");
     assert_eq!(config.output.imports.types_specifier(), "./rpc-types");
@@ -245,6 +246,7 @@ client = "client.ts"
         svelte_output: None,
         react_output: None,
         vue_output: None,
+        solid_output: None,
         types_import: Some("./my-types".to_string()),
         extension: Some(".js".to_string()),
         preserve_docs: true,
@@ -281,6 +283,7 @@ fn test_resolve_no_config_flag() {
         svelte_output: None,
         react_output: None,
         vue_output: None,
+        solid_output: None,
         types_import: None,
         extension: None,
         preserve_docs: false,
@@ -307,6 +310,7 @@ fn test_resolve_client_output_override() {
         svelte_output: None,
         react_output: None,
         vue_output: None,
+        solid_output: None,
         types_import: None,
         extension: None,
         preserve_docs: false,
@@ -409,4 +413,38 @@ fn test_cli_vue_override() {
     };
     let config = resolve(overrides).unwrap();
     assert_eq!(config.output.vue, Some(PathBuf::from("custom.vue.ts")));
+}
+
+#[test]
+fn test_config_solid_default_none() {
+    let config = RpcConfig::default();
+    assert!(config.output.solid.is_none());
+}
+
+#[test]
+fn test_config_solid_parsed() {
+    let toml_str = r#"
+[output]
+solid = "src/lib/rpc.solid.ts"
+"#;
+    let config: RpcConfig = toml::from_str(toml_str).unwrap();
+    assert_eq!(
+        config.output.solid,
+        Some(PathBuf::from("src/lib/rpc.solid.ts"))
+    );
+}
+
+#[test]
+fn test_cli_solid_override() {
+    let overrides = CliOverrides {
+        config: None,
+        no_config: true,
+        solid_output: Some(PathBuf::from("custom.solid.ts")),
+        ..CliOverrides::default()
+    };
+    let config = resolve(overrides).unwrap();
+    assert_eq!(
+        config.output.solid,
+        Some(PathBuf::from("custom.solid.ts"))
+    );
 }

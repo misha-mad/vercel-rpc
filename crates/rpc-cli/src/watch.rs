@@ -171,6 +171,25 @@ fn generate(config: &RpcConfig) -> Result<()> {
         }
     }
 
+    if let Some(solid_path) = &config.output.solid {
+        let client_stem = config
+            .output
+            .client
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
+        let solid_content = codegen::solid::generate_solid_file(
+            &manifest,
+            &client_import,
+            &config.output.imports.types_specifier(),
+            config.codegen.preserve_docs,
+        );
+        if !solid_content.is_empty() {
+            write_file(solid_path, &solid_content)?;
+        }
+    }
+
     let elapsed = start.elapsed();
     let proc_count = manifest.procedures.len();
     let struct_count = manifest.structs.len();
@@ -213,6 +232,13 @@ fn generate(config: &RpcConfig) -> Result<()> {
             vue.display().to_string().dimmed(),
         );
     }
+    if let Some(solid) = &config.output.solid {
+        println!(
+            "    {} {}",
+            "→".dimmed(),
+            solid.display().to_string().dimmed(),
+        );
+    }
 
     Ok(())
 }
@@ -236,6 +262,9 @@ fn print_banner(config: &RpcConfig) {
     }
     if let Some(vue) = &config.output.vue {
         println!("  {} {}", "vue:".dimmed(), vue.display(),);
+    }
+    if let Some(solid) = &config.output.solid {
+        println!("  {} {}", "solid:".dimmed(), solid.display(),);
     }
     println!();
 }
