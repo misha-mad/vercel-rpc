@@ -165,13 +165,13 @@ export function useQuery<K extends QueryKey>(
         ? options.enabled()
         : (options?.enabled ?? true);
       const input = inputFn?.();
-      return { enabled, serialized: JSON.stringify(input) };
+      return { enabled, input, serialized: JSON.stringify(input) };
     },
-    ({ enabled }: { enabled: boolean; serialized: string }) => {
+    ({ enabled, input }: { enabled: boolean; input: QueryInput<K> | undefined; serialized: string }) => {
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
       if (!enabled) return;
 
-      void fetchData(inputFn?.());
+      void fetchData(input);
 
       if (options?.refetchInterval) {
         intervalId = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
