@@ -6,11 +6,11 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ### ~~Configuration File (`rpc.config.toml`)~~ ✅
 
-> Implemented in [RFC-2](./RFC-2.md). Full config file with CLI flag parity.
+> Implemented in [RFC-2](./RFC/RFC-2.md). Full config file with CLI flag parity.
 
 ### ~~Serde Attribute Support~~ ✅
 
-> Implemented in [RFC-3](./RFC-3.md). Supports `rename_all`, `rename`, `skip`/`skip_serializing`, and `default` on structs, enums, fields, and variants.
+> Implemented in [RFC-3](./RFC/RFC-3.md). Supports `rename_all`, `rename`, `skip`/`skip_serializing`, and `default` on structs, enums, fields, and variants.
 
 ### ~~Expanded Primitive and Wrapper Types~~ ✅
 
@@ -26,13 +26,13 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ### ~~`RpcClientConfig` — extended options~~ ✅
 
-> Implemented in [RFC-4](./RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/vercel-rpc/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/vercel-rpc/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/vercel-rpc/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/vercel-rpc/pull/49).
+> Implemented in [RFC-4](./RFC/RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/vercel-rpc/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/vercel-rpc/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/vercel-rpc/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/vercel-rpc/pull/49).
 
-### ~~Per-Call Options~~ ✅ → [RFC-5](./RFC-5.md)
+### ~~Per-Call Options~~ ✅ → [RFC-5](./RFC/RFC-5.md)
 
 > Implemented in RFC-5. Every `query()` and `mutate()` overload accepts an optional trailing `CallOptions` argument with per-request `signal`, `headers`, and `timeout` overrides.
 
-### ~~Request Deduplication~~ ✅ → [RFC-6](./RFC-6.md)
+### ~~Request Deduplication~~ ✅ → [RFC-6](./RFC/RFC-6.md)
 
 > Implemented in RFC-6. Identical in-flight queries are automatically deduplicated via an `inflight` Map. Callers share the same promise; per-caller `AbortSignal` is wrapped independently. Mutations are never deduplicated. Controlled by `dedupe` option at both config and per-call level (defaults to `true`).
 
@@ -44,9 +44,37 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ## Phase 3 — Developer Experience
 
-### ~~Framework Reactive Wrappers~~ ✅ → [RFC-7](./RFC-7.md)
+### ~~Framework Reactive Wrappers~~ ✅ → [RFC-7](./RFC/RFC-7.md), [RFC-8](./RFC/RFC-8.md)
 
-> Implemented in RFC-7. Optional Svelte 5 reactive wrapper file (`rpc.svelte.ts`) with `createQuery` and `createMutation` helpers that wrap `RpcClient` with `$state` / `$effect` runes. Opt-in via `output.svelte` config field or `--svelte-output` CLI flag.
+> **Svelte 5** — Implemented in RFC-7. Optional reactive wrapper file (`rpc.svelte.ts`) with `createQuery` and `createMutation` helpers that wrap `RpcClient` with `$state` / `$effect` runes. Opt-in via `output.svelte` config field or `--svelte-output` CLI flag.
+>
+> **React** — Implemented in RFC-8. Optional hook file (`rpc.react.ts`) with `useQuery` and `useMutation` hooks that wrap `RpcClient` with `useState` / `useEffect`. Opt-in via `output.react` config field or `--react-output` CLI flag.
+
+### Query Race Condition Handling (AbortController)
+
+When input changes rapidly (e.g. `userId: 1 → 2 → 3`), multiple fetch requests fire in parallel and responses may arrive out of order. A late response from an earlier input can overwrite the correct data:
+
+```typescript
+// userId changes: 1 → 2 → 3
+// Requests fire in parallel, responses may arrive: 3, 1, 2
+// setData(user2) overwrites the correct user3
+```
+
+The fix is to abort stale requests via `AbortController` in the `useEffect`/`$effect` cleanup:
+
+```typescript
+const fetchData = useCallback(async (signal: AbortSignal) => {
+  // ... pass signal via callOptions
+}, [...]);
+
+useEffect(() => {
+  const controller = new AbortController();
+  fetchData(controller.signal);
+  return () => controller.abort();
+}, [fetchData]);
+```
+
+This is a known pattern — TanStack Query also didn't ship abort-on-stale in early versions. The current implementation is sufficient for most use cases.
 
 ### Serde Enum Representations
 
@@ -247,5 +275,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | ~~Framework reactive wrappers~~ ✅, enum representations, generics, branded types, flatten                                             |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React)~~ ✅, enum representations, generics, branded types, flatten                                    |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                          |

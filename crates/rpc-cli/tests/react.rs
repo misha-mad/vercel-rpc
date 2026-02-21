@@ -2,15 +2,15 @@ mod common;
 
 use std::path::PathBuf;
 
-use vercel_rpc_cli::codegen::svelte::generate_svelte_file;
+use vercel_rpc_cli::codegen::react::generate_react_file;
 use vercel_rpc_cli::model::*;
 
 // --- imports ---
 
 #[test]
-fn svelte_imports_client_and_types() {
+fn react_imports_client_and_types() {
     let manifest = common::make_test_manifest();
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(
         output.contains(
             "import { type RpcClient, RpcError, type CallOptions } from \"./rpc-client\""
@@ -21,139 +21,146 @@ fn svelte_imports_client_and_types() {
 }
 
 #[test]
-fn svelte_reexports() {
+fn react_imports_react() {
     let manifest = common::make_test_manifest();
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("import { useState, useEffect, useRef, useCallback } from \"react\""));
+}
+
+#[test]
+fn react_reexports() {
+    let manifest = common::make_test_manifest();
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("export { RpcError }"));
     assert!(output.contains("export type { RpcClient, CallOptions, Procedures"));
 }
 
-// --- createQuery ---
+// --- useQuery ---
 
 #[test]
-fn svelte_contains_create_query() {
+fn react_contains_use_query() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("export function createQuery"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export function useQuery"));
 }
 
 #[test]
-fn svelte_contains_create_mutation() {
+fn react_contains_use_mutation() {
     let manifest = common::make_manifest(vec![common::make_mutation(
         "create_item",
         Some(RustType::simple("CreateInput")),
         Some(RustType::simple("Item")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("export function createMutation"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export function useMutation"));
 }
 
 // --- Interfaces ---
 
 #[test]
-fn svelte_contains_query_options() {
+fn react_contains_query_options() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("export interface QueryOptions<K extends QueryKey>"));
 }
 
 #[test]
-fn svelte_contains_query_result() {
+fn react_contains_query_result() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("export interface QueryResult<K extends QueryKey>"));
 }
 
 #[test]
-fn svelte_contains_mutation_options() {
+fn react_contains_mutation_options() {
     let manifest = common::make_manifest(vec![common::make_mutation(
         "create_item",
         Some(RustType::simple("CreateInput")),
         Some(RustType::simple("Item")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("export interface MutationOptions<K extends MutationKey>"));
 }
 
 #[test]
-fn svelte_contains_mutation_result() {
+fn react_contains_mutation_result() {
     let manifest = common::make_manifest(vec![common::make_mutation(
         "create_item",
         Some(RustType::simple("CreateInput")),
         Some(RustType::simple("Item")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("export interface MutationResult<K extends MutationKey>"));
 }
 
-// --- Runes ---
+// --- React hooks ---
 
 #[test]
-fn svelte_uses_state_rune() {
+fn react_uses_use_state() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("$state"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("useState"));
 }
 
 #[test]
-fn svelte_uses_effect_rune() {
+fn react_uses_use_effect() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("$effect"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("useEffect"));
 }
 
 // --- Void/non-void ---
 
 #[test]
-fn svelte_void_query_overload() {
+fn react_void_query_overload() {
     let manifest = common::make_manifest(vec![common::make_query(
         "time",
         None,
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type VoidQueryKey = \"time\""));
     assert!(output.contains(
-        "createQuery<K extends \"time\">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>"
+        "useQuery<K extends \"time\">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>"
     ));
 }
 
 #[test]
-fn svelte_non_void_query_overload() {
+fn react_non_void_query_overload() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type NonVoidQueryKey = \"hello\""));
     assert!(output.contains(
-        "createQuery<K extends \"hello\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>"
+        "useQuery<K extends \"hello\">(client: RpcClient, key: K, input: QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>"
     ));
 }
 
 #[test]
-fn svelte_void_query_set() {
+fn react_void_query_set() {
     let manifest = common::make_manifest(vec![
         common::make_query("time", None, Some(RustType::simple("String"))),
         common::make_query(
@@ -162,112 +169,117 @@ fn svelte_void_query_set() {
             Some(RustType::simple("String")),
         ),
     ]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type VoidQueryKey = \"time\""));
     assert!(output.contains("type NonVoidQueryKey = \"hello\""));
 }
 
 #[test]
-fn svelte_no_void_query_type_when_all_non_void() {
+fn react_no_void_query_type_when_all_non_void() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(!output.contains("type VoidQueryKey"));
 }
 
 // --- Conditional emission ---
 
 #[test]
-fn svelte_queries_only_no_mutation() {
+fn react_queries_only_no_mutation() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("createQuery"));
-    assert!(!output.contains("createMutation"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("useQuery"));
+    assert!(!output.contains("useMutation"));
     assert!(!output.contains("MutationKey"));
 }
 
 #[test]
-fn svelte_mutations_only_no_query() {
+fn react_mutations_only_no_query() {
     let manifest = common::make_manifest(vec![common::make_mutation(
         "create_item",
         Some(RustType::simple("CreateInput")),
         Some(RustType::simple("Item")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("createMutation"));
-    assert!(!output.contains("createQuery"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("useMutation"));
+    assert!(!output.contains("useQuery"));
     assert!(!output.contains("QueryKey"));
 }
 
 #[test]
-fn svelte_empty_manifest_returns_empty() {
+fn react_empty_manifest_returns_empty() {
     let manifest = common::make_manifest(vec![]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.is_empty());
 }
 
 // --- Result members ---
 
 #[test]
-fn svelte_refetch_in_result() {
+fn react_refetch_in_result() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("refetch: () => fetchData(inputFn?.())"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("refetch: fetchData"));
 }
 
 #[test]
-fn svelte_reset_in_mutation_result() {
+fn react_reset_in_mutation_result() {
     let manifest = common::make_manifest(vec![common::make_mutation(
         "create_item",
         Some(RustType::simple("CreateInput")),
         Some(RustType::simple("Item")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("reset: ()"));
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("reset,"));
 }
 
 #[test]
-fn svelte_mutate_async_in_result() {
+fn react_mutate_async_in_result() {
     let manifest = common::make_manifest(vec![common::make_mutation(
         "create_item",
         Some(RustType::simple("CreateInput")),
         Some(RustType::simple("Item")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("mutateAsync"));
 }
 
 // --- Custom import paths ---
 
 #[test]
-fn svelte_custom_import_paths() {
+fn react_custom_import_paths() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "$lib/rpc-client.js", "$lib/rpc-types.js", false);
-    assert!(output.contains("from \"$lib/rpc-client.js\""));
-    assert!(output.contains("from \"$lib/rpc-types.js\""));
+    let output = generate_react_file(
+        &manifest,
+        "@/lib/rpc-client.js",
+        "@/lib/rpc-types.js",
+        false,
+    );
+    assert!(output.contains("from \"@/lib/rpc-client.js\""));
+    assert!(output.contains("from \"@/lib/rpc-types.js\""));
 }
 
 // --- Type helpers ---
 
 #[test]
-fn svelte_type_helpers_emitted() {
+fn react_type_helpers_emitted() {
     let manifest = common::make_test_manifest();
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type QueryKey = keyof Procedures[\"queries\"]"));
     assert!(output.contains("type MutationKey = keyof Procedures[\"mutations\"]"));
     assert!(output.contains("type QueryInput<K extends QueryKey>"));
@@ -279,7 +291,7 @@ fn svelte_type_helpers_emitted() {
 // --- User type imports ---
 
 #[test]
-fn svelte_imports_user_types() {
+fn react_imports_user_types() {
     let manifest = Manifest {
         procedures: vec![common::make_query(
             "get_time",
@@ -295,7 +307,7 @@ fn svelte_imports_user_types() {
         }],
         enums: vec![],
     };
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("import type { Procedures, TimeResponse } from \"./rpc-types\""));
     assert!(output.contains("TimeResponse"));
 }
@@ -303,13 +315,13 @@ fn svelte_imports_user_types() {
 // --- Polling cleanup ---
 
 #[test]
-fn svelte_refetch_interval_cleanup() {
+fn react_refetch_interval_cleanup() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("setInterval"));
     assert!(output.contains("clearInterval"));
 }
@@ -317,82 +329,27 @@ fn svelte_refetch_interval_cleanup() {
 // --- Void mutation ---
 
 #[test]
-fn svelte_void_mutation_key() {
+fn react_void_mutation_key() {
     let manifest = common::make_manifest(vec![common::make_mutation(
         "reset",
         None,
         Some(RustType::simple("bool")),
     )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type VoidMutationKey = \"reset\""));
-}
-
-// --- Status enum ---
-
-#[test]
-fn svelte_query_status_enum() {
-    let manifest = common::make_manifest(vec![common::make_query(
-        "hello",
-        Some(RustType::simple("String")),
-        Some(RustType::simple("String")),
-    )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(
-        output.contains(r#"export type QueryStatus = "idle" | "loading" | "success" | "error""#)
-    );
-}
-
-#[test]
-fn svelte_mutation_status_enum() {
-    let manifest = common::make_manifest(vec![common::make_mutation(
-        "create_item",
-        Some(RustType::simple("CreateInput")),
-        Some(RustType::simple("Item")),
-    )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(
-        output.contains(r#"export type MutationStatus = "idle" | "loading" | "success" | "error""#)
-    );
-}
-
-#[test]
-fn svelte_query_is_placeholder_data() {
-    let manifest = common::make_manifest(vec![common::make_query(
-        "hello",
-        Some(RustType::simple("String")),
-        Some(RustType::simple("String")),
-    )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("isPlaceholderData"));
-    assert!(output.contains(r#"status !== "success" && data !== undefined"#));
-}
-
-#[test]
-fn svelte_status_derives_booleans() {
-    let manifest = common::make_manifest(vec![common::make_query(
-        "hello",
-        Some(RustType::simple("String")),
-        Some(RustType::simple("String")),
-    )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains(r#"status === "loading""#));
-    assert!(output.contains(r#"status === "success""#));
-    assert!(output.contains(r#"status === "error""#));
-    // Must NOT contain the old data-based isSuccess derivation
-    assert!(!output.contains("get isSuccess() { return data !== undefined"));
 }
 
 // --- insta snapshot tests ---
 
 #[test]
-fn snapshot_svelte_full() {
+fn snapshot_react_full() {
     let manifest = common::make_test_manifest();
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     insta::assert_snapshot!(output);
 }
 
 #[test]
-fn snapshot_svelte_queries_only() {
+fn snapshot_react_queries_only() {
     let manifest = common::make_manifest(vec![
         common::make_query(
             "get_user",
@@ -401,12 +358,12 @@ fn snapshot_svelte_queries_only() {
         ),
         common::make_query("version", None, Some(RustType::simple("String"))),
     ]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     insta::assert_snapshot!(output);
 }
 
 #[test]
-fn snapshot_svelte_mutations_only() {
+fn snapshot_react_mutations_only() {
     let manifest = common::make_manifest(vec![
         common::make_mutation(
             "create_item",
@@ -415,6 +372,6 @@ fn snapshot_svelte_mutations_only() {
         ),
         common::make_mutation("reset", None, Some(RustType::simple("bool"))),
     ]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     insta::assert_snapshot!(output);
 }

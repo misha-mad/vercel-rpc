@@ -119,6 +119,31 @@ pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
         }
     }
 
+    // Generate react wrapper file (opt-in)
+    if let Some(react_path) = &config.output.react {
+        let client_stem = config
+            .output
+            .client
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
+        let react_content = codegen::react::generate_react_file(
+            &manifest,
+            &client_import,
+            &config.output.imports.types_specifier(),
+            config.codegen.preserve_docs,
+        );
+        if !react_content.is_empty() {
+            write_file(react_path, &react_content)?;
+            println!(
+                "Generated {} -> {}",
+                react_path.display(),
+                bytecount(&react_content),
+            );
+        }
+    }
+
     Ok(())
 }
 

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- *(rpc-cli)* add React hooks wrapper codegen with `useQuery` and `useMutation` (RFC-8)
+- *(rpc-cli)* add `--react-output` CLI flag and `output.react` config field
+
+### Fixed
+
+- *(rpc-cli)* fix Svelte `createQuery` double `inputFn()` call in `$effect`
+- *(rpc-cli)* fix React `useQuery` argument parsing with `isQueryOptions` type guard
+- *(rpc-cli)* fix `isLoading` initial state when `enabled: false`
+- *(rpc-cli)* fix `isSuccess` semantics with `hasFetched`/`hasSucceeded` flags
+- *(rpc-cli)* replace unsafe `as Function` casts with typed signatures in both React and Svelte
+
 ## [0.2.2](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.2.1...vercel-rpc-cli-v0.2.2) - 2026-02-21
 
 ### Added
