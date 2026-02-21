@@ -106,7 +106,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Command::Scan { input } => {
-            let cfg = config::resolve(&config::CliOverrides {
+            let cfg = config::resolve(config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
                 dir: input.dir,
@@ -117,7 +117,7 @@ fn main() -> Result<()> {
             commands::cmd_scan(&cfg)
         }
         Command::Generate { args } => {
-            let cfg = config::resolve(&config::CliOverrides {
+            let cfg = config::resolve(config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
                 dir: args.input.dir,
@@ -138,7 +138,7 @@ fn main() -> Result<()> {
             debounce_ms,
             clear_screen,
         } => {
-            let cfg = config::resolve(&config::CliOverrides {
+            let cfg = config::resolve(config::CliOverrides {
                 config: cli.config,
                 no_config: cli.no_config,
                 dir: args.input.dir,

@@ -31,7 +31,10 @@ pub fn parse_rename_all(attrs: &[syn::Attribute]) -> Option<RenameRule> {
         match value.value().parse::<RenameRule>() {
             Ok(rule) => Some(rule),
             Err(e) => {
-                eprintln!("warning: {e} (ignored)");
+                eprintln!(
+                    "warning: unknown rename_all value \"{}\" — {e}; attribute ignored",
+                    value.value(),
+                );
                 None
             }
         }

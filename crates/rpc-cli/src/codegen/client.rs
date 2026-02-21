@@ -1,5 +1,3 @@
-use std::fmt::Write;
-
 use super::typescript::{emit_jsdoc, rust_type_to_ts};
 use crate::model::{Manifest, Procedure, ProcedureKind};
 
@@ -231,39 +229,39 @@ pub fn generate_client_file(
 
     // Import Procedures type (and any referenced types) from the types file
     if type_names.is_empty() {
-        let _ = writeln!(
+        emit!(
             out,
             "import type {{ Procedures }} from \"{types_import_path}\";\n"
         );
-        let _ = writeln!(out, "export type {{ Procedures }};\n");
+        emit!(out, "export type {{ Procedures }};\n");
     } else {
         let types_csv = type_names.join(", ");
-        let _ = writeln!(
+        emit!(
             out,
             "import type {{ Procedures, {types_csv} }} from \"{types_import_path}\";\n"
         );
-        let _ = writeln!(out, "export type {{ Procedures, {types_csv} }};\n");
+        emit!(out, "export type {{ Procedures, {types_csv} }};\n");
     }
 
     // Error class
-    let _ = writeln!(out, "{ERROR_CLASS}\n");
+    emit!(out, "{ERROR_CLASS}\n");
 
     // Lifecycle hook context interfaces
-    let _ = writeln!(out, "{REQUEST_CONTEXT_INTERFACE}\n");
-    let _ = writeln!(out, "{RESPONSE_CONTEXT_INTERFACE}\n");
-    let _ = writeln!(out, "{ERROR_CONTEXT_INTERFACE}\n");
+    emit!(out, "{REQUEST_CONTEXT_INTERFACE}\n");
+    emit!(out, "{RESPONSE_CONTEXT_INTERFACE}\n");
+    emit!(out, "{ERROR_CONTEXT_INTERFACE}\n");
 
     // Retry policy interface
-    let _ = writeln!(out, "{RETRY_POLICY_INTERFACE}\n");
+    emit!(out, "{RETRY_POLICY_INTERFACE}\n");
 
     // Client config interface
-    let _ = writeln!(out, "{CONFIG_INTERFACE}\n");
+    emit!(out, "{CONFIG_INTERFACE}\n");
 
     // Per-call options interface
-    let _ = writeln!(out, "{CALL_OPTIONS_INTERFACE}\n");
+    emit!(out, "{CALL_OPTIONS_INTERFACE}\n");
 
     // Internal fetch helper
-    let _ = writeln!(out, "{FETCH_HELPER}\n");
+    emit!(out, "{FETCH_HELPER}\n");
 
     // Dedup helpers (only when the manifest has queries)
     let has_queries = manifest
@@ -271,8 +269,8 @@ pub fn generate_client_file(
         .iter()
         .any(|p| p.kind == ProcedureKind::Query);
     if has_queries {
-        let _ = writeln!(out, "{DEDUP_KEY_FN}\n");
-        let _ = writeln!(out, "{WRAP_WITH_SIGNAL_FN}\n");
+        emit!(out, "{DEDUP_KEY_FN}\n");
+        emit!(out, "{WRAP_WITH_SIGNAL_FN}\n");
     }
 
     // Type helpers for ergonomic API
@@ -287,21 +285,21 @@ pub fn generate_client_file(
 
 /// Emits utility types that power the typed client API.
 fn generate_type_helpers(out: &mut String) {
-    let _ = writeln!(out, "type QueryKey = keyof Procedures[\"queries\"];");
-    let _ = writeln!(out, "type MutationKey = keyof Procedures[\"mutations\"];");
-    let _ = writeln!(
+    emit!(out, "type QueryKey = keyof Procedures[\"queries\"];");
+    emit!(out, "type MutationKey = keyof Procedures[\"mutations\"];");
+    emit!(
         out,
         "type QueryInput<K extends QueryKey> = Procedures[\"queries\"][K][\"input\"];"
     );
-    let _ = writeln!(
+    emit!(
         out,
         "type QueryOutput<K extends QueryKey> = Procedures[\"queries\"][K][\"output\"];"
     );
-    let _ = writeln!(
+    emit!(
         out,
         "type MutationInput<K extends MutationKey> = Procedures[\"mutations\"][K][\"input\"];"
     );
-    let _ = writeln!(
+    emit!(
         out,
         "type MutationOutput<K extends MutationKey> = Procedures[\"mutations\"][K][\"output\"];"
     );
@@ -337,7 +335,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             .iter()
             .map(|p| format!("\"{}\"", p.name))
             .collect();
-        let _ = writeln!(
+        emit!(
             out,
             "const VOID_QUERIES: Set<string> = new Set([{}]);",
             names.join(", ")
@@ -349,7 +347,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             .iter()
             .map(|p| format!("\"{}\"", p.name))
             .collect();
-        let _ = writeln!(
+        emit!(
             out,
             "const VOID_MUTATIONS: Set<string> = new Set([{}]);",
             names.join(", ")
@@ -358,7 +356,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
     }
 
     // Emit the RpcClient interface with overloaded method signatures
-    let _ = writeln!(out, "export interface RpcClient {{");
+    emit!(out, "export interface RpcClient {{");
 
     if has_queries {
         generate_query_overloads(manifest, preserve_docs, out);
@@ -371,126 +369,126 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
         generate_mutation_overloads(manifest, preserve_docs, out);
     }
 
-    let _ = writeln!(out, "}}");
+    emit!(out, "}}");
     out.push('\n');
 
     // Emit the factory function
-    let _ = writeln!(
+    emit!(
         out,
         "export function createRpcClient(config: RpcClientConfig): RpcClient {{"
     );
 
     if has_queries {
-        let _ = writeln!(
+        emit!(
             out,
             "  const inflight = new Map<string, Promise<unknown>>();\n"
         );
     }
 
-    let _ = writeln!(out, "  return {{");
+    emit!(out, "  return {{");
 
     if has_queries {
-        let _ = writeln!(
+        emit!(
             out,
             "    query(key: QueryKey, ...args: unknown[]): Promise<unknown> {{"
         );
 
         // Extract input and callOptions into locals based on void/non-void branching
         if query_mixed {
-            let _ = writeln!(out, "      let input: unknown;");
-            let _ = writeln!(out, "      let callOptions: CallOptions | undefined;");
-            let _ = writeln!(out, "      if (VOID_QUERIES.has(key)) {{");
-            let _ = writeln!(out, "        input = undefined;");
-            let _ = writeln!(
+            emit!(out, "      let input: unknown;");
+            emit!(out, "      let callOptions: CallOptions | undefined;");
+            emit!(out, "      if (VOID_QUERIES.has(key)) {{");
+            emit!(out, "        input = undefined;");
+            emit!(
                 out,
                 "        callOptions = args[0] as CallOptions | undefined;"
             );
-            let _ = writeln!(out, "      }} else {{");
-            let _ = writeln!(out, "        input = args[0];");
-            let _ = writeln!(
+            emit!(out, "      }} else {{");
+            emit!(out, "        input = args[0];");
+            emit!(
                 out,
                 "        callOptions = args[1] as CallOptions | undefined;"
             );
-            let _ = writeln!(out, "      }}");
+            emit!(out, "      }}");
         } else if !void_queries.is_empty() {
-            let _ = writeln!(out, "      const input = undefined;");
-            let _ = writeln!(
+            emit!(out, "      const input = undefined;");
+            emit!(
                 out,
                 "      const callOptions = args[0] as CallOptions | undefined;"
             );
         } else {
-            let _ = writeln!(out, "      const input = args[0];");
-            let _ = writeln!(
+            emit!(out, "      const input = args[0];");
+            emit!(
                 out,
                 "      const callOptions = args[1] as CallOptions | undefined;"
             );
         }
 
         // Dedup logic
-        let _ = writeln!(
+        emit!(
             out,
             "      const shouldDedupe = callOptions?.dedupe ?? config.dedupe ?? true;"
         );
-        let _ = writeln!(out, "      if (shouldDedupe) {{");
-        let _ = writeln!(out, "        const k = dedupKey(key, input, config);");
-        let _ = writeln!(out, "        const existing = inflight.get(k);");
-        let _ = writeln!(
+        emit!(out, "      if (shouldDedupe) {{");
+        emit!(out, "        const k = dedupKey(key, input, config);");
+        emit!(out, "        const existing = inflight.get(k);");
+        emit!(
             out,
             "        if (existing) return wrapWithSignal(existing, callOptions?.signal);"
         );
-        let _ = writeln!(
+        emit!(
             out,
             "        const promise = rpcFetch(config, \"GET\", key, input, callOptions)"
         );
-        let _ = writeln!(out, "          .finally(() => inflight.delete(k));");
-        let _ = writeln!(out, "        inflight.set(k, promise);");
-        let _ = writeln!(
+        emit!(out, "          .finally(() => inflight.delete(k));");
+        emit!(out, "        inflight.set(k, promise);");
+        emit!(
             out,
             "        return wrapWithSignal(promise, callOptions?.signal);"
         );
-        let _ = writeln!(out, "      }}");
-        let _ = writeln!(
+        emit!(out, "      }}");
+        emit!(
             out,
             "      return rpcFetch(config, \"GET\", key, input, callOptions);"
         );
-        let _ = writeln!(out, "    }},");
+        emit!(out, "    }},");
     }
 
     if has_mutations {
-        let _ = writeln!(
+        emit!(
             out,
             "    mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {{"
         );
         if mutation_mixed {
             // Mixed: use VOID_MUTATIONS set to branch at runtime
-            let _ = writeln!(out, "      if (VOID_MUTATIONS.has(key)) {{");
-            let _ = writeln!(
+            emit!(out, "      if (VOID_MUTATIONS.has(key)) {{");
+            emit!(
                 out,
                 "        return rpcFetch(config, \"POST\", key, undefined, args[0] as CallOptions | undefined);"
             );
-            let _ = writeln!(out, "      }}");
-            let _ = writeln!(
+            emit!(out, "      }}");
+            emit!(
                 out,
                 "      return rpcFetch(config, \"POST\", key, args[0], args[1] as CallOptions | undefined);"
             );
         } else if !void_mutations.is_empty() {
             // All void: args[0] is always CallOptions
-            let _ = writeln!(
+            emit!(
                 out,
                 "      return rpcFetch(config, \"POST\", key, undefined, args[0] as CallOptions | undefined);"
             );
         } else {
             // All non-void: args[0] is input, args[1] is CallOptions
-            let _ = writeln!(
+            emit!(
                 out,
                 "      return rpcFetch(config, \"POST\", key, args[0], args[1] as CallOptions | undefined);"
             );
         }
-        let _ = writeln!(out, "    }},");
+        emit!(out, "    }},");
     }
 
-    let _ = writeln!(out, "  }} as RpcClient;");
-    let _ = writeln!(out, "}}");
+    emit!(out, "  }} as RpcClient;");
+    emit!(out, "}}");
 }
 
 /// Generates query overload signatures for the RpcClient interface.
@@ -511,12 +509,12 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(
+        emit!(
             out,
             "  query(key: \"{}\"): Promise<{}>;",
             proc.name, output_ts,
         );
-        let _ = writeln!(
+        emit!(
             out,
             "  query(key: \"{}\", options: CallOptions): Promise<{}>;",
             proc.name, output_ts,
@@ -538,12 +536,12 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(
+        emit!(
             out,
             "  query(key: \"{}\", input: {}): Promise<{}>;",
             proc.name, input_ts, output_ts,
         );
-        let _ = writeln!(
+        emit!(
             out,
             "  query(key: \"{}\", input: {}, options: CallOptions): Promise<{}>;",
             proc.name, input_ts, output_ts,
@@ -569,12 +567,12 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(
+        emit!(
             out,
             "  mutate(key: \"{}\"): Promise<{}>;",
             proc.name, output_ts,
         );
-        let _ = writeln!(
+        emit!(
             out,
             "  mutate(key: \"{}\", options: CallOptions): Promise<{}>;",
             proc.name, output_ts,
@@ -596,12 +594,12 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(
+        emit!(
             out,
             "  mutate(key: \"{}\", input: {}): Promise<{}>;",
             proc.name, input_ts, output_ts,
         );
-        let _ = writeln!(
+        emit!(
             out,
             "  mutate(key: \"{}\", input: {}, options: CallOptions): Promise<{}>;",
             proc.name, input_ts, output_ts,

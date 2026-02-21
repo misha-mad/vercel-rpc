@@ -247,7 +247,7 @@ client = "client.ts"
         clear_screen: true,
     };
 
-    let config = resolve(&overrides).unwrap();
+    let config = resolve(overrides).unwrap();
 
     assert_eq!(config.input.dir, PathBuf::from("other"));
     assert_eq!(config.input.include, vec!["handlers/**/*.rs".to_string()]);
@@ -279,7 +279,7 @@ fn test_resolve_no_config_flag() {
         debounce_ms: None,
         clear_screen: false,
     };
-    let config = resolve(&overrides).unwrap();
+    let config = resolve(overrides).unwrap();
     assert_eq!(config.input.dir, PathBuf::from("custom"));
     // Everything else should be defaults
     assert_eq!(config.output.types, PathBuf::from("src/lib/rpc-types.ts"));
@@ -302,6 +302,6 @@ fn test_resolve_client_output_override() {
         debounce_ms: None,
         clear_screen: false,
     };
-    let config = resolve(&overrides).unwrap();
+    let config = resolve(overrides).unwrap();
     assert_eq!(config.output.client, PathBuf::from("custom-client.ts"));
 }

@@ -1,5 +1,3 @@
-use std::fmt::Write;
-
 use crate::config::FieldNaming;
 use crate::model::{
     EnumDef, EnumVariant, FieldDef, Manifest, Procedure, ProcedureKind, RenameRule, RustType,
@@ -101,21 +99,23 @@ pub fn rust_type_to_ts(ty: &RustType) -> String {
 /// Emits a JSDoc comment block from a doc string.
 pub fn emit_jsdoc(doc: &str, indent: &str, out: &mut String) {
     if !doc.contains('\n') {
-        let _ = writeln!(out, "{indent}/** {doc} */");
+        emit!(out, "{indent}/** {doc} */");
     } else {
-        let _ = writeln!(out, "{indent}/**");
+        emit!(out, "{indent}/**");
         for line in doc.lines() {
-            let _ = writeln!(out, "{indent} * {line}");
+            emit!(out, "{indent} * {line}");
         }
-        let _ = writeln!(out, "{indent} */");
+        emit!(out, "{indent} */");
     }
 }
 
 /// Converts a snake_case string to camelCase.
 pub fn to_camel_case(s: &str) -> String {
     let mut segments = s.split('_');
-    // split() always yields at least one element
-    let mut result = segments.next().unwrap().to_lowercase();
+    let mut result = segments
+        .next()
+        .expect("split always yields at least one element")
+        .to_lowercase();
     for segment in segments {
         let mut chars = segment.chars();
         if let Some(first) = chars.next() {
@@ -183,7 +183,7 @@ fn generate_interface(
     if preserve_docs && let Some(doc) = &s.docs {
         emit_jsdoc(doc, "", out);
     }
-    let _ = writeln!(out, "export interface {} {{", s.name);
+    emit!(out, "export interface {} {{", s.name);
     for field in &s.fields {
         if field.skip {
             continue;
@@ -193,13 +193,13 @@ fn generate_interface(
             && let Some(inner) = option_inner_type(&field.ty)
         {
             let ts_type = rust_type_to_ts(inner);
-            let _ = writeln!(out, "  {field_name}?: {ts_type} | null;");
+            emit!(out, "  {field_name}?: {ts_type} | null;");
             continue;
         }
         let ts_type = rust_type_to_ts(&field.ty);
-        let _ = writeln!(out, "  {field_name}: {ts_type};");
+        emit!(out, "  {field_name}: {ts_type};");
     }
-    let _ = writeln!(out, "}}");
+    emit!(out, "}}");
 }
 
 /// Generates a TypeScript type from an enum definition.
@@ -236,9 +236,9 @@ fn generate_enum_type(
             })
             .collect();
         if variants.is_empty() {
-            let _ = writeln!(out, "export type {} = never;", e.name);
+            emit!(out, "export type {} = never;", e.name);
         } else {
-            let _ = writeln!(out, "export type {} = {};", e.name, variants.join(" | "));
+            emit!(out, "export type {} = {};", e.name, variants.join(" | "));
         }
     } else {
         // Tagged union (serde externally tagged default)
@@ -278,7 +278,7 @@ fn generate_enum_type(
             }
         }
 
-        let _ = writeln!(
+        emit!(
             out,
             "export type {} = {};",
             e.name,
@@ -294,10 +294,10 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
         .iter()
         .partition(|p| p.kind == ProcedureKind::Query);
 
-    let _ = writeln!(out, "export type Procedures = {{");
+    emit!(out, "export type Procedures = {{");
 
     // Queries
-    let _ = writeln!(out, "  queries: {{");
+    emit!(out, "  queries: {{");
     for proc in &queries {
         if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "    ", out);
@@ -312,16 +312,16 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(
+        emit!(
             out,
             "    {}: {{ input: {input}; output: {output} }};",
             proc.name
         );
     }
-    let _ = writeln!(out, "  }};");
+    emit!(out, "  }};");
 
     // Mutations
-    let _ = writeln!(out, "  mutations: {{");
+    emit!(out, "  mutations: {{");
     for proc in &mutations {
         if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "    ", out);
@@ -336,15 +336,15 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
             .as_ref()
             .map(rust_type_to_ts)
             .unwrap_or_else(|| "void".to_string());
-        let _ = writeln!(
+        emit!(
             out,
             "    {}: {{ input: {input}; output: {output} }};",
             proc.name
         );
     }
-    let _ = writeln!(out, "  }};");
+    emit!(out, "  }};");
 
-    let _ = writeln!(out, "}};");
+    emit!(out, "}};");
 }
 
 /// Generates the complete `rpc-types.ts` file content from a manifest.

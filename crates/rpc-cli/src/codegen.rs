@@ -5,5 +5,17 @@
 //! - [`client`] — generates `rpc-client.ts` (`RpcClient` interface,
 //!   `createRpcClient` factory, `RpcError` class, `rpcFetch` helper).
 
+/// Shorthand for `let _ = writeln!(...)` when writing to a `String` buffer.
+///
+/// Writing to `String` is infallible, so the result is always safe to discard.
+macro_rules! emit {
+    ($dst:expr, $($arg:tt)*) => {
+        {
+            use ::std::fmt::Write as _;
+            let _ = writeln!($dst, $($arg)*);
+        }
+    };
+}
+
 pub mod client;
 pub mod typescript;

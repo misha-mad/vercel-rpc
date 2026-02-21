@@ -147,6 +147,13 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// }
 /// ```
 ///
+/// # Limitations
+///
+/// - `Result` and `Headers` are detected by **name only** (last path segment).
+///   Type aliases like `type MyResult<T> = Result<T, MyError>` will not be
+///   recognized, and custom types named `Result` or `Headers` will be falsely
+///   matched. Use the canonical names directly.
+///
 /// # Compile errors
 ///
 /// The macro rejects functions with more than one parameter:
@@ -554,7 +561,9 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
 /// Returns `true` if the type syntactically ends with `Headers`
 /// (e.g. `Headers`, `vercel_rpc::Headers`).
 ///
-/// This is a purely syntactic check, similar to [`is_result_type`].
+/// **Limitation:** this is a purely syntactic check, similar to
+/// [`is_result_type`]. Type aliases will not be detected, and custom
+/// types named `Headers` will be falsely identified.
 fn is_headers_type(ty: &Type) -> bool {
     if let Type::Path(type_path) = ty
         && let Some(segment) = type_path.path.segments.last()
