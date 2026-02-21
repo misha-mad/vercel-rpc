@@ -44,11 +44,17 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ## Phase 3 — Developer Experience
 
-### ~~Framework Reactive Wrappers~~ ✅ → [RFC-7](./RFC/RFC-7.md), [RFC-8](./RFC/RFC-8.md)
+### ~~Framework Reactive Wrappers (Svelte 5, React)~~ ✅ → [RFC-7](./RFC/RFC-7.md), [RFC-8](./RFC/RFC-8.md)
 
 > **Svelte 5** — Implemented in RFC-7. Optional reactive wrapper file (`rpc.svelte.ts`) with `createQuery` and `createMutation` helpers that wrap `RpcClient` with `$state` / `$effect` runes. Opt-in via `output.svelte` config field or `--svelte-output` CLI flag.
 >
 > **React** — Implemented in RFC-8. Optional hook file (`rpc.react.ts`) with `useQuery` and `useMutation` hooks that wrap `RpcClient` with `useState` / `useEffect`. Opt-in via `output.react` config field or `--react-output` CLI flag.
+
+### Framework Reactive Wrappers (Vue 3, SolidJS) → [RFC-9](./RFC/RFC-9.md), [RFC-10](./RFC/RFC-10.md)
+
+> **Vue 3** — RFC-9. Optional composable file (`rpc.vue.ts`) with `useQuery` and `useMutation` using Vue Composition API (`ref`, `watch`, `onUnmounted`). Opt-in via `output.vue` config field or `--vue-output` CLI flag.
+>
+> **SolidJS** — RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid signals (`createSignal`, `createEffect`, `onCleanup`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
 
 ### Query Race Condition Handling (AbortController)
 
@@ -275,5 +281,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | ~~Framework wrappers (Svelte 5, React)~~ ✅, enum representations, generics, branded types, flatten                                    |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React)~~ ✅, Vue 3 + SolidJS wrappers, enum representations, generics, branded types, flatten          |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                          |
