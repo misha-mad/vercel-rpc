@@ -172,7 +172,7 @@ vercel-rpc/
 │       │   │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
 │       │   │   └── client.rs     #     RpcClient interface + rpc-client.ts
 │       │   └── watch.rs          #   File watcher with debounce
-│       └── tests/                # Integration tests (145 tests)
+│       └── tests/                # Integration tests
 │           ├── common/mod.rs     #   Shared test helpers
 │           ├── commands.rs       #   scan / generate / write_file / bytecount
 │           ├── config.rs         #   Config parsing, discovery, CLI overrides
@@ -435,11 +435,49 @@ const rpc = createRpcClient({
 });
 ```
 
-| Option    | Type                                                                     | Description                           |
-|-----------|--------------------------------------------------------------------------|---------------------------------------|
-| `baseUrl` | `string`                                                                 | Required. Base URL for RPC endpoints  |
-| `fetch`   | `typeof globalThis.fetch`                                                | Custom fetch function (SSR, testing)  |
-| `headers` | `Record<string, string> \| () => Record<string, string> \| Promise<...>` | Static or async headers (auth tokens) |
+| Option        | Type                                                                     | Description                                           |
+|---------------|--------------------------------------------------------------------------|-------------------------------------------------------|
+| `baseUrl`     | `string`                                                                 | Required. Base URL for RPC endpoints                  |
+| `fetch`       | `typeof globalThis.fetch`                                                | Custom fetch function (SSR, testing)                  |
+| `headers`     | `Record<string, string> \| () => Record<string, string> \| Promise<...>` | Static or async headers (auth tokens)                 |
+| `onRequest`   | `(ctx: RequestContext) => void \| Promise<void>`                         | Hook before each fetch — can mutate headers           |
+| `onResponse`  | `(ctx: ResponseContext) => void \| Promise<void>`                        | Hook after a successful response is parsed            |
+| `onError`     | `(ctx: ErrorContext) => void \| Promise<void>`                           | Hook on network failure or non-ok HTTP status         |
+| `retry`       | `RetryPolicy`                                                            | Retry policy (`attempts`, `delay`, `retryOn`)         |
+| `timeout`     | `number`                                                                 | Per-request timeout in milliseconds                   |
+| `serialize`   | `(input: unknown) => string`                                             | Custom serializer (e.g. superjson)                    |
+| `deserialize` | `(text: string) => unknown`                                              | Custom deserializer                                   |
+| `signal`      | `AbortSignal`                                                            | Abort signal for cancelling all requests              |
+| `dedupe`      | `boolean`                                                                | Enable/disable query deduplication (default: `true`)  |
+
+### Per-call options
+
+Every `query()` and `mutate()` call accepts an optional trailing `CallOptions` argument to override `headers`, `timeout`, `signal`, or `dedupe` for a single request:
+
+```typescript
+// Override timeout for a slow query
+const report = await rpc.query("slow_report", input, { timeout: 30_000 });
+
+// Cancel a single request
+const controller = new AbortController();
+rpc.query("search", query, { signal: controller.signal });
+```
+
+### Request deduplication
+
+Identical in-flight queries are automatically deduplicated — only one HTTP request is made and all callers share the same promise:
+
+```typescript
+// Both calls result in a single HTTP request
+const [a, b] = await Promise.all([
+  rpc.query("get_user", { id: 1 }),
+  rpc.query("get_user", { id: 1 }),
+]);
+```
+
+Dedup is on by default for queries. Disable globally via `dedupe: false` in config or per-call via `CallOptions`. Mutations are never deduplicated.
+
+See the [rpc-cli README](./crates/rpc-cli/README.md#generated-client-features) for full details on lifecycle hooks, retry, timeout, serialization, signal, per-call options, and deduplication.
 
 ## Rust Macros
 

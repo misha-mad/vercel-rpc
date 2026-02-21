@@ -64,12 +64,14 @@ export interface RpcClientConfig {
   deserialize?: (text: string) => unknown;
   // AbortSignal for cancelling all requests made by this client.
   signal?: AbortSignal;
+  dedupe?: boolean;
 }
 
 export interface CallOptions {
   headers?: Record<string, string>;
   timeout?: number;
   signal?: AbortSignal;
+  dedupe?: boolean;
 }
 
 const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
@@ -164,6 +166,28 @@ async function rpcFetch(
   }
 }
 
+function dedupKey(procedure: string, input: unknown, config: RpcClientConfig): string {
+  const serialized = input === undefined
+    ? ""
+    : config.serialize
+      ? config.serialize(input)
+      : JSON.stringify(input);
+  return procedure + ":" + serialized;
+}
+
+function wrapWithSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(signal.reason);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => { signal.removeEventListener("abort", onAbort); resolve(value); },
+      (error) => { signal.removeEventListener("abort", onAbort); reject(error); },
+    );
+  });
+}
+
 type QueryKey = keyof Procedures["queries"];
 type MutationKey = keyof Procedures["mutations"];
 type QueryInput<K extends QueryKey> = Procedures["queries"][K]["input"];
@@ -222,12 +246,30 @@ export interface RpcClient {
 }
 
 export function createRpcClient(config: RpcClientConfig): RpcClient {
+  const inflight = new Map<string, Promise<unknown>>();
+
   return {
     query(key: QueryKey, ...args: unknown[]): Promise<unknown> {
+      let input: unknown;
+      let callOptions: CallOptions | undefined;
       if (VOID_QUERIES.has(key)) {
-        return rpcFetch(config, "GET", key, undefined, args[0] as CallOptions | undefined);
+        input = undefined;
+        callOptions = args[0] as CallOptions | undefined;
+      } else {
+        input = args[0];
+        callOptions = args[1] as CallOptions | undefined;
       }
-      return rpcFetch(config, "GET", key, args[0], args[1] as CallOptions | undefined);
+      const shouldDedupe = callOptions?.dedupe ?? config.dedupe ?? true;
+      if (shouldDedupe) {
+        const k = dedupKey(key, input, config);
+        const existing = inflight.get(k);
+        if (existing) return wrapWithSignal(existing, callOptions?.signal);
+        const promise = rpcFetch(config, "GET", key, input, callOptions)
+          .finally(() => inflight.delete(k));
+        inflight.set(k, promise);
+        return wrapWithSignal(promise, callOptions?.signal);
+      }
+      return rpcFetch(config, "GET", key, input, callOptions);
     },
     mutate(key: MutationKey, ...args: unknown[]): Promise<unknown> {
       return rpcFetch(config, "POST", key, args[0], args[1] as CallOptions | undefined);

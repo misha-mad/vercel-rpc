@@ -32,20 +32,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in RFC-5. Every `query()` and `mutate()` overload accepts an optional trailing `CallOptions` argument with per-request `signal`, `headers`, and `timeout` overrides.
 
-### Request Deduplication → [RFC-6](./RFC-6.md)
+### ~~Request Deduplication~~ ✅ → [RFC-6](./RFC-6.md)
 
-When multiple components call the same query with the same input simultaneously, only one HTTP request should be made. Subsequent callers receive the same in-flight promise.
-
-```typescript
-// Both calls result in a single HTTP request
-const [a, b] = await Promise.all([
-  client.query("user", { id: 1 }),
-  client.query("user", { id: 1 }),
-]);
-// a === b (same reference)
-```
-
-Implementation: maintain a `Map<string, Promise>` keyed by `procedure + serialized input`. Insert on the first call, delete it on settlement. This applies to queries only — mutations are never deduplicated.
+> Implemented in RFC-6. Identical in-flight queries are automatically deduplicated via an `inflight` Map. Callers share the same promise; per-caller `AbortSignal` is wrapped independently. Mutations are never deduplicated. Controlled by `dedupe` option at both config and per-call level (defaults to `true`).
 
 ### ~~JSDoc from Doc-Comments~~ ✅
 
@@ -322,9 +311,9 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 ## Summary
 
-| Phase | Focus      | Key Deliverables                                                                                                                |
-|-------|------------|---------------------------------------------------------------------------------------------------------------------------------|
-| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                          |
-| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, request deduplication, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten                                             |
-| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                    |
+| Phase | Focus      | Key Deliverables                                                                                                                      |
+|-------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                |
+| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅ |
+| **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten                                                   |
+| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                          |

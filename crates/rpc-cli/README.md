@@ -355,7 +355,7 @@ The generated `rpc-client.ts` includes:
 
 - **`RpcClient` interface** with typed overloads for every procedure — full
   autocomplete and type checking.
-- **`createRpcClient(config)`** factory function accepting `RpcClientConfig` with `baseUrl`, optional `fetch`, `headers`, lifecycle hooks, retry, and timeout.
+- **`createRpcClient(config)`** factory function accepting `RpcClientConfig` with `baseUrl`, optional `fetch`, `headers`, lifecycle hooks, retry, timeout, and deduplication.
 - **`RpcError` class** with `status` and `data` fields for structured error
   handling.
 - **`rpcFetch` helper** — uses `GET` with `?input=<JSON>` for queries and
@@ -500,6 +500,61 @@ const client = createRpcClient({
 // Cancel all pending requests
 controller.abort();
 ```
+
+### Per-call options
+
+Every `query()` and `mutate()` overload accepts an optional trailing `CallOptions` argument, allowing per-request overrides of `headers`, `timeout`, `signal`, and `dedupe`:
+
+```typescript
+interface CallOptions {
+  headers?: Record<string, string>;
+  timeout?: number;
+  signal?: AbortSignal;
+  dedupe?: boolean;
+}
+```
+
+Per-call values override client-level defaults for that single request:
+
+```typescript
+// Override timeout for a slow query
+const report = await rpc.query("slow_report", input, { timeout: 30_000 });
+
+// Add an extra header to one request
+const user = await rpc.query("get_user", id, {
+  headers: { "X-Request-Id": crypto.randomUUID() },
+});
+
+// Cancel a single request
+const controller = new AbortController();
+rpc.query("search", query, { signal: controller.signal });
+controller.abort();
+```
+
+### Request deduplication
+
+When multiple callers issue the same query with the same input concurrently, only one HTTP request is made. Subsequent callers receive the same in-flight promise. This is enabled by default for all queries.
+
+```typescript
+// Both calls result in a single HTTP request
+const [a, b] = await Promise.all([
+  rpc.query("get_user", { id: 1 }),
+  rpc.query("get_user", { id: 1 }),
+]);
+// a === b (same reference)
+```
+
+Dedup is controlled at two levels — client config (`dedupe`) and per-call (`CallOptions.dedupe`). Per-call takes precedence:
+
+```typescript
+// Disable dedup globally
+const rpc = createRpcClient({ baseUrl: "/api", dedupe: false });
+
+// Or disable for a single call
+const fresh = await rpc.query("get_user", id, { dedupe: false });
+```
+
+Mutations are never deduplicated. Each per-caller `AbortSignal` is wrapped independently — aborting one caller does not affect others sharing the same in-flight promise.
 
 ## Related crates
 
