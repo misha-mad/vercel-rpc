@@ -146,7 +146,7 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
       const input = inputFn?.();
       return { enabled, serialized: JSON.stringify(input) };
     },
-    ({ enabled }) => {
+    ({ enabled }: { enabled: boolean; serialized: string }) => {
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
       if (!enabled) return;
 
