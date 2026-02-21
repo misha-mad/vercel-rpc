@@ -812,7 +812,7 @@ See [RFC-9](../../docs/RFC/RFC-9.md) for the full design and implementation deta
 
 ## SolidJS primitives
 
-When `output.solid` is configured (or `--solid-output` is passed), the CLI generates a `.ts` file with `createQuery` and `createMutation` primitives that wrap the `RpcClient` with SolidJS signals (`createSignal`, `createEffect`, `onCleanup`).
+When `output.solid` is configured (or `--solid-output` is passed), the CLI generates a `.ts` file with `createQuery` and `createMutation` primitives that wrap the `RpcClient` with SolidJS reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`).
 
 ```toml
 [output]
@@ -852,14 +852,14 @@ const stats = createQuery(rpc, "server_stats", {
 
 **`QueryResult<K>`:**
 
-| Property    | Type                            | Description                                       |
-|-------------|---------------------------------|---------------------------------------------------|
-| `data`      | `() => QueryOutput<K> \| undefined` | Accessor for latest resolved data            |
-| `error`     | `() => RpcError \| undefined`   | Accessor for error from the most recent fetch     |
-| `isLoading` | `() => boolean`                 | True while a fetch is in-flight                   |
-| `isSuccess` | `() => boolean`                 | True after the first successful fetch             |
-| `isError`   | `() => boolean`                 | True when `error` is set                          |
-| `refetch`   | `() => Promise<void>`          | Manually trigger a refetch                        |
+| Property    | Type                                 | Description                                        |
+|-------------|--------------------------------------|----------------------------------------------------|
+| `data`      | `Accessor<QueryOutput<K> \| undefined>` | Signal accessor for latest resolved data        |
+| `error`     | `Accessor<RpcError \| undefined>`    | Signal accessor for error from the most recent fetch |
+| `isLoading` | `Accessor<boolean>`                  | Signal — true while a fetch is in-flight           |
+| `isSuccess` | `Accessor<boolean>`                  | Memo — true after the first successful fetch       |
+| `isError`   | `Accessor<boolean>`                  | Memo — true when `error` is set                    |
+| `refetch`   | `() => Promise<void>`               | Manually trigger a refetch                         |
 
 ### `createMutation`
 
@@ -879,16 +879,16 @@ const item = await createItem.mutateAsync({ title: "New Item" });
 
 **`MutationResult<K>`:**
 
-| Property      | Type                                   | Description                                          |
-|---------------|----------------------------------------|------------------------------------------------------|
-| `mutate`      | `(input) => Promise<void>`            | Execute the mutation (void for void-input mutations) |
-| `mutateAsync` | `(input) => Promise<Output>`          | Execute and return the result                        |
-| `data`        | `() => MutationOutput<K> \| undefined` | Accessor for latest resolved data                   |
-| `error`       | `() => RpcError \| undefined`         | Accessor for error from the most recent mutation     |
-| `isLoading`   | `() => boolean`                       | True while a mutation is in-flight                   |
-| `isSuccess`   | `() => boolean`                       | True after the most recent mutation succeeded        |
-| `isError`     | `() => boolean`                       | True when `error` is set                             |
-| `reset`       | `() => void`                          | Reset state back to idle                             |
+| Property      | Type                                        | Description                                          |
+|---------------|---------------------------------------------|------------------------------------------------------|
+| `mutate`      | `(input) => Promise<void>`                 | Execute the mutation (void for void-input mutations) |
+| `mutateAsync` | `(input) => Promise<Output>`               | Execute and return the result                        |
+| `data`        | `Accessor<MutationOutput<K> \| undefined>` | Signal accessor for latest resolved data             |
+| `error`       | `Accessor<RpcError \| undefined>`          | Signal accessor for error from the most recent mutation |
+| `isLoading`   | `Accessor<boolean>`                        | Signal — true while a mutation is in-flight          |
+| `isSuccess`   | `Accessor<boolean>`                        | Memo — true after the most recent mutation succeeded |
+| `isError`     | `Accessor<boolean>`                        | Memo — true when `error` is set                      |
+| `reset`       | `() => void`                               | Reset state back to idle (batched update)            |
 
 See [RFC-10](../../docs/RFC/RFC-10.md) for the full design and implementation details.
 

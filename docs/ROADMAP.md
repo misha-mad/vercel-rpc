@@ -56,7 +56,7 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ### ~~Framework Reactive Wrappers (SolidJS)~~ ✅ → [RFC-10](./RFC/RFC-10.md)
 
-> **SolidJS** — Implemented in RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid signals (`createSignal`, `createEffect`, `onCleanup`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
+> **SolidJS** — Implemented in RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
 
 ### Reactive Options for Framework Wrappers
 

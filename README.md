@@ -541,7 +541,7 @@ See the [rpc-cli README](./crates/rpc-cli/README.md#vue-3-composables) and [RFC-
 
 ### SolidJS primitives (opt-in)
 
-When `output.solid` is configured, the CLI generates a `.ts` file with `createQuery` and `createMutation` primitives that wrap the `RpcClient` with SolidJS signals (`createSignal`, `createEffect`, `onCleanup`):
+When `output.solid` is configured, the CLI generates a `.ts` file with `createQuery` and `createMutation` primitives that wrap the `RpcClient` with SolidJS reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`):
 
 ```toml
 # rpc.config.toml
