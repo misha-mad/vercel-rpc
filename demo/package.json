@@ -4,9 +4,9 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- watch --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts & vite dev",
-		"build": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts && vite build",
-		"generate": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts",
+		"dev": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- watch & vite dev",
+		"build": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- generate && vite build",
+		"generate": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- generate",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
