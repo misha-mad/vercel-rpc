@@ -24,9 +24,8 @@ fn solid_imports_client_and_types() {
 fn solid_imports_solid() {
     let manifest = common::make_test_manifest();
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains(
-        "import { createSignal, createEffect, onCleanup } from \"solid-js\""
-    ));
+    assert!(output
+        .contains("import { createSignal, createEffect, createMemo, onCleanup, batch } from \"solid-js\""));
 }
 
 #[test]
@@ -394,17 +393,56 @@ fn solid_non_void_query_uses_getter_input() {
     assert!(output.contains("input: () => QueryInput<K>"));
 }
 
-// --- SolidJS-specific: setData uses function form ---
+// --- SolidJS-specific: setData uses direct value (not updater function form) ---
 
 #[test]
-fn solid_set_data_uses_function_form() {
+fn solid_set_data_uses_direct_value() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("setData(() => result)"));
+    // Direct value with Exclude<T, Function> cast — avoids Solid treating result as an updater
+    assert!(output.contains("setData(result as Exclude<"));
+    assert!(!output.contains("setData(() => result)"));
+}
+
+// --- SolidJS-specific: createMemo for derived state ---
+
+#[test]
+fn solid_uses_create_memo_for_derived() {
+    let manifest = common::make_test_manifest();
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("const isSuccess = createMemo("));
+    assert!(output.contains("const isError = createMemo("));
+}
+
+// --- SolidJS-specific: batch in reset ---
+
+#[test]
+fn solid_reset_uses_batch() {
+    let manifest = common::make_manifest(vec![common::make_mutation(
+        "create_item",
+        Some(RustType::simple("CreateInput")),
+        Some(RustType::simple("Item")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("reset: () => batch("));
+}
+
+// --- SolidJS-specific: isLoading starts as true when enabled ---
+
+#[test]
+fn solid_is_loading_initial_true() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("const [isLoading, setIsLoading] = createSignal(initialEnabled)"));
+    assert!(output.contains("const initialEnabled ="));
 }
 
 // --- insta snapshot tests ---

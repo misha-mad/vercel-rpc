@@ -108,10 +108,17 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     | QueryOptions<K>
     | undefined;
 
+  const initialEnabled = typeof options?.enabled === "function"
+    ? options.enabled()
+    : (options?.enabled ?? true);
+
   const [data, setData] = createSignal<QueryOutput<K> | undefined>(options?.placeholderData);
   const [error, setError] = createSignal<RpcError | undefined>();
-  const [isLoading, setIsLoading] = createSignal(false);
+  const [isLoading, setIsLoading] = createSignal(initialEnabled);
   const [hasFetched, setHasFetched] = createSignal(false);
+
+  const isSuccess = createMemo(() => hasFetched() && error() === undefined);
+  const isError = createMemo(() => error() !== undefined);
 
   async function fetchData(input?: QueryInput<K>) {
     setIsLoading(true);
@@ -123,12 +130,12 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
       const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as QueryOutput<K>;
-      setData(() => result);
+      setData(result as Exclude<QueryOutput<K> | undefined, Function>);
       setHasFetched(true);
       options?.onSuccess?.(result);
     } catch (e) {
       const err = e as RpcError;
-      setError(() => err);
+      setError(err as Exclude<RpcError | undefined, Function>);
       options?.onError?.(err);
     } finally {
       setIsLoading(false);
@@ -155,8 +162,8 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     data: data as () => QueryOutput<K> | undefined,
     error,
     isLoading,
-    isSuccess: () => hasFetched() && error() === undefined,
-    isError: () => error() !== undefined,
+    isSuccess,
+    isError,
     refetch: () => fetchData(inputFn?.()),
   };
 }"#;
@@ -171,6 +178,9 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSucceeded, setHasSucceeded] = createSignal(false);
 
+  const isSuccess = createMemo(() => hasSucceeded() && error() === undefined);
+  const isError = createMemo(() => error() !== undefined);
+
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
     setIsLoading(true);
     setError(undefined);
@@ -182,13 +192,13 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
       const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as MutationOutput<K>;
-      setData(() => result);
+      setData(result as Exclude<MutationOutput<K> | undefined, Function>);
       setHasSucceeded(true);
       options?.onSuccess?.(result);
       return result;
     } catch (e) {
       const err = e as RpcError;
-      setError(() => err);
+      setError(err as Exclude<RpcError | undefined, Function>);
       options?.onError?.(err);
       throw e;
     } finally {
@@ -203,9 +213,9 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
     data: data as () => MutationOutput<K> | undefined,
     error,
     isLoading,
-    isSuccess: () => hasSucceeded() && error() === undefined,
-    isError: () => error() !== undefined,
-    reset: () => { setData(undefined); setError(undefined); setIsLoading(false); setHasSucceeded(false); },
+    isSuccess,
+    isError,
+    reset: () => batch(() => { setData(undefined); setError(undefined); setIsLoading(false); setHasSucceeded(false); }),
   };
 }"#;
 
@@ -246,7 +256,7 @@ pub fn generate_solid_file(
     // SolidJS imports
     emit!(
         out,
-        "import {{ createSignal, createEffect, onCleanup }} from \"solid-js\";\n"
+        "import {{ createSignal, createEffect, createMemo, onCleanup, batch }} from \"solid-js\";\n"
     );
 
     // Imports from client
