@@ -158,7 +158,7 @@ pub struct CliOverrides {
 }
 
 /// Resolve config: discover/load the file, then apply CLI overrides.
-pub fn resolve(cli: &CliOverrides) -> Result<RpcConfig> {
+pub fn resolve(cli: CliOverrides) -> Result<RpcConfig> {
     let mut config = if cli.no_config {
         RpcConfig::default()
     } else if let Some(path) = &cli.config {
@@ -171,27 +171,27 @@ pub fn resolve(cli: &CliOverrides) -> Result<RpcConfig> {
         }
     };
 
-    // Apply CLI overrides
-    if let Some(dir) = &cli.dir {
-        config.input.dir = dir.clone();
+    // Apply CLI overrides (move values instead of cloning)
+    if let Some(dir) = cli.dir {
+        config.input.dir = dir;
     }
     if !cli.include.is_empty() {
-        config.input.include = cli.include.clone();
+        config.input.include = cli.include;
     }
     if !cli.exclude.is_empty() {
-        config.input.exclude = cli.exclude.clone();
+        config.input.exclude = cli.exclude;
     }
-    if let Some(output) = &cli.output {
-        config.output.types = output.clone();
+    if let Some(output) = cli.output {
+        config.output.types = output;
     }
-    if let Some(client_output) = &cli.client_output {
-        config.output.client = client_output.clone();
+    if let Some(client_output) = cli.client_output {
+        config.output.client = client_output;
     }
-    if let Some(types_import) = &cli.types_import {
-        config.output.imports.types_path = types_import.clone();
+    if let Some(types_import) = cli.types_import {
+        config.output.imports.types_path = types_import;
     }
-    if let Some(extension) = &cli.extension {
-        config.output.imports.extension = extension.clone();
+    if let Some(extension) = cli.extension {
+        config.output.imports.extension = extension;
     }
     if cli.preserve_docs {
         config.codegen.preserve_docs = true;
