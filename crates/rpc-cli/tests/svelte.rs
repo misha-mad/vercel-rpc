@@ -223,7 +223,7 @@ fn svelte_refetch_in_result() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("refetch: fetchData"));
+    assert!(output.contains("refetch: () => fetchData(inputFn?.())"));
 }
 
 #[test]

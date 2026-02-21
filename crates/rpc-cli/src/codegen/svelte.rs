@@ -8,7 +8,12 @@ const GENERATED_HEADER: &str = "\
 ";
 
 const QUERY_OPTIONS_INTERFACE: &str = r#"export interface QueryOptions<K extends QueryKey> {
-  /** Whether to execute the query. Reactive when passed as a getter. @default true */
+  /**
+   * Whether to execute the query. @default true
+   *
+   * Pass a getter `() => bool` for reactive updates — a plain `boolean` is
+   * read once when `createQuery` is called and will not trigger re-fetches.
+   */
   enabled?: boolean | (() => boolean);
 
   /** Auto-refetch interval in milliseconds. Set to 0 or omit to disable. */
@@ -120,20 +125,14 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   let error = $state<RpcError | undefined>();
   let status = $state<QueryStatus>("idle");
 
-  async function fetchData() {
-    const enabled = typeof options?.enabled === "function"
-      ? options.enabled()
-      : (options?.enabled ?? true);
-    if (!enabled) return;
-
+  async function fetchData(input?: QueryInput<K>) {
     status = "loading";
     error = undefined;
     try {
-      const input = inputFn?.();
-      const args: unknown[] = [key];
-      if (input !== undefined) args.push(input);
-      if (options?.callOptions) args.push(options.callOptions);
-      data = await (client.query as Function)(...args) as QueryOutput<K>;
+      const callArgs: unknown[] = [key];
+      if (input !== undefined) callArgs.push(input);
+      if (options?.callOptions) callArgs.push(options.callOptions);
+      data = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
       status = "success";
       options?.onSuccess?.(data!);
     } catch (e) {
@@ -149,13 +148,13 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     const enabled = typeof options?.enabled === "function"
       ? options.enabled()
       : (options?.enabled ?? true);
-    if (inputFn) inputFn();
+    const input = inputFn?.();
     if (!enabled) return;
 
-    void fetchData();
+    void fetchData(input);
 
     if (options?.refetchInterval) {
-      const interval = setInterval(fetchData, options.refetchInterval);
+      const interval = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
       return () => clearInterval(interval);
     }
   });
@@ -168,7 +167,7 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     get isSuccess() { return status === "success"; },
     get isError() { return status === "error"; },
     get isPlaceholderData() { return status !== "success" && data !== undefined; },
-    refetch: fetchData,
+    refetch: () => fetchData(inputFn?.()),
   };
 }"#;
 
@@ -181,14 +180,14 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
   let error = $state<RpcError | undefined>();
   let status = $state<MutationStatus>("idle");
 
-  async function execute(...input: unknown[]): Promise<MutationOutput<K>> {
+  async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
     status = "loading";
     error = undefined;
     try {
-      const args: unknown[] = [key];
-      if (input.length > 0) args.push(input[0]);
-      if (options?.callOptions) args.push(options.callOptions);
-      const result = await (client.mutate as Function)(...args) as MutationOutput<K>;
+      const callArgs: unknown[] = [key];
+      if (input.length > 0) callArgs.push(input[0]);
+      if (options?.callOptions) callArgs.push(options.callOptions);
+      const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       data = result;
       status = "success";
       options?.onSuccess?.(result);
@@ -204,8 +203,8 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
   }
 
   return {
-    mutate: async (...args: unknown[]) => { await execute(...args); },
-    mutateAsync: (...args: unknown[]) => execute(...args),
+    mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
+    mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     get data() { return data; },
     get error() { return error; },
     get status() { return status; },

@@ -74,14 +74,14 @@ export function createMutation<K extends MutationKey>(
   let error = $state<RpcError | undefined>();
   let status = $state<MutationStatus>("idle");
 
-  async function execute(...input: unknown[]): Promise<MutationOutput<K>> {
+  async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
     status = "loading";
     error = undefined;
     try {
-      const args: unknown[] = [key];
-      if (input.length > 0) args.push(input[0]);
-      if (options?.callOptions) args.push(options.callOptions);
-      const result = await (client.mutate as Function)(...args) as MutationOutput<K>;
+      const callArgs: unknown[] = [key];
+      if (input.length > 0) callArgs.push(input[0]);
+      if (options?.callOptions) callArgs.push(options.callOptions);
+      const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       data = result;
       status = "success";
       options?.onSuccess?.(result);
@@ -97,8 +97,8 @@ export function createMutation<K extends MutationKey>(
   }
 
   return {
-    mutate: async (...args: unknown[]) => { await execute(...args); },
-    mutateAsync: (...args: unknown[]) => execute(...args),
+    mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
+    mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     get data() { return data; },
     get error() { return error; },
     get status() { return status; },

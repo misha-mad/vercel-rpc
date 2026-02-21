@@ -20,7 +20,12 @@ type VoidQueryKey = "version";
 type NonVoidQueryKey = "get_user";
 
 export interface QueryOptions<K extends QueryKey> {
-  /** Whether to execute the query. Reactive when passed as a getter. @default true */
+  /**
+   * Whether to execute the query. @default true
+   *
+   * Pass a getter `() => bool` for reactive updates — a plain `boolean` is
+   * read once when `createQuery` is called and will not trigger re-fetches.
+   */
   enabled?: boolean | (() => boolean);
 
   /** Auto-refetch interval in milliseconds. Set to 0 or omit to disable. */
@@ -89,20 +94,14 @@ export function createQuery<K extends QueryKey>(
   let error = $state<RpcError | undefined>();
   let status = $state<QueryStatus>("idle");
 
-  async function fetchData() {
-    const enabled = typeof options?.enabled === "function"
-      ? options.enabled()
-      : (options?.enabled ?? true);
-    if (!enabled) return;
-
+  async function fetchData(input?: QueryInput<K>) {
     status = "loading";
     error = undefined;
     try {
-      const input = inputFn?.();
-      const args: unknown[] = [key];
-      if (input !== undefined) args.push(input);
-      if (options?.callOptions) args.push(options.callOptions);
-      data = await (client.query as Function)(...args) as QueryOutput<K>;
+      const callArgs: unknown[] = [key];
+      if (input !== undefined) callArgs.push(input);
+      if (options?.callOptions) callArgs.push(options.callOptions);
+      data = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
       status = "success";
       options?.onSuccess?.(data!);
     } catch (e) {
@@ -118,13 +117,13 @@ export function createQuery<K extends QueryKey>(
     const enabled = typeof options?.enabled === "function"
       ? options.enabled()
       : (options?.enabled ?? true);
-    if (inputFn) inputFn();
+    const input = inputFn?.();
     if (!enabled) return;
 
-    void fetchData();
+    void fetchData(input);
 
     if (options?.refetchInterval) {
-      const interval = setInterval(fetchData, options.refetchInterval);
+      const interval = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
       return () => clearInterval(interval);
     }
   });
@@ -137,6 +136,6 @@ export function createQuery<K extends QueryKey>(
     get isSuccess() { return status === "success"; },
     get isError() { return status === "error"; },
     get isPlaceholderData() { return status !== "success" && data !== undefined; },
-    refetch: fetchData,
+    refetch: () => fetchData(inputFn?.()),
   };
 }
