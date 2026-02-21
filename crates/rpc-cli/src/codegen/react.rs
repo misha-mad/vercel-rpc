@@ -166,6 +166,7 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
   const [data, setData] = useState<MutationOutput<K> | undefined>();
   const [error, setError] = useState<RpcError | undefined>();
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSucceeded, setHasSucceeded] = useState(false);
 
   const optionsRef = useRef(options);
   optionsRef.current = options;
@@ -173,12 +174,14 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
   const execute = useCallback(async (...input: MutationArgs<K>): Promise<MutationOutput<K>> => {
     setIsLoading(true);
     setError(undefined);
+    setHasSucceeded(false);
     try {
       const callArgs: unknown[] = [key];
       if (input.length > 0) callArgs.push(input[0]);
       if (optionsRef.current?.callOptions) callArgs.push(optionsRef.current.callOptions);
       const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       setData(result);
+      setHasSucceeded(true);
       optionsRef.current?.onSuccess?.(result);
       return result;
     } catch (e) {
@@ -196,13 +199,14 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
     setData(undefined);
     setError(undefined);
     setIsLoading(false);
+    setHasSucceeded(false);
   }, []);
 
   return {
     mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
     mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     data, error, isLoading,
-    isSuccess: data !== undefined && error === undefined,
+    isSuccess: hasSucceeded && error === undefined,
     isError: error !== undefined,
     reset,
   };
