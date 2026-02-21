@@ -674,33 +674,33 @@ Register the new CLI flag:
 
 ### Unit Tests
 
-| Test                                      | Description                                                          |
-|-------------------------------------------|----------------------------------------------------------------------|
-| `react_file_imports_client_and_types`     | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures`  |
-| `react_file_imports_react_hooks`          | Output imports `useState`, `useEffect`, `useCallback`, `useRef`      |
-| `react_file_contains_use_query`           | Output contains `useQuery` function                                  |
-| `react_file_contains_use_mutation`        | Output contains `useMutation` function                               |
-| `react_void_query_no_input_overload`      | Void-input queries have overload without `input` parameter           |
-| `react_non_void_query_input_overload`     | Non-void queries require `input: QueryInput<K>` parameter            |
-| `react_void_mutation_no_input`            | Void-input mutation `mutate()` takes no arguments                    |
-| `react_queries_only_no_mutation`          | Queries-only manifest omits `useMutation`                            |
-| `react_mutations_only_no_query`           | Mutations-only manifest omits `useQuery`                             |
-| `react_empty_manifest_not_generated`      | Empty manifest produces empty string                                 |
-| `react_uses_use_state`                    | Output contains `useState` calls                                     |
-| `react_uses_use_effect`                   | Output contains `useEffect` call                                     |
-| `react_uses_use_callback`                 | Output contains `useCallback` calls                                  |
-| `react_uses_use_ref`                      | Output contains `useRef` calls                                       |
-| `react_refetch_interval_cleanup`          | `useEffect` returns cleanup for `clearInterval`                      |
-| `react_query_result_has_refetch`          | Return object includes `refetch` method                              |
-| `react_mutation_result_has_reset`         | Return object includes `reset` method                                |
-| `react_mutation_result_has_mutate_async`  | Return object includes `mutateAsync` method                          |
-| `react_json_stringify_input_deps`         | `useCallback` deps include `JSON.stringify(input)`                   |
-| `react_options_ref_pattern`               | Options stored in `useRef` for callback stability                    |
-| `react_is_query_options_guard`            | Output contains `isQueryOptions` type guard function                 |
-| `react_input_is_value_not_getter`         | Non-void input parameter is a value, not a getter function           |
-| `react_enabled_is_boolean_not_getter`     | `enabled` option is `boolean`, not `boolean \| (() => boolean)`      |
-| `react_file_extension_is_ts`             | Output file has `.ts` extension, not `.svelte.ts`                    |
-| `snapshot_react_full`                     | Insta snapshot with mixed queries and mutations                      |
+| Test                                     | Description                                                         |
+|------------------------------------------|---------------------------------------------------------------------|
+| `react_file_imports_client_and_types`    | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures` |
+| `react_file_imports_react_hooks`         | Output imports `useState`, `useEffect`, `useCallback`, `useRef`     |
+| `react_file_contains_use_query`          | Output contains `useQuery` function                                 |
+| `react_file_contains_use_mutation`       | Output contains `useMutation` function                              |
+| `react_void_query_no_input_overload`     | Void-input queries have overload without `input` parameter          |
+| `react_non_void_query_input_overload`    | Non-void queries require `input: QueryInput<K>` parameter           |
+| `react_void_mutation_no_input`           | Void-input mutation `mutate()` takes no arguments                   |
+| `react_queries_only_no_mutation`         | Queries-only manifest omits `useMutation`                           |
+| `react_mutations_only_no_query`          | Mutations-only manifest omits `useQuery`                            |
+| `react_empty_manifest_not_generated`     | Empty manifest produces empty string                                |
+| `react_uses_use_state`                   | Output contains `useState` calls                                    |
+| `react_uses_use_effect`                  | Output contains `useEffect` call                                    |
+| `react_uses_use_callback`                | Output contains `useCallback` calls                                 |
+| `react_uses_use_ref`                     | Output contains `useRef` calls                                      |
+| `react_refetch_interval_cleanup`         | `useEffect` returns cleanup for `clearInterval`                     |
+| `react_query_result_has_refetch`         | Return object includes `refetch` method                             |
+| `react_mutation_result_has_reset`        | Return object includes `reset` method                               |
+| `react_mutation_result_has_mutate_async` | Return object includes `mutateAsync` method                         |
+| `react_json_stringify_input_deps`        | `useCallback` deps include `JSON.stringify(input)`                  |
+| `react_options_ref_pattern`              | Options stored in `useRef` for callback stability                   |
+| `react_is_query_options_guard`           | Output contains `isQueryOptions` type guard function                |
+| `react_input_is_value_not_getter`        | Non-void input parameter is a value, not a getter function          |
+| `react_enabled_is_boolean_not_getter`    | `enabled` option is `boolean`, not `boolean \| (() => boolean)`     |
+| `react_file_extension_is_ts`             | Output file has `.ts` extension, not `.svelte.ts`                   |
+| `snapshot_react_full`                    | Insta snapshot with mixed queries and mutations                     |
 
 ### Config Tests
 
