@@ -54,9 +54,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > **Vue 3** — Implemented in RFC-9. Optional composable file (`rpc.vue.ts`) with `useQuery` and `useMutation` using Vue 3 Composition API (`ref`, `computed`, `watch`, `onScopeDispose`). Opt-in via `output.vue` config field or `--vue-output` CLI flag.
 
-### Framework Reactive Wrappers (SolidJS) → [RFC-10](./RFC/RFC-10.md)
+### ~~Framework Reactive Wrappers (SolidJS)~~ ✅ → [RFC-10](./RFC/RFC-10.md)
 
-> **SolidJS** — RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid signals (`createSignal`, `createEffect`, `onCleanup`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
+> **SolidJS** — Implemented in RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid signals (`createSignal`, `createEffect`, `onCleanup`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
 
 ### Query Race Condition Handling (AbortController)
 
@@ -283,5 +283,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3)~~ ✅, SolidJS wrappers, enum representations, generics, branded types, flatten           |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, enum representations, generics, branded types, flatten                     |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                          |

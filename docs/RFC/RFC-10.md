@@ -1,6 +1,6 @@
 # RFC-10: SolidJS Reactive Wrappers
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Generated SolidJS primitives for queries and mutations
 - **Date:** February 2026
 
