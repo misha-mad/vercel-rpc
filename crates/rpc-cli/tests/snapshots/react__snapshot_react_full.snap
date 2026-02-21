@@ -109,6 +109,16 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }
 
+const QUERY_OPTIONS_KEYS: string[] = [
+  "enabled", "refetchInterval", "placeholderData", "callOptions",
+  "onSuccess", "onError", "onSettled",
+];
+
+function isQueryOptions(v: unknown): boolean {
+  if (v == null || typeof v !== "object") return false;
+  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
+}
+
 export function useQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;
 export function useQuery<K extends "hello">(client: RpcClient, key: K, input: QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;
 export function useQuery<K extends QueryKey>(
@@ -117,16 +127,14 @@ export function useQuery<K extends QueryKey>(
 ): QueryResult<K> {
   const key = args[0] as K;
 
-  const input = typeof args[1] === "object" && args.length > 2
-    ? args[1] as QueryInput<K>
-    : undefined;
-  const options = (typeof args[1] === "object" && args.length === 2
-    ? args[1]
-    : args[2]) as QueryOptions<K> | undefined;
+  const hasInput = args[1] !== undefined && !isQueryOptions(args[1]);
+  const input = hasInput ? args[1] as QueryInput<K> : undefined;
+  const options = (hasInput ? args[2] : args[1]) as QueryOptions<K> | undefined;
 
   const [data, setData] = useState<QueryOutput<K> | undefined>(options?.placeholderData);
   const [error, setError] = useState<RpcError | undefined>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(options?.enabled !== false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   const optionsRef = useRef(options);
   optionsRef.current = options;
@@ -139,8 +147,9 @@ export function useQuery<K extends QueryKey>(
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
       if (optionsRef.current?.callOptions) callArgs.push(optionsRef.current.callOptions);
-      const result = await (client.query as Function)(...callArgs) as QueryOutput<K>;
+      const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
       setData(result);
+      setHasFetched(true);
       optionsRef.current?.onSuccess?.(result);
     } catch (e) {
       const err = e as RpcError;
@@ -164,7 +173,7 @@ export function useQuery<K extends QueryKey>(
 
   return {
     data, error, isLoading,
-    isSuccess: data !== undefined,
+    isSuccess: hasFetched && error === undefined,
     isError: error !== undefined,
     refetch: fetchData,
   };
@@ -182,14 +191,14 @@ export function useMutation<K extends MutationKey>(
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  const execute = useCallback(async (...input: unknown[]): Promise<MutationOutput<K>> => {
+  const execute = useCallback(async (...input: MutationArgs<K>): Promise<MutationOutput<K>> => {
     setIsLoading(true);
     setError(undefined);
     try {
       const callArgs: unknown[] = [key];
       if (input.length > 0) callArgs.push(input[0]);
       if (optionsRef.current?.callOptions) callArgs.push(optionsRef.current.callOptions);
-      const result = await (client.mutate as Function)(...callArgs) as MutationOutput<K>;
+      const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       setData(result);
       optionsRef.current?.onSuccess?.(result);
       return result;
@@ -211,8 +220,8 @@ export function useMutation<K extends MutationKey>(
   }, []);
 
   return {
-    mutate: async (...args: unknown[]) => { await execute(...args); },
-    mutateAsync: (...args: unknown[]) => execute(...args),
+    mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
+    mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     data, error, isLoading,
     isSuccess: data !== undefined && error === undefined,
     isError: error !== undefined,

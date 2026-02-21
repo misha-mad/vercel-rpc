@@ -90,22 +90,30 @@ const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K ext
   reset: () => void;
 }"#;
 
+const IS_QUERY_OPTIONS_IMPL: &str = r#"const QUERY_OPTIONS_KEYS: string[] = [
+  "enabled", "refetchInterval", "placeholderData", "callOptions",
+  "onSuccess", "onError", "onSettled",
+];
+
+function isQueryOptions(v: unknown): boolean {
+  if (v == null || typeof v !== "object") return false;
+  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
+}"#;
+
 const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
 ): QueryResult<K> {
   const key = args[0] as K;
 
-  const input = typeof args[1] === "object" && args.length > 2
-    ? args[1] as QueryInput<K>
-    : undefined;
-  const options = (typeof args[1] === "object" && args.length === 2
-    ? args[1]
-    : args[2]) as QueryOptions<K> | undefined;
+  const hasInput = args[1] !== undefined && !isQueryOptions(args[1]);
+  const input = hasInput ? args[1] as QueryInput<K> : undefined;
+  const options = (hasInput ? args[2] : args[1]) as QueryOptions<K> | undefined;
 
   const [data, setData] = useState<QueryOutput<K> | undefined>(options?.placeholderData);
   const [error, setError] = useState<RpcError | undefined>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(options?.enabled !== false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   const optionsRef = useRef(options);
   optionsRef.current = options;
@@ -118,8 +126,9 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
       if (optionsRef.current?.callOptions) callArgs.push(optionsRef.current.callOptions);
-      const result = await (client.query as Function)(...callArgs) as QueryOutput<K>;
+      const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
       setData(result);
+      setHasFetched(true);
       optionsRef.current?.onSuccess?.(result);
     } catch (e) {
       const err = e as RpcError;
@@ -143,7 +152,7 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
 
   return {
     data, error, isLoading,
-    isSuccess: data !== undefined,
+    isSuccess: hasFetched && error === undefined,
     isError: error !== undefined,
     refetch: fetchData,
   };
@@ -161,14 +170,14 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  const execute = useCallback(async (...input: unknown[]): Promise<MutationOutput<K>> => {
+  const execute = useCallback(async (...input: MutationArgs<K>): Promise<MutationOutput<K>> => {
     setIsLoading(true);
     setError(undefined);
     try {
       const callArgs: unknown[] = [key];
       if (input.length > 0) callArgs.push(input[0]);
       if (optionsRef.current?.callOptions) callArgs.push(optionsRef.current.callOptions);
-      const result = await (client.mutate as Function)(...callArgs) as MutationOutput<K>;
+      const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       setData(result);
       optionsRef.current?.onSuccess?.(result);
       return result;
@@ -190,8 +199,8 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
   }, []);
 
   return {
-    mutate: async (...args: unknown[]) => { await execute(...args); },
-    mutateAsync: (...args: unknown[]) => execute(...args),
+    mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
+    mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     data, error, isLoading,
     isSuccess: data !== undefined && error === undefined,
     isError: error !== undefined,
@@ -376,6 +385,7 @@ pub fn generate_react_file(
 
     // useQuery overloads + implementation
     if has_queries {
+        emit!(out, "{IS_QUERY_OPTIONS_IMPL}\n");
         generate_query_overloads(&queries, &mut out);
         emit!(out, "{USE_QUERY_IMPL}\n");
     }

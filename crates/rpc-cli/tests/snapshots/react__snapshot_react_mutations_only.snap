@@ -74,14 +74,14 @@ export function useMutation<K extends MutationKey>(
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
-  const execute = useCallback(async (...input: unknown[]): Promise<MutationOutput<K>> => {
+  const execute = useCallback(async (...input: MutationArgs<K>): Promise<MutationOutput<K>> => {
     setIsLoading(true);
     setError(undefined);
     try {
       const callArgs: unknown[] = [key];
       if (input.length > 0) callArgs.push(input[0]);
       if (optionsRef.current?.callOptions) callArgs.push(optionsRef.current.callOptions);
-      const result = await (client.mutate as Function)(...callArgs) as MutationOutput<K>;
+      const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       setData(result);
       optionsRef.current?.onSuccess?.(result);
       return result;
@@ -103,8 +103,8 @@ export function useMutation<K extends MutationKey>(
   }, []);
 
   return {
-    mutate: async (...args: unknown[]) => { await execute(...args); },
-    mutateAsync: (...args: unknown[]) => execute(...args),
+    mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
+    mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     data, error, isLoading,
     isSuccess: data !== undefined && error === undefined,
     isError: error !== undefined,
