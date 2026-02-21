@@ -53,7 +53,7 @@ rpc generate \
   --types-import ./rpc-types
 ```
 
-This produces two files (plus optional framework wrappers when `output.svelte` or `output.react` are configured):
+This produces two files (plus optional framework wrappers when `output.svelte`, `output.react`, or `output.vue` are configured):
 
 **`rpc-types.ts`** — TypeScript interfaces and a `Procedures` type map:
 
@@ -130,6 +130,7 @@ types = "src/lib/rpc-types.ts"       # generated types file path
 client = "src/lib/rpc-client.ts"     # generated client file path
 # svelte = "src/lib/rpc.svelte.ts"   # opt-in Svelte 5 reactive wrappers
 # react  = "src/lib/rpc.react.ts"   # opt-in React hooks
+# vue    = "src/lib/rpc.vue.ts"     # opt-in Vue 3 composables
 
 [output.imports]
 types_path = "./rpc-types"           # import specifier used in client file
@@ -313,6 +314,7 @@ A config file sets project-level defaults; CLI flags override them per invocatio
 | `--client-output` | `-c`  | `src/lib/rpc-client.ts` | generate, watch       | Output path for TypeScript client                     |
 | `--svelte-output` |       | *(none)*                | generate, watch       | Output path for Svelte 5 reactive wrapper (opt-in)    |
 | `--react-output`  |       | *(none)*                | generate, watch       | Output path for React hooks wrapper (opt-in)          |
+| `--vue-output`    |       | *(none)*                | generate, watch       | Output path for Vue 3 composable wrapper (opt-in)     |
 | `--types-import`  |       | `./rpc-types`           | generate, watch       | Import path for types in the client file              |
 | `--extension`     |       | `""`                    | generate, watch       | Suffix appended to types import (e.g. `.js` for ESM)  |
 | `--preserve-docs` |       | `false`                 | generate, watch       | Forward Rust doc comments as JSDoc                    |
@@ -723,6 +725,88 @@ const item = await createItem.mutateAsync({ title: "New Item" });
 | `reset`       | `() => void`                     | Reset state back to idle                             |
 
 See [RFC-8](../../docs/RFC/RFC-8.md) for the full design and implementation details.
+
+## Vue 3 composables
+
+When `output.vue` is configured (or `--vue-output` is passed), the CLI generates a `.ts` file with `useQuery` and `useMutation` composables that wrap the `RpcClient` with Vue 3 Composition API (`ref`, `computed`, `watch`, `onScopeDispose`).
+
+```toml
+[output]
+vue = "src/lib/rpc.vue.ts"
+```
+
+### `useQuery`
+
+Wraps `client.query()` with reactive state. Void-input queries omit the `input` parameter:
+
+```typescript
+// Void query — no input needed
+const health = useQuery(rpc, "health_check");
+
+// Non-void query — input is a getter for reactive dependency tracking
+const user = useQuery(rpc, "get_user", () => ({ id: userId.value }));
+
+// With options
+const stats = useQuery(rpc, "server_stats", {
+  refetchInterval: 5000,
+  enabled: () => isAuthenticated.value,
+  onSuccess: (data) => console.log("got stats", data),
+});
+```
+
+**`QueryOptions<K>`:**
+
+| Option            | Type                         | Description                                        |
+|-------------------|------------------------------|----------------------------------------------------|
+| `enabled`         | `boolean \| (() => boolean)` | Whether to execute the query (default: `true`)     |
+| `refetchInterval` | `number`                     | Auto-refetch interval in ms (0 or omit to disable) |
+| `placeholderData` | `QueryOutput<K>`             | Initial data before the first fetch completes      |
+| `callOptions`     | `CallOptions`                | Per-call options forwarded to `client.query()`     |
+| `onSuccess`       | `(data) => void`             | Called when the query succeeds                     |
+| `onError`         | `(error) => void`            | Called when the query fails                        |
+| `onSettled`       | `() => void`                 | Called when the query settles (success or failure) |
+
+**`QueryResult<K>`:**
+
+| Property    | Type                          | Description                                       |
+|-------------|-------------------------------|---------------------------------------------------|
+| `data`      | `Ref<QueryOutput<K> \| undefined>` | Latest resolved data, or `placeholderData`   |
+| `error`     | `Ref<RpcError \| undefined>`  | Error from the most recent failed fetch           |
+| `isLoading` | `Ref<boolean>`                | True while a fetch is in-flight                   |
+| `isSuccess` | `ComputedRef<boolean>`        | True after the first successful fetch             |
+| `isError`   | `ComputedRef<boolean>`        | True when `error` is set                          |
+| `refetch`   | `() => Promise<void>`         | Manually trigger a refetch                        |
+
+### `useMutation`
+
+Wraps `client.mutate()` with reactive state:
+
+```typescript
+const createItem = useMutation(rpc, "create_item", {
+  onSuccess: (item) => console.log("created", item.id),
+});
+
+// Fire-and-forget
+createItem.mutate({ title: "New Item" });
+
+// Await the result
+const item = await createItem.mutateAsync({ title: "New Item" });
+```
+
+**`MutationResult<K>`:**
+
+| Property      | Type                                  | Description                                          |
+|---------------|---------------------------------------|------------------------------------------------------|
+| `mutate`      | `(input) => Promise<void>`            | Execute the mutation (void for void-input mutations) |
+| `mutateAsync` | `(input) => Promise<Output>`          | Execute and return the result                        |
+| `data`        | `Ref<MutationOutput<K> \| undefined>` | Latest resolved data                                 |
+| `error`       | `Ref<RpcError \| undefined>`          | Error from the most recent failed mutation           |
+| `isLoading`   | `Ref<boolean>`                        | True while a mutation is in-flight                   |
+| `isSuccess`   | `ComputedRef<boolean>`                | True after the most recent mutation succeeded        |
+| `isError`     | `ComputedRef<boolean>`                | True when `error` is set                             |
+| `reset`       | `() => void`                          | Reset state back to idle                             |
+
+See [RFC-9](../../docs/RFC/RFC-9.md) for the full design and implementation details.
 
 ## Related crates
 

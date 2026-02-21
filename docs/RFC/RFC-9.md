@@ -1,6 +1,6 @@
 # RFC-9: Vue 3 Reactive Wrappers
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Generated Vue 3 composables for queries and mutations
 - **Date:** February 2026
 
@@ -640,7 +640,27 @@ pub fn generate_vue_file(
 - The generated `rpc-client.ts` and `rpc-types.ts` are unchanged.
 - The existing Svelte and React wrappers are unaffected.
 
-## 11. Future Extensions
+## 11. Implementation Notes
+
+The following deviations from the original draft were made during implementation based on code review:
+
+### 11.1 `computed()` for `isSuccess` / `isError`
+
+The draft specified `isSuccess` and `isError` as plain object getters (`get isSuccess() { ... }`). In the implementation, these are `computed()` refs returning `ComputedRef<boolean>`. Plain getters lose reactivity in Vue templates — only `Ref` and `ComputedRef` values trigger re-renders when used in `<template>`.
+
+### 11.2 `onScopeDispose` instead of `onUnmounted`
+
+The draft used `onUnmounted()` for cleanup. The implementation uses `onScopeDispose()` instead, which works with any Vue effect scope (not just component lifecycles). This is more flexible — composables can be used in `effectScope()` contexts outside of components.
+
+### 11.3 `JSON.stringify` instead of `deep: true`
+
+The draft used `watch(..., { immediate: true, deep: true })` for reactive input tracking. The implementation replaces `deep: true` with a `serialized: JSON.stringify(input)` field in the watch source. This avoids expensive deep object comparison and uses string equality instead.
+
+### 11.4 Typed watch callback
+
+The watch callback destructures `{ enabled, input }` with an explicit type annotation `{ enabled: boolean; input: QueryInput<K> | undefined; serialized: string }` to avoid TypeScript implicit-any errors (TS7031).
+
+## 12. Future Extensions
 
 - **`useInfiniteQuery`** — cursor/offset-based pagination with accumulated `pages` ref.
 - **Suspense integration** — Vue 3 `<Suspense>` support via async setup.

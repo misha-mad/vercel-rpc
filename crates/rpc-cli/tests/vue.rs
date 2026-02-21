@@ -24,8 +24,9 @@ fn vue_imports_client_and_types() {
 fn vue_imports_vue() {
     let manifest = common::make_test_manifest();
     let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output
-        .contains("import { ref, computed, watch, onScopeDispose, type Ref, type ComputedRef } from \"vue\""));
+    assert!(output.contains(
+        "import { ref, computed, watch, onScopeDispose, type Ref, type ComputedRef } from \"vue\""
+    ));
 }
 
 #[test]

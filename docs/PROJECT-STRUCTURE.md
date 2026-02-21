@@ -22,7 +22,8 @@ vercel-rpc/
 │       │   │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
 │       │   │   ├── client.rs     #     RpcClient interface + rpc-client.ts
 │       │   │   ├── svelte.rs     #     Svelte 5 reactive wrappers (opt-in)
-│       │   │   └── react.rs      #     React hooks wrappers (opt-in)
+│       │   │   ├── react.rs      #     React hooks wrappers (opt-in)
+│       │   │   └── vue.rs        #     Vue 3 composable wrappers (opt-in)
 │       │   └── watch.rs          #   File watcher with debounce
 │       └── tests/                # Integration tests
 │           ├── common/mod.rs     #   Shared test helpers
@@ -33,7 +34,8 @@ vercel-rpc/
 │           ├── typescript.rs     #   TypeScript codegen (type mapping, JSDoc, serde)
 │           ├── client.rs         #   Client codegen (RpcClient, overloads)
 │           ├── svelte.rs         #   Svelte codegen (createQuery, createMutation)
-│           └── react.rs          #   React codegen (useQuery, useMutation)
+│           ├── react.rs          #   React codegen (useQuery, useMutation)
+│           └── vue.rs            #   Vue codegen (useQuery, useMutation)
 ├── demo/                         # Demo application (SvelteKit) + Rust lambdas
 │   ├── api/                      # Rust lambdas (each file = one endpoint)
 │   │   ├── hello.rs              #   GET  /api/hello?input="name"
