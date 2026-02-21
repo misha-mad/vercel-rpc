@@ -12,7 +12,7 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
-	{ ignores: ['src/lib/rpc-types.ts', 'src/lib/rpc-client.ts'] },
+	{ ignores: ['src/lib/rpc-types.ts', 'src/lib/rpc-client.ts', 'src/lib/rpc.svelte.ts'] },
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,

@@ -27,6 +27,7 @@ pub struct InputConfig {
 pub struct OutputConfig {
     pub types: PathBuf,
     pub client: PathBuf,
+    pub svelte: Option<PathBuf>,
     pub imports: ImportsConfig,
 }
 
@@ -83,6 +84,7 @@ impl Default for OutputConfig {
         Self {
             types: PathBuf::from("src/lib/rpc-types.ts"),
             client: PathBuf::from("src/lib/rpc-client.ts"),
+            svelte: None,
             imports: ImportsConfig::default(),
         }
     }
@@ -147,6 +149,7 @@ pub struct CliOverrides {
     // output
     pub output: Option<PathBuf>,
     pub client_output: Option<PathBuf>,
+    pub svelte_output: Option<PathBuf>,
     pub types_import: Option<String>,
     pub extension: Option<String>,
     // codegen
@@ -186,6 +189,9 @@ pub fn resolve(cli: CliOverrides) -> Result<RpcConfig> {
     }
     if let Some(client_output) = cli.client_output {
         config.output.client = client_output;
+    }
+    if let Some(svelte_output) = cli.svelte_output {
+        config.output.svelte = Some(svelte_output);
     }
     if let Some(types_import) = cli.types_import {
         config.output.imports.types_path = types_import;

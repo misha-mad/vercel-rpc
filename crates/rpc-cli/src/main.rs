@@ -54,6 +54,10 @@ struct GenerateArgs {
     #[arg(short, long)]
     client_output: Option<PathBuf>,
 
+    /// Output path for the generated Svelte 5 reactive wrapper file
+    #[arg(long)]
+    svelte_output: Option<PathBuf>,
+
     /// Import path for the types file used in the client (relative, without extension)
     #[arg(long)]
     types_import: Option<String>,
@@ -125,6 +129,7 @@ fn main() -> Result<()> {
                 exclude: args.input.exclude,
                 output: args.output,
                 client_output: args.client_output,
+                svelte_output: args.svelte_output,
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,
@@ -146,6 +151,7 @@ fn main() -> Result<()> {
                 exclude: args.input.exclude,
                 output: args.output,
                 client_output: args.client_output,
+                svelte_output: args.svelte_output,
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,

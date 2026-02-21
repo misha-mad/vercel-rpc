@@ -1,6 +1,6 @@
 # RFC-7: Framework Reactive Wrappers
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Generated Svelte 5 reactive wrappers for queries and mutations
 - **Date:** February 2026
 

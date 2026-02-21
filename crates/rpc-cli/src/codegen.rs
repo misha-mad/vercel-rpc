@@ -4,6 +4,8 @@
 //!   `Procedures` map).
 //! - [`client`] — generates `rpc-client.ts` (`RpcClient` interface,
 //!   `createRpcClient` factory, `RpcError` class, `rpcFetch` helper).
+//! - [`svelte`] — generates `rpc.svelte.ts` (Svelte 5 reactive wrappers:
+//!   `createQuery`, `createMutation`).
 
 /// Shorthand for `let _ = writeln!(...)` when writing to a `String` buffer.
 ///
@@ -18,4 +20,5 @@ macro_rules! emit {
 }
 
 pub mod client;
+pub mod svelte;
 pub mod typescript;
