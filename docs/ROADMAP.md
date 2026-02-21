@@ -32,7 +32,7 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in RFC-5. Every `query()` and `mutate()` overload accepts an optional trailing `CallOptions` argument with per-request `signal`, `headers`, and `timeout` overrides.
 
-### Request Deduplication
+### Request Deduplication → [RFC-6](./RFC-6.md)
 
 When multiple components call the same query with the same input simultaneously, only one HTTP request should be made. Subsequent callers receive the same in-flight promise.
 
@@ -322,9 +322,9 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 ## Summary
 
-| Phase | Focus      | Key Deliverables                                                                    |
-|-------|------------|-------------------------------------------------------------------------------------|
-| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅              |
+| Phase | Focus      | Key Deliverables                                                                                                                |
+|-------|------------|---------------------------------------------------------------------------------------------------------------------------------|
+| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                          |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, request deduplication, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten |
-| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests        |
+| **3** | DX         | Framework reactive wrappers, enum representations, generics, branded types, flatten                                             |
+| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                    |
