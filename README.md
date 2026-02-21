@@ -27,6 +27,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 
 - 🦀 **Write plain Rust functions** with `#[rpc_query]` / `#[rpc_mutation]`
 - 🔄 **Auto-generate TypeScript types & client** from Rust source code
+- ⚛️ **Framework hooks** — opt-in React (`useQuery`) and Svelte 5 (`createQuery`) wrappers
 - 👀 **Watch mode** — types regenerate on every save
 - 🚀 **Deploy to Vercel** — each function becomes a serverless lambda
 - 🛡️ **End-to-end type safety** — Rust types → TypeScript types, no manual sync
@@ -38,6 +39,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 │  api/*.rs    │ ──────────▶  │   Manifest  │ ──────────▶  │  rpc-types.ts        │
 │  #[rpc_query]│   (syn)      │  procedures │   (rust→ts)  │  rpc-client.ts       │
 │  #[rpc_mut.] │              │  structs    │              │  rpc.svelte.ts (opt) │
+│              │              │             │              │  rpc.react.ts  (opt) │
 └──────────────┘              └─────────────┘              └──────────────────────┘
        │                                                           │
        │  deploy (vercel)                              import (ts) │
@@ -81,7 +83,7 @@ npm run generate
 cargo run -p vercel-rpc-cli -- generate --dir api --output demo/src/lib/rpc-types.ts --client-output demo/src/lib/rpc-client.ts
 ```
 
-This produces two files (plus an optional Svelte 5 wrapper — see below):
+This produces two files (plus optional framework wrappers — see [Svelte 5](#svelte-5-reactive-wrappers-opt-in) and [React](#react-hooks-opt-in) below):
 
 **`src/lib/rpc-types.ts`** — type definitions:
 ```typescript
@@ -150,66 +152,7 @@ This runs the RPC watcher and Vite dev server in parallel. Every time you save a
 
 ## Project Structure
 
-```
-vercel-rpc/
-├── crates/
-│   ├── rpc/                      # Facade crate (re-exports macros + runtime deps)
-│   │   └── src/lib.rs            #   pub use vercel_rpc_macro::{rpc_query, rpc_mutation}
-│   ├── rpc-macro/                # Proc-macro crate
-│   │   └── src/lib.rs            #   #[rpc_query] / #[rpc_mutation]
-│   └── rpc-cli/                  # CLI crate (library + binary: `rpc`)
-│       ├── src/
-│       │   ├── lib.rs            #   Library root — public module declarations
-│       │   ├── main.rs           #   CLI entry (clap arg parsing)
-│       │   ├── commands.rs       #   scan / generate command implementations
-│       │   ├── config.rs         #   rpc.config.toml loading & merging
-│       │   ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef, FieldDef
-│       │   ├── parser/           #   Rust source → Manifest (via syn)
-│       │   │   ├── extract.rs    #     File scanning & procedure extraction
-│       │   │   ├── serde.rs      #     #[serde(...)] attribute parsing
-│       │   │   └── types.rs      #     syn::Type → RustType conversion
-│       │   ├── codegen/          #   Manifest → TypeScript
-│       │   │   ├── typescript.rs #     RustType → TS type mapping + rpc-types.ts
-│       │   │   ├── client.rs     #     RpcClient interface + rpc-client.ts
-│       │   │   └── svelte.rs     #     Svelte 5 reactive wrappers (opt-in)
-│       │   └── watch.rs          #   File watcher with debounce
-│       └── tests/                # Integration tests
-│           ├── common/mod.rs     #   Shared test helpers
-│           ├── commands.rs       #   scan / generate / write_file / bytecount
-│           ├── config.rs         #   Config parsing, discovery, CLI overrides
-│           ├── extract.rs        #   Parser extraction from Rust source
-│           ├── types.rs          #   syn::Type → RustType + RenameRule conversion
-│           ├── typescript.rs     #   TypeScript codegen (type mapping, JSDoc, serde)
-│           ├── client.rs         #   Client codegen (RpcClient, overloads)
-│           └── svelte.rs         #   Svelte codegen (createQuery, createMutation)
-├── demo/                         # Demo application (SvelteKit) + Rust lambdas
-│   ├── api/                      # Rust lambdas (each file = one endpoint)
-│   │   ├── hello.rs              #   GET  /api/hello?input="name"
-│   │   ├── time.rs               #   GET  /api/time
-│   │   ├── status.rs             #   GET  /api/status
-│   │   ├── math.rs               #   GET  /api/math?input={a,b,op}
-│   │   ├── stats.rs              #   GET  /api/stats?input=[numbers]
-│   │   ├── echo.rs               #   POST /api/echo (mutation)
-│   │   └── profile.rs            #   GET  /api/profile?input=id (serde attrs demo)
-│   ├── Cargo.toml                # Rust package for demo lambdas
-│   ├── src/
-│   │   ├── lib/
-│   │   │   ├── rpc-types.ts      # ← auto-generated types
-│   │   │   ├── rpc-client.ts     # ← auto-generated client
-│   │   │   ├── rpc.svelte.ts     # ← auto-generated Svelte 5 wrappers
-│   │   │   └── client.ts         #   RPC client instance (manual)
-│   │   └── routes/               # SvelteKit pages
-│   ├── tests/
-│   │   ├── integration/          # Vitest: codegen pipeline tests
-│   │   └── e2e/                  # Playwright: UI + API tests
-│   ├── package.json              # Node scripts
-│   ├── svelte.config.js          # SvelteKit config
-│   ├── vite.config.ts            # Vite config
-│   └── tsconfig.json             # TypeScript config
-├── Cargo.toml                    # Rust workspace (crates + demo)
-├── vercel.json                   # Vercel config
-└── README.md
-```
+See [docs/PROJECT-STRUCTURE.md](./docs/PROJECT-STRUCTURE.md) for the full annotated file tree.
 
 ## CLI Reference
 
@@ -251,6 +194,7 @@ cargo run -p vercel-rpc-cli -- generate \
 | `--output`, `-o`        | `src/lib/rpc-types.ts`  | Types output path                        |
 | `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path                       |
 | `--svelte-output`       | *(none)*                | Svelte 5 wrapper output path (opt-in)    |
+| `--react-output`        | *(none)*                | React hooks output path (opt-in)         |
 | `--types-import`        | `./rpc-types`           | Import path for types in client          |
 | `--config`              | *(auto-discover)*       | Path to config file                      |
 | `--no-config`           | `false`                 | Disable config file loading              |
@@ -279,6 +223,7 @@ exclude = []             # glob patterns for files to exclude
 types = "src/lib/rpc-types.ts"
 client = "src/lib/rpc-client.ts"
 svelte = "src/lib/rpc.svelte.ts"  # opt-in Svelte 5 wrappers
+# react = "src/lib/rpc.react.ts" # opt-in React hooks
 
 [output.imports]
 types_path = "./rpc-types"
@@ -517,7 +462,40 @@ svelte = "src/lib/rpc.svelte.ts"
 {/if}
 ```
 
-See the [rpc-cli README](./crates/rpc-cli/README.md#svelte-5-reactive-wrappers) and [RFC-7](./docs/RFC-7.md) for full API details.
+See the [rpc-cli README](./crates/rpc-cli/README.md#svelte-5-reactive-wrappers) and [RFC-7](./docs/RFC/RFC-7.md) for full API details.
+
+### React hooks (opt-in)
+
+When `output.react` is configured, the CLI generates a `.ts` file with `useQuery` and `useMutation` hooks that wrap the `RpcClient` with React state (`useState`, `useEffect`):
+
+```toml
+# rpc.config.toml
+[output]
+react = "src/lib/rpc.react.ts"
+```
+
+```tsx
+import { rpc } from './rpc';
+import { useQuery, useMutation } from './rpc.react';
+
+function UserProfile() {
+  const [userId, setUserId] = useState(1);
+
+  // Reactive query — auto-refetches when input changes
+  const user = useQuery(rpc, "get_user", { id: userId });
+
+  // Mutation with lifecycle callbacks
+  const updateName = useMutation(rpc, "update_profile", {
+    onSuccess: () => alert("Saved!"),
+  });
+
+  if (user.isLoading) return <Spinner />;
+  if (user.isError) return <ErrorBanner error={user.error} />;
+  return <p>Hello, {user.data.name}</p>;
+}
+```
+
+See the [rpc-cli README](./crates/rpc-cli/README.md#react-hooks) and [RFC-8](./docs/RFC/RFC-8.md) for full API details.
 
 ## Rust Macros
 

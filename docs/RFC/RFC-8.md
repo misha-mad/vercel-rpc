@@ -1,6 +1,6 @@
 # RFC-8: React Reactive Wrappers
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Topic:** Generated React hooks for queries and mutations
 - **Date:** February 2026
 
@@ -785,3 +785,27 @@ These are out of scope for the initial implementation but the design accommodate
 - **Optimistic updates** — `MutationOptions.onMutate` callback that returns rollback data, with automatic rollback on error.
 - **Query invalidation** — `queryClient.invalidate("key")` pattern for cache-busting after mutations. Would require a shared query registry.
 - **Suspense integration** — React Suspense support via throwing a promise from `useQuery` when data is not yet available, enabling `<Suspense>` boundaries for loading states.
+
+## 13. Implementation Notes
+
+The implementation deviates from the initial design sketches in sections 7.2–7.3 in the following ways:
+
+### Simplified state model
+
+Instead of a `status: QueryStatus` enum with derived booleans, the implementation uses individual `useState` hooks for `data`, `error`, `isLoading`, plus a `hasFetched` flag. This avoids the overhead of a status enum while keeping `isSuccess` semantics correct — `isSuccess` is `hasFetched && error === undefined`, not `data !== undefined` (which would be true with `placeholderData`).
+
+Similarly, `useMutation` uses a `hasSucceeded` flag instead of a status enum, so `isSuccess` remains accurate even when a mutation returns `undefined` as a valid result.
+
+### `isQueryOptions` type guard
+
+The overloaded `useQuery` signature requires disambiguating `input` from `options` at runtime. The implementation uses a key-based guard (`isQueryOptions`) that checks whether all keys of the argument are known option keys (`enabled`, `refetchInterval`, `placeholderData`, `callOptions`, `onSuccess`, `onError`, `onSettled`). This is more robust than the `args.length` heuristic in the original sketch.
+
+### No `status` / `isPlaceholderData` fields
+
+The React implementation omits the `status` and `isPlaceholderData` fields from `QueryResult` and `MutationResult` to keep the generated code minimal. These can be added in a future iteration if needed.
+
+### Svelte fixes shipped alongside
+
+During code review, several issues were identified and fixed in both the React and Svelte codegen:
+- **Double `inputFn()` call** — Svelte's `$effect` was calling `inputFn()` for reactive tracking and again inside `fetchData`. Fixed by computing input once and passing it as a parameter.
+- **Type safety** — Both hooks replaced `as Function` casts with `(...a: unknown[]) => Promise<unknown>` and used `MutationArgs<K>` instead of `unknown[]` in mutation signatures.
