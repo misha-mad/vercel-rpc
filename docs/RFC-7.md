@@ -57,12 +57,12 @@ This boilerplate is repeated in every component. A reactive wrapper eliminates i
 {/if}
 ```
 
-| Without wrappers | With wrappers |
-|---|---|
-| ~12 lines of manual state + effect per query | 1 line |
-| Error/loading state easy to forget | Always tracked |
-| No auto-refetch, no reactive input | Built-in |
-| No lifecycle callbacks | `onSuccess`, `onError`, `onSettled` |
+| Without wrappers                             | With wrappers                       |
+|----------------------------------------------|-------------------------------------|
+| ~12 lines of manual state + effect per query | 1 line                              |
+| Error/loading state easy to forget           | Always tracked                      |
+| No auto-refetch, no reactive input           | Built-in                            |
+| No lifecycle callbacks                       | `onSuccess`, `onError`, `onSettled` |
 
 ## 3. Design Principles
 
@@ -493,13 +493,13 @@ export function createMutation<K extends MutationKey>(
 
 ### 7.4 Reactivity Model
 
-| Feature | Mechanism |
-|---|---|
-| `data`, `error`, `isLoading` | `$state` — triggers re-render on change |
-| `isSuccess`, `isError` | Getter over `$state` — derived implicitly |
-| Auto-refetch on input change | `$effect` tracks `inputFn()` call |
-| `enabled` as getter | `$effect` tracks `options.enabled()` call |
-| Polling cleanup | `$effect` returns cleanup function |
+| Feature                      | Mechanism                                 |
+|------------------------------|-------------------------------------------|
+| `data`, `error`, `isLoading` | `$state` — triggers re-render on change   |
+| `isSuccess`, `isError`       | Getter over `$state` — derived implicitly |
+| Auto-refetch on input change | `$effect` tracks `inputFn()` call         |
+| `enabled` as getter          | `$effect` tracks `options.enabled()` call |
+| Polling cleanup              | `$effect` returns cleanup function        |
 
 ### 7.5 No `$effect.pre` or `$derived`
 
@@ -562,12 +562,12 @@ export function createQuery<K extends NonVoidQueryKey>(
 
 ### 8.4 Conditional Emission
 
-| Manifest state | What's emitted |
-|---|---|
+| Manifest state          | What's emitted                                         |
+|-------------------------|--------------------------------------------------------|
 | Has queries + mutations | Full file with both `createQuery` and `createMutation` |
-| Queries only | `createQuery` only, no mutation types |
-| Mutations only | `createMutation` only, no query types |
-| Empty manifest | Not generated (skip file entirely) |
+| Queries only            | `createQuery` only, no mutation types                  |
+| Mutations only          | `createMutation` only, no query types                  |
+| Empty manifest          | Not generated (skip file entirely)                     |
 
 ### 8.5 `commands.rs` Changes
 
@@ -589,34 +589,34 @@ if let Some(svelte_path) = &config.output.svelte {
 
 ### Unit Tests
 
-| Test | Description |
-|---|---|
-| `svelte_file_imports_client_and_types` | Output imports `RpcClient`, `RpcError`, `CallOptions`, and `Procedures` |
-| `svelte_file_contains_create_query` | Output contains `createQuery` function |
-| `svelte_file_contains_create_mutation` | Output contains `createMutation` function |
-| `svelte_void_query_no_input_overload` | Void-input queries have overload without `input` parameter |
-| `svelte_non_void_query_input_overload` | Non-void queries require `input: () => ...` parameter |
-| `svelte_void_mutation_no_input` | Void-input mutation `mutate()` takes no arguments |
-| `svelte_queries_only_no_mutation` | Queries-only manifest omits `createMutation` |
-| `svelte_mutations_only_no_query` | Mutations-only manifest omits `createQuery` |
-| `svelte_empty_manifest_not_generated` | Empty manifest produces empty string |
-| `svelte_uses_state_rune` | Output contains `$state` calls |
-| `svelte_uses_effect_rune` | Output contains `$effect` call |
-| `svelte_refetch_interval_cleanup` | `$effect` returns cleanup for `clearInterval` |
-| `svelte_query_result_has_refetch` | Return object includes `refetch` method |
-| `svelte_mutation_result_has_reset` | Return object includes `reset` method |
-| `svelte_mutation_result_has_mutate_async` | Return object includes `mutateAsync` method |
-| `snapshot_svelte_full` | Insta snapshot with mixed queries and mutations |
+| Test                                      | Description                                                             |
+|-------------------------------------------|-------------------------------------------------------------------------|
+| `svelte_file_imports_client_and_types`    | Output imports `RpcClient`, `RpcError`, `CallOptions`, and `Procedures` |
+| `svelte_file_contains_create_query`       | Output contains `createQuery` function                                  |
+| `svelte_file_contains_create_mutation`    | Output contains `createMutation` function                               |
+| `svelte_void_query_no_input_overload`     | Void-input queries have overload without `input` parameter              |
+| `svelte_non_void_query_input_overload`    | Non-void queries require `input: () => ...` parameter                   |
+| `svelte_void_mutation_no_input`           | Void-input mutation `mutate()` takes no arguments                       |
+| `svelte_queries_only_no_mutation`         | Queries-only manifest omits `createMutation`                            |
+| `svelte_mutations_only_no_query`          | Mutations-only manifest omits `createQuery`                             |
+| `svelte_empty_manifest_not_generated`     | Empty manifest produces empty string                                    |
+| `svelte_uses_state_rune`                  | Output contains `$state` calls                                          |
+| `svelte_uses_effect_rune`                 | Output contains `$effect` call                                          |
+| `svelte_refetch_interval_cleanup`         | `$effect` returns cleanup for `clearInterval`                           |
+| `svelte_query_result_has_refetch`         | Return object includes `refetch` method                                 |
+| `svelte_mutation_result_has_reset`        | Return object includes `reset` method                                   |
+| `svelte_mutation_result_has_mutate_async` | Return object includes `mutateAsync` method                             |
+| `snapshot_svelte_full`                    | Insta snapshot with mixed queries and mutations                         |
 
 ### Config Tests
 
-| Test | Description |
-|---|---|
-| `config_svelte_output_default_none` | Default config has `svelte: None` |
-| `config_svelte_output_parsed` | Parses `output.svelte` from TOML |
-| `cli_svelte_output_override` | CLI `--svelte-output` overrides config |
-| `cmd_generate_writes_svelte_file` | `cmd_generate` writes the Svelte file when configured |
-| `cmd_generate_skips_svelte_when_not_configured` | No file written when `output.svelte` is None |
+| Test                                            | Description                                           |
+|-------------------------------------------------|-------------------------------------------------------|
+| `config_svelte_output_default_none`             | Default config has `svelte: None`                     |
+| `config_svelte_output_parsed`                   | Parses `output.svelte` from TOML                      |
+| `cli_svelte_output_override`                    | CLI `--svelte-output` overrides config                |
+| `cmd_generate_writes_svelte_file`               | `cmd_generate` writes the Svelte file when configured |
+| `cmd_generate_skips_svelte_when_not_configured` | No file written when `output.svelte` is None          |
 
 ## 10. Backward Compatibility
 

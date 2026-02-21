@@ -512,12 +512,14 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
         emit!(
             out,
             "  query(key: \"{}\"): Promise<{}>;",
-            proc.name, output_ts,
+            proc.name,
+            output_ts,
         );
         emit!(
             out,
             "  query(key: \"{}\", options: CallOptions): Promise<{}>;",
-            proc.name, output_ts,
+            proc.name,
+            output_ts,
         );
     }
 
@@ -539,12 +541,16 @@ fn generate_query_overloads(manifest: &Manifest, preserve_docs: bool, out: &mut 
         emit!(
             out,
             "  query(key: \"{}\", input: {}): Promise<{}>;",
-            proc.name, input_ts, output_ts,
+            proc.name,
+            input_ts,
+            output_ts,
         );
         emit!(
             out,
             "  query(key: \"{}\", input: {}, options: CallOptions): Promise<{}>;",
-            proc.name, input_ts, output_ts,
+            proc.name,
+            input_ts,
+            output_ts,
         );
     }
 }
@@ -570,12 +576,14 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
         emit!(
             out,
             "  mutate(key: \"{}\"): Promise<{}>;",
-            proc.name, output_ts,
+            proc.name,
+            output_ts,
         );
         emit!(
             out,
             "  mutate(key: \"{}\", options: CallOptions): Promise<{}>;",
-            proc.name, output_ts,
+            proc.name,
+            output_ts,
         );
     }
 
@@ -597,12 +605,16 @@ fn generate_mutation_overloads(manifest: &Manifest, preserve_docs: bool, out: &m
         emit!(
             out,
             "  mutate(key: \"{}\", input: {}): Promise<{}>;",
-            proc.name, input_ts, output_ts,
+            proc.name,
+            input_ts,
+            output_ts,
         );
         emit!(
             out,
             "  mutate(key: \"{}\", input: {}, options: CallOptions): Promise<{}>;",
-            proc.name, input_ts, output_ts,
+            proc.name,
+            input_ts,
+            output_ts,
         );
     }
 }
