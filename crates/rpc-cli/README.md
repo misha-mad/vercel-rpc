@@ -588,15 +588,15 @@ const stats = createQuery(rpc, "server_stats", {
 
 **`QueryOptions<K>`:**
 
-| Option            | Type                         | Description                                            |
-|-------------------|------------------------------|--------------------------------------------------------|
-| `enabled`         | `boolean \| (() => boolean)` | Whether to execute the query (default: `true`)         |
-| `refetchInterval` | `number`                     | Auto-refetch interval in ms (0 or omit to disable)    |
-| `placeholderData` | `QueryOutput<K>`             | Initial data before the first fetch completes          |
-| `callOptions`     | `CallOptions`                | Per-call options forwarded to `client.query()`         |
-| `onSuccess`       | `(data) => void`             | Called when the query succeeds                         |
-| `onError`         | `(error) => void`            | Called when the query fails                            |
-| `onSettled`       | `() => void`                 | Called when the query settles (success or failure)     |
+| Option            | Type                         | Description                                        |
+|-------------------|------------------------------|----------------------------------------------------|
+| `enabled`         | `boolean \| (() => boolean)` | Whether to execute the query (default: `true`)     |
+| `refetchInterval` | `number`                     | Auto-refetch interval in ms (0 or omit to disable) |
+| `placeholderData` | `QueryOutput<K>`             | Initial data before the first fetch completes      |
+| `callOptions`     | `CallOptions`                | Per-call options forwarded to `client.query()`     |
+| `onSuccess`       | `(data) => void`             | Called when the query succeeds                     |
+| `onError`         | `(error) => void`            | Called when the query fails                        |
+| `onSettled`       | `() => void`                 | Called when the query settles (success or failure) |
 
 **`QueryResult<K>`:**
 

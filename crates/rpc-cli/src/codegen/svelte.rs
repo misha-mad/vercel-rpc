@@ -262,7 +262,10 @@ pub fn generate_svelte_file(
     // Re-exports
     emit!(out, "export {{ RpcError }};");
     if type_names.is_empty() {
-        emit!(out, "export type {{ RpcClient, CallOptions, Procedures }};\n");
+        emit!(
+            out,
+            "export type {{ RpcClient, CallOptions, Procedures }};\n"
+        );
     } else {
         let types_csv = type_names.join(", ");
         emit!(
@@ -346,7 +349,10 @@ pub fn generate_svelte_file(
                 "type MutationArgs<K extends MutationKey> = [input: MutationInput<K>];"
             );
         } else {
-            emit!(out, "type MutationArgs<K extends MutationKey> = K extends VoidMutationKey ? [] : [input: MutationInput<K>];");
+            emit!(
+                out,
+                "type MutationArgs<K extends MutationKey> = K extends VoidMutationKey ? [] : [input: MutationInput<K>];"
+            );
         }
     }
     out.push('\n');

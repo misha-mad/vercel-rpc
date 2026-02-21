@@ -11,7 +11,11 @@ use vercel_rpc_cli::model::*;
 fn svelte_imports_client_and_types() {
     let manifest = common::make_test_manifest();
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("import { type RpcClient, RpcError, type CallOptions } from \"./rpc-client\""));
+    assert!(
+        output.contains(
+            "import { type RpcClient, RpcError, type CallOptions } from \"./rpc-client\""
+        )
+    );
     assert!(output.contains("import type { Procedures"));
     assert!(output.contains("from \"./rpc-types\""));
 }

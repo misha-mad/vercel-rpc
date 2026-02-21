@@ -1,165 +1,48 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
-	import { RpcError, createRpcClient } from '$lib/rpc-client';
-	import type {
-		MathResult,
-		Stats,
-		ServiceStatus,
-		EchoOutput,
-		UserProfile,
-		TypeShowcase
-	} from '$lib/rpc-client';
-	import { onMount } from 'svelte';
+	import { createQuery, createMutation, RpcError } from '$lib/rpc.svelte';
+	import { createRpcClient } from '$lib/rpc-client';
 
-	// --- Hello (simple query with string input) ---
+	// --- Hello (reactive query with string input) ---
 	let name = $state('World');
-	let greeting = $state('');
-	let helloLoading = $state(false);
+	const hello = createQuery(rpc, 'hello', () => name);
 
-	async function sayHello() {
-		helloLoading = true;
-		try {
-			greeting = await rpc.query('hello', name);
-		} catch (e) {
-			greeting = `Error: ${e}`;
-		} finally {
-			helloLoading = false;
-		}
-	}
+	// --- Time (void-input reactive query) ---
+	const time = createQuery(rpc, 'time');
 
-	// --- Time (void-input query with struct output) ---
-	let time = $state('loading...');
+	// --- Status (void-input reactive query) ---
+	const status = createQuery(rpc, 'status');
 
-	async function fetchTime() {
-		try {
-			const res = await rpc.query('time');
-			time = new Date(res.timestamp * 1000).toLocaleString();
-		} catch (e) {
-			time = `Error: ${e}`;
-		}
-	}
-
-	// --- Status (void-input query with enum in struct) ---
-	let status = $state<ServiceStatus | null>(null);
-	let statusError = $state('');
-
-	async function fetchStatus() {
-		statusError = '';
-		try {
-			status = await rpc.query('status');
-		} catch (e) {
-			statusError = `${e}`;
-		}
-	}
-
-	// --- Math (query with struct input, Result<T, E>, enum) ---
+	// --- Math (reactive query with struct input, Result<T, E>) ---
 	let mathA = $state(10);
 	let mathB = $state(3);
 	let mathOp = $state<'Add' | 'Subtract' | 'Multiply' | 'Divide'>('Add');
-	let mathResult = $state<MathResult | null>(null);
-	let mathError = $state('');
-	let mathLoading = $state(false);
+	const math = createQuery(rpc, 'math', () => ({ a: mathA, b: mathB, op: mathOp }));
 
-	async function calculate() {
-		mathLoading = true;
-		mathError = '';
-		mathResult = null;
-		try {
-			mathResult = await rpc.query('math', { a: mathA, b: mathB, op: mathOp });
-		} catch (e) {
-			if (e instanceof RpcError) {
-				const data = e.data as { error?: { message?: string } } | undefined;
-				mathError = data?.error?.message ?? e.message;
-			} else {
-				mathError = `${e}`;
-			}
-		} finally {
-			mathLoading = false;
-		}
-	}
-
-	// --- Stats (query with Vec<f64> input, HashMap output) ---
+	// --- Stats (reactive query with Vec<f64> input, enabled guard) ---
 	let numbersInput = $state('1, 2, 3, 4, 5, 3, 2');
-	let statsResult = $state<Stats | null>(null);
-	let statsError = $state('');
-	let statsLoading = $state(false);
-
-	async function computeStats() {
-		statsLoading = true;
-		statsError = '';
-		statsResult = null;
-		try {
-			const numbers = numbersInput
-				.split(',')
-				.map((s) => parseFloat(s.trim()))
-				.filter((n) => !isNaN(n));
-			statsResult = await rpc.query('stats', numbers);
-		} catch (e) {
-			if (e instanceof RpcError) {
-				const data = e.data as { error?: { message?: string } } | undefined;
-				statsError = data?.error?.message ?? e.message;
-			} else {
-				statsError = `${e}`;
-			}
-		} finally {
-			statsLoading = false;
-		}
-	}
+	const parsedNumbers = $derived(
+		numbersInput
+			.split(',')
+			.map((s) => parseFloat(s.trim()))
+			.filter((n) => !isNaN(n))
+	);
+	const stats = createQuery(rpc, 'stats', () => parsedNumbers, {
+		enabled: () => parsedNumbers.length > 0
+	});
 
 	// --- Echo (mutation with struct input/output) ---
 	let echoMessage = $state('Hello from vercel-rpc!');
 	let echoUppercase = $state(false);
-	let echoResult = $state<EchoOutput | null>(null);
-	let echoLoading = $state(false);
+	const echo = createMutation(rpc, 'echo');
 
-	async function sendEcho() {
-		echoLoading = true;
-		try {
-			echoResult = await rpc.mutate('echo', { message: echoMessage, uppercase: echoUppercase });
-		} catch {
-			echoResult = null;
-		} finally {
-			echoLoading = false;
-		}
-	}
-
-	// --- Profile (serde attributes demo) ---
+	// --- Profile (reactive query, serde attributes demo) ---
 	let profileId = $state(1);
-	let profileResult = $state<UserProfile | null>(null);
-	let profileLoading = $state(false);
-	let profileError = $state('');
+	const profile = createQuery(rpc, 'profile', () => profileId);
 
-	async function fetchProfile() {
-		profileLoading = true;
-		profileError = '';
-		profileResult = null;
-		try {
-			profileResult = await rpc.query('profile', profileId);
-		} catch (e) {
-			profileError = `${e}`;
-		} finally {
-			profileLoading = false;
-		}
-	}
-
-	// --- Types (expanded type mappings demo) ---
+	// --- Types (reactive query, expanded type mappings demo) ---
 	let typesCategory = $state('demo');
-	let typesResult = $state<TypeShowcase | null>(null);
-	let typesLoading = $state(false);
-	let typesError = $state('');
-
-	async function fetchTypes() {
-		typesLoading = true;
-		typesError = '';
-		typesResult = null;
-		try {
-			typesResult = await rpc.query('types', typesCategory);
-		} catch (e) {
-			typesError = `${e}`;
-		} finally {
-			typesLoading = false;
-		}
-	}
+	const types = createQuery(rpc, 'types', () => typesCategory);
 
 	// --- Secret (protected endpoint with RpcClientConfig.headers) ---
 	let secretResult = $state('');
@@ -213,11 +96,6 @@
 	function toggleCode(id: string) {
 		openCode[id] = !openCode[id];
 	}
-
-	onMount(() => {
-		fetchTime();
-		fetchStatus();
-	});
 </script>
 
 <div class="container">
@@ -310,21 +188,23 @@
 
 	<!-- Hello: Simple string query -->
 	<section class="card">
-		<h2>🔤 Hello — Simple Query</h2>
+		<h2>🔤 Hello — Reactive Query</h2>
 		<p class="desc">
-			<code>#[rpc_query]</code> with <code>String</code> input → <code>String</code> output. Sent as
-			<code>GET /api/hello?input="name"</code>.
+			<code>createQuery(rpc, "hello", () => name)</code> — auto-refetches as you type. No button needed!
 		</p>
 		<div class="row">
 			<input type="text" bind:value={name} placeholder="Enter your name" />
-			<button onclick={sayHello} disabled={helloLoading}>
-				{helloLoading ? 'Sending...' : 'Say Hello'}
-			</button>
+			<button onclick={() => hello.refetch()} disabled={hello.isLoading}>Refetch</button>
 		</div>
-		{#if greeting}
-			<div class="result success">{greeting}</div>
+		{#if hello.isLoading && !hello.data}
+			<div class="result success">Loading...</div>
+		{:else if hello.data}
+			<div class="result success">{hello.data}</div>
 		{/if}
-		<pre class="code">rpc.query("hello", "{name}")</pre>
+		{#if hello.isError}
+			<div class="result error">{hello.error?.message}</div>
+		{/if}
+		<pre class="code">createQuery(rpc, "hello", () => "{name}")</pre>
 		<button class="toggle-code" onclick={() => toggleCode('hello')}>
 			{openCode['hello'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>
@@ -338,13 +218,16 @@ async fn hello(name: String) -> String {
 }`}</pre>
 				</div>
 				<div class="code-panel">
-					<span class="code-label">🟦 Generated TypeScript</span>
-					<pre class="code ts">{`// rpc-types.ts
-hello: { input: string; output: string };
+					<span class="code-label">🟦 Svelte 5 Reactive Wrapper</span>
+					<pre class="code ts">{`// rpc.svelte.ts — auto-generated
+const hello = createQuery(rpc, "hello", () => name);
 
-// Usage
-const greeting = await rpc.query("hello", "World");
-//    ^ string — fully typed!`}</pre>
+// Reactive — updates when 'name' changes
+hello.data       // string | undefined
+hello.isLoading  // boolean
+hello.isError    // boolean
+hello.error      // RpcError | undefined
+hello.refetch()  // manual refetch`}</pre>
 				</div>
 			</div>
 		{/if}
@@ -354,14 +237,21 @@ const greeting = await rpc.query("hello", "World");
 	<section class="card">
 		<h2>🕐 Time — Void Input, Struct Output</h2>
 		<p class="desc">
-			<code>#[rpc_query]</code> with no input → <code>TimeResponse</code> struct. Auto-generated as
-			<code>interface TimeResponse</code> with typed fields.
+			<code>createQuery(rpc, "time")</code> — auto-fetches on mount, no input needed.
 		</p>
 		<div class="row">
-			<span>Server time: <strong>{time}</strong></span>
-			<button onclick={fetchTime}>Refresh</button>
+			<span
+				>Server time: <strong>
+					{#if time.isLoading && !time.data}
+						loading...
+					{:else if time.data}
+						{new Date(time.data.timestamp * 1000).toLocaleString()}
+					{/if}
+				</strong></span
+			>
+			<button onclick={() => time.refetch()}>Refresh</button>
 		</div>
-		<pre class="code">rpc.query("time") → TimeResponse</pre>
+		<pre class="code">createQuery(rpc, "time") → TimeResponse</pre>
 		<button class="toggle-code" onclick={() => toggleCode('time')}>
 			{openCode['time'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>
@@ -389,8 +279,8 @@ export interface TimeResponse {
 }
 
 // Usage — no input argument needed
-const res = await rpc.query("time");
-//    ^ TimeResponse — .timestamp, .message`}</pre>
+const time = createQuery(rpc, "time");
+//    ^ QueryResult — .data?.timestamp, .isLoading`}</pre>
 				</div>
 			</div>
 		{/if}
@@ -400,28 +290,28 @@ const res = await rpc.query("time");
 	<section class="card">
 		<h2>🩺 Status — Enum in Struct</h2>
 		<p class="desc">
-			Returns <code>ServiceStatus</code> with a <code>HealthStatus</code> enum field. Enum maps to
+			<code>createQuery(rpc, "status")</code> — auto-fetches. <code>HealthStatus</code> enum maps to
 			<code>type HealthStatus = "Healthy" | "Degraded" | "Down"</code>.
 		</p>
-		{#if status}
+		{#if status.data}
 			<div class="result success">
 				<div class="grid">
-					<span class="label">Service:</span><span>{status.name}</span>
+					<span class="label">Service:</span><span>{status.data.name}</span>
 					<span class="label">Status:</span><span
 						class="badge"
-						class:healthy={status.status === 'Healthy'}>{status.status}</span
+						class:healthy={status.data.status === 'Healthy'}>{status.data.status}</span
 					>
-					<span class="label">Version:</span><span>{status.version}</span>
+					<span class="label">Version:</span><span>{status.data.version}</span>
 				</div>
 			</div>
 		{/if}
-		{#if statusError}
-			<div class="result error">{statusError}</div>
+		{#if status.isError}
+			<div class="result error">{status.error?.message}</div>
 		{/if}
 		<div class="row">
-			<button onclick={fetchStatus}>Refresh Status</button>
+			<button onclick={() => status.refetch()}>Refresh Status</button>
 		</div>
-		<pre class="code">rpc.query("status") → ServiceStatus</pre>
+		<pre class="code">createQuery(rpc, "status") → ServiceStatus</pre>
 		<button class="toggle-code" onclick={() => toggleCode('status')}>
 			{openCode['status'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>
@@ -460,8 +350,8 @@ export interface ServiceStatus {
 }
 
 // Usage
-const s = await rpc.query("status");
-if (s.status === "Healthy") { ... } // ← autocomplete`}</pre>
+const status = createQuery(rpc, "status");
+if (status.data?.status === "Healthy") { ... } // ← autocomplete`}</pre>
 				</div>
 			</div>
 		{/if}
@@ -469,10 +359,10 @@ if (s.status === "Healthy") { ... } // ← autocomplete`}</pre>
 
 	<!-- Math: Struct input with enum, Result<T, E> -->
 	<section class="card">
-		<h2>🧮 Math — Enum Input, Result&lt;T, E&gt;</h2>
+		<h2>🧮 Math — Reactive Calc, Result&lt;T, E&gt;</h2>
 		<p class="desc">
-			<code>MathInput</code> struct with <code>Operation</code> enum. Returns
-			<code>Result&lt;MathResult, String&gt;</code> — try dividing by zero!
+			<code>createQuery(rpc, "math", () => ({'{ a, b, op }'})</code> — recalculates live as you change
+			inputs. Try dividing by zero!
 		</p>
 		<div class="row">
 			<input type="number" bind:value={mathA} class="num" />
@@ -483,17 +373,21 @@ if (s.status === "Healthy") { ... } // ← autocomplete`}</pre>
 				<option value="Divide">÷</option>
 			</select>
 			<input type="number" bind:value={mathB} class="num" />
-			<button onclick={calculate} disabled={mathLoading}>
-				{mathLoading ? '...' : '= Calculate'}
-			</button>
+			{#if math.isLoading}
+				<span>...</span>
+			{/if}
 		</div>
-		{#if mathResult}
-			<div class="result success">{mathResult.expression}</div>
+		{#if math.data}
+			<div class="result success">{math.data.expression}</div>
 		{/if}
-		{#if mathError}
-			<div class="result error">⚠️ {mathError}</div>
+		{#if math.isError}
+			<div class="result error">
+				⚠️ {(math.error?.data as { error?: { message?: string } })?.error?.message ??
+					math.error?.message}
+			</div>
 		{/if}
-		<pre class="code">rpc.query("math", {`{ a: ${mathA}, b: ${mathB}, op: "${mathOp}" }`})</pre>
+		<pre
+			class="code">createQuery(rpc, "math", () => {`{ a: ${mathA}, b: ${mathB}, op: "${mathOp}" }`})</pre>
 		<button class="toggle-code" onclick={() => toggleCode('math')}>
 			{openCode['math'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>
@@ -540,12 +434,10 @@ export interface MathResult {
   expression: string;
 }
 
-// Result<T, E> → T (error thrown as RpcError)
-try {
-  const r = await rpc.query("math", { a: 10, b: 0, op: "Divide" });
-} catch (e) {
-  if (e instanceof RpcError) { ... } // 400 + JSON error
-}`}</pre>
+// Reactive — recalculates when a, b, or op changes
+const math = createQuery(rpc, "math", () => ({ a, b, op }));
+math.data       // MathResult | undefined
+math.isError    // true on division by zero`}</pre>
 				</div>
 			</div>
 		{/if}
@@ -553,39 +445,42 @@ try {
 
 	<!-- Stats: Vec input, HashMap output -->
 	<section class="card">
-		<h2>📊 Stats — Vec&lt;f64&gt; Input, HashMap Output</h2>
+		<h2>📊 Stats — Vec&lt;f64&gt; Input, Enabled Guard</h2>
 		<p class="desc">
-			Accepts <code>Vec&lt;f64&gt;</code> (mapped to <code>number[]</code>). Returns
-			<code>Stats</code>
-			with <code>frequencies: Record&lt;string, number&gt;</code>.
+			<code>createQuery(rpc, "stats", () => parsed, {'{ enabled: () => valid }'})</code> —
+			reactively recomputes. The <code>enabled</code> guard prevents fetching with an empty list.
 		</p>
 		<div class="row">
 			<input type="text" bind:value={numbersInput} placeholder="1, 2, 3, 4, 5" class="wide" />
-			<button onclick={computeStats} disabled={statsLoading}>
-				{statsLoading ? '...' : 'Compute'}
-			</button>
+			{#if stats.isLoading}
+				<span>...</span>
+			{/if}
 		</div>
-		{#if statsResult}
+		{#if stats.data}
 			<div class="result success">
 				<div class="grid">
-					<span class="label">Count:</span><span>{statsResult.count}</span>
-					<span class="label">Sum:</span><span>{statsResult.sum}</span>
-					<span class="label">Mean:</span><span>{statsResult.mean.toFixed(2)}</span>
-					<span class="label">Min:</span><span>{statsResult.min}</span>
-					<span class="label">Max:</span><span>{statsResult.max}</span>
+					<span class="label">Count:</span><span>{stats.data.count}</span>
+					<span class="label">Sum:</span><span>{stats.data.sum}</span>
+					<span class="label">Mean:</span><span>{stats.data.mean.toFixed(2)}</span>
+					<span class="label">Min:</span><span>{stats.data.min}</span>
+					<span class="label">Max:</span><span>{stats.data.max}</span>
 					<span class="label">Frequencies:</span>
 					<span
-						>{Object.entries(statsResult.frequencies)
+						>{Object.entries(stats.data.frequencies)
 							.map(([k, v]) => `${k}×${v}`)
 							.join(', ')}</span
 					>
 				</div>
 			</div>
 		{/if}
-		{#if statsError}
-			<div class="result error">⚠️ {statsError}</div>
+		{#if stats.isError}
+			<div class="result error">
+				⚠️ {(stats.error?.data as { error?: { message?: string } })?.error?.message ??
+					stats.error?.message}
+			</div>
 		{/if}
-		<pre class="code">rpc.query("stats", [{numbersInput}])</pre>
+		<pre
+			class="code">createQuery(rpc, "stats", () => [{numbersInput}], {'{ enabled: () => len > 0 }'})</pre>
 		<button class="toggle-code" onclick={() => toggleCode('stats')}>
 			{openCode['stats'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>
@@ -623,10 +518,11 @@ async fn stats(numbers: Vec<f64>) -> Result<Stats, String> {
   frequencies: Record<string, number>; // HashMap → Record
 }
 
-// Vec<f64> → number[]
-const stats = await rpc.query("stats", [1, 2, 3, 4, 5]);
-//    ^ Stats — all fields typed
-console.log(stats.frequencies); // Record<string, number>`}</pre>
+// Reactive with enabled guard
+const parsed = $derived(input.split(",").map(Number).filter(isFinite));
+const stats = createQuery(rpc, "stats", () => parsed, {
+  enabled: () => parsed.length > 0,
+});`}</pre>
 				</div>
 			</div>
 		{/if}
@@ -636,9 +532,8 @@ console.log(stats.frequencies); // Record<string, number>`}</pre>
 	<section class="card">
 		<h2>📤 Echo — Mutation (POST)</h2>
 		<p class="desc">
-			<code>#[rpc_mutation]</code> — sent as <code>POST /api/echo</code> with JSON body. Accepts
-			<code>EchoInput</code>
-			(message + uppercase), returns <code>EchoOutput</code>.
+			<code>createMutation(rpc, "echo")</code> — call <code>echo.mutate(...)</code> on button click. Mutations
+			are not reactive; they fire explicitly.
 		</p>
 		<div class="row">
 			<input type="text" bind:value={echoMessage} placeholder="Type a message" class="wide" />
@@ -646,22 +541,29 @@ console.log(stats.frequencies); // Record<string, number>`}</pre>
 				<input type="checkbox" bind:checked={echoUppercase} />
 				Uppercase
 			</label>
-			<button onclick={sendEcho} disabled={echoLoading}>
-				{echoLoading ? '...' : 'Send'}
+			<button
+				onclick={() => echo.mutate({ message: echoMessage, uppercase: echoUppercase })}
+				disabled={echo.isLoading}
+			>
+				{echo.isLoading ? '...' : 'Send'}
 			</button>
 		</div>
-		{#if echoResult}
+		{#if echo.data}
 			<div class="result success">
 				<div class="grid">
-					<span class="label">Original:</span><span>{echoResult.original}</span>
+					<span class="label">Original:</span><span>{echo.data.original}</span>
 					<span class="label">Transformed:</span><span
-						><strong>{echoResult.transformed}</strong></span
+						><strong>{echo.data.transformed}</strong></span
 					>
-					<span class="label">Length:</span><span>{echoResult.length}</span>
+					<span class="label">Length:</span><span>{echo.data.length}</span>
 				</div>
 			</div>
 		{/if}
-		<pre class="code">rpc.mutate("echo", {`{ message: "...", uppercase: ${echoUppercase} }`})</pre>
+		{#if echo.isError}
+			<div class="result error">{echo.error?.message}</div>
+		{/if}
+		<pre class="code">const echo = createMutation(rpc, "echo");
+echo.mutate({`{ message: "...", uppercase: ${echoUppercase} }`})</pre>
 		<button class="toggle-code" onclick={() => toggleCode('echo')}>
 			{openCode['echo'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>
@@ -691,23 +593,17 @@ async fn echo(input: EchoInput) -> EchoOutput {
 }`}</pre>
 				</div>
 				<div class="code-panel">
-					<span class="code-label">🟦 Generated TypeScript</span>
-					<pre class="code ts">{`export interface EchoInput {
-  message: string;
-  uppercase: boolean;  // bool → boolean
-}
+					<span class="code-label">🟦 Svelte 5 Mutation Wrapper</span>
+					<pre class="code ts">{`// createMutation — fire on demand, not reactive
+const echo = createMutation(rpc, "echo");
 
-export interface EchoOutput {
-  original: string;
-  transformed: string;
-  length: number;      // u32 → number
-}
+// Call on button click
+echo.mutate({ message: "Hello!", uppercase: true });
 
-// Mutation uses POST with JSON body
-const result = await rpc.mutate("echo", {
-  message: "Hello!", uppercase: true
-});
-//    ^ EchoOutput — fully typed`}</pre>
+echo.data       // EchoOutput | undefined
+echo.isLoading  // boolean
+echo.isError    // boolean
+echo.reset()    // clear state`}</pre>
 				</div>
 			</div>
 		{/if}
@@ -715,34 +611,29 @@ const result = await rpc.mutate("echo", {
 
 	<!-- Types: Expanded type mappings demo -->
 	<section class="card highlight">
-		<h2>📦 Types — Expanded Type Mappings</h2>
+		<h2>📦 Types — Reactive Expanded Types</h2>
 		<p class="desc">
-			Demonstrates expanded type support: <code>HashSet&lt;T&gt;</code> and
-			<code>BTreeSet&lt;T&gt;</code> map to <code>T[]</code>, while <code>Box&lt;T&gt;</code> and
-			<code>Cow&lt;T&gt;</code> unwrap transparently to <code>T</code>. The generated TypeScript
-			matches the actual JSON serialization.
+			<code>createQuery(rpc, "types", () => category)</code> — live refetch as you type.
+			Demonstrates <code>HashSet</code>, <code>BTreeSet</code>, <code>Box</code>, <code>Cow</code>.
 		</p>
 		<div class="row">
 			<input type="text" bind:value={typesCategory} placeholder="Enter category" />
-			<button onclick={fetchTypes} disabled={typesLoading}>
-				{typesLoading ? '...' : 'Fetch Types'}
-			</button>
+			<button onclick={() => types.refetch()} disabled={types.isLoading}>Refetch</button>
 		</div>
-		{#if typesResult}
+		{#if types.data}
 			<div class="result success">
 				<div class="grid">
-					<span class="label">tags:</span><span>{JSON.stringify(typesResult.tags)}</span>
-					<span class="label">sorted_ids:</span><span>{JSON.stringify(typesResult.sorted_ids)}</span
-					>
-					<span class="label">boxed_label:</span><span>{typesResult.boxed_label}</span>
-					<span class="label">cow_message:</span><span>{typesResult.cow_message}</span>
+					<span class="label">tags:</span><span>{JSON.stringify(types.data.tags)}</span>
+					<span class="label">sorted_ids:</span><span>{JSON.stringify(types.data.sorted_ids)}</span>
+					<span class="label">boxed_label:</span><span>{types.data.boxed_label}</span>
+					<span class="label">cow_message:</span><span>{types.data.cow_message}</span>
 				</div>
 			</div>
 		{/if}
-		{#if typesError}
-			<div class="result error">{typesError}</div>
+		{#if types.isError}
+			<div class="result error">{types.error?.message}</div>
 		{/if}
-		<pre class="code">rpc.query("types", "{typesCategory}") → TypeShowcase</pre>
+		<pre class="code">createQuery(rpc, "types", () => "{typesCategory}") → TypeShowcase</pre>
 		<button class="toggle-code" onclick={() => toggleCode('types')}>
 			{openCode['types'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>
@@ -782,12 +673,10 @@ export interface TypeShowcase {
   cow_message: string;   // Cow<str> → string
 }
 
-// Usage
-const res = await rpc.query("types", "demo");
-res.tags       // string[] — not HashSet<string>!
-res.sorted_ids // number[] — sorted in JSON output
-res.boxed_label // string — Box unwrapped
-res.cow_message // string — Cow unwrapped`}</pre>
+// Reactive — refetches when category changes
+const types = createQuery(rpc, "types", () => category);
+types.data?.tags       // string[]
+types.data?.sorted_ids // number[]`}</pre>
 				</div>
 			</div>
 		{/if}
@@ -795,35 +684,32 @@ res.cow_message // string — Cow unwrapped`}</pre>
 
 	<!-- Profile: Serde attributes demo -->
 	<section class="card highlight">
-		<h2>🏷️ Profile — Serde Attributes</h2>
+		<h2>🏷️ Profile — Reactive Serde Attributes</h2>
 		<p class="desc">
-			Demonstrates <code>#[serde(rename_all, rename, skip, default)]</code> on structs and enums. The
-			generated TypeScript matches actual JSON serialization — camelCase fields, renamed variants, skipped
-			internals, and optional fields.
+			<code>createQuery(rpc, "profile", () => profileId)</code> — change the ID and see the profile
+			update live. Demonstrates <code>#[serde(rename_all, rename, skip, default)]</code>.
 		</p>
 		<div class="row">
 			<label>User ID: <input type="number" bind:value={profileId} class="num" /></label>
-			<button onclick={fetchProfile} disabled={profileLoading}>
-				{profileLoading ? '...' : 'Fetch Profile'}
-			</button>
+			<button onclick={() => profile.refetch()} disabled={profile.isLoading}>Refetch</button>
 		</div>
-		{#if profileResult}
+		{#if profile.data}
 			<div class="result success">
 				<div class="grid">
-					<span class="label">userId:</span><span>{profileResult.userId}</span>
-					<span class="label">displayName:</span><span>{profileResult.displayName}</span>
-					<span class="label">emailAddress:</span><span>{profileResult.emailAddress}</span>
-					<span class="label">role:</span><span class="badge">{profileResult.role}</span>
-					<span class="label">lastEvent:</span><span class="badge">{profileResult.lastEvent}</span>
-					<span class="label">profile_url:</span><span>{profileResult.profile_url}</span>
-					<span class="label">avatarUrl:</span><span>{profileResult.avatarUrl ?? '(null)'}</span>
+					<span class="label">userId:</span><span>{profile.data.userId}</span>
+					<span class="label">displayName:</span><span>{profile.data.displayName}</span>
+					<span class="label">emailAddress:</span><span>{profile.data.emailAddress}</span>
+					<span class="label">role:</span><span class="badge">{profile.data.role}</span>
+					<span class="label">lastEvent:</span><span class="badge">{profile.data.lastEvent}</span>
+					<span class="label">profile_url:</span><span>{profile.data.profile_url}</span>
+					<span class="label">avatarUrl:</span><span>{profile.data.avatarUrl ?? '(null)'}</span>
 				</div>
 			</div>
 		{/if}
-		{#if profileError}
-			<div class="result error">{profileError}</div>
+		{#if profile.isError}
+			<div class="result error">{profile.error?.message}</div>
 		{/if}
-		<pre class="code">rpc.query("profile", {profileId}) → UserProfile</pre>
+		<pre class="code">createQuery(rpc, "profile", () => {profileId}) → UserProfile</pre>
 		<button class="toggle-code" onclick={() => toggleCode('profile')}>
 			{openCode['profile'] ? '▾ Hide' : '▸ Show'} Rust & TypeScript
 		</button>

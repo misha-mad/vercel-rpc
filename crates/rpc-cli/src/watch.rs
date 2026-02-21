@@ -155,7 +155,11 @@ fn generate(config: &RpcConfig) -> Result<()> {
         config.output.client.display().to_string().dimmed(),
     );
     if let Some(svelte) = &config.output.svelte {
-        println!("    {} {}", "→".dimmed(), svelte.display().to_string().dimmed(),);
+        println!(
+            "    {} {}",
+            "→".dimmed(),
+            svelte.display().to_string().dimmed(),
+        );
     }
 
     Ok(())
