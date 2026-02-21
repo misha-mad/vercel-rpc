@@ -398,10 +398,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
         // Extract input and callOptions into locals based on void/non-void branching
         if query_mixed {
             let _ = writeln!(out, "      let input: unknown;");
-            let _ = writeln!(
-                out,
-                "      let callOptions: CallOptions | undefined;"
-            );
+            let _ = writeln!(out, "      let callOptions: CallOptions | undefined;");
             let _ = writeln!(out, "      if (VOID_QUERIES.has(key)) {{");
             let _ = writeln!(out, "        input = undefined;");
             let _ = writeln!(
@@ -435,14 +432,8 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             "      const shouldDedupe = callOptions?.dedupe ?? config.dedupe ?? true;"
         );
         let _ = writeln!(out, "      if (shouldDedupe) {{");
-        let _ = writeln!(
-            out,
-            "        const k = dedupKey(key, input, config);"
-        );
-        let _ = writeln!(
-            out,
-            "        const existing = inflight.get(k);"
-        );
+        let _ = writeln!(out, "        const k = dedupKey(key, input, config);");
+        let _ = writeln!(out, "        const existing = inflight.get(k);");
         let _ = writeln!(
             out,
             "        if (existing) return wrapWithSignal(existing, callOptions?.signal);"
@@ -451,10 +442,7 @@ fn generate_client_factory(manifest: &Manifest, preserve_docs: bool, out: &mut S
             out,
             "        const promise = rpcFetch(config, \"GET\", key, input, callOptions)"
         );
-        let _ = writeln!(
-            out,
-            "          .finally(() => inflight.delete(k));"
-        );
+        let _ = writeln!(out, "          .finally(() => inflight.delete(k));");
         let _ = writeln!(out, "        inflight.set(k, promise);");
         let _ = writeln!(
             out,
