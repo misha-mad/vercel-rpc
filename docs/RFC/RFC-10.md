@@ -522,29 +522,29 @@ export function createMutation<K extends MutationKey>(
 
 ### 7.4 Reactivity Model
 
-| Feature                      | Mechanism                                                                |
-|------------------------------|--------------------------------------------------------------------------|
+| Feature                      | Mechanism                                                                      |
+|------------------------------|--------------------------------------------------------------------------------|
 | `data`, `error`, `isLoading` | `createSignal()` — accessed via getter function, triggers fine-grained updates |
-| `isSuccess`, `isError`       | Derived getters composing signal reads                                   |
-| Auto-refetch on input change | `createEffect()` reads `inputFn()` — Solid tracks the dependency         |
-| `enabled` flag               | Read inside `createEffect` — reactive when passed as a getter            |
-| Polling cleanup              | `onCleanup()` inside `createEffect` clears interval on re-run           |
-| Component unmount cleanup    | `onCleanup()` — Solid calls it when owner scope is disposed             |
+| `isSuccess`, `isError`       | Derived getters composing signal reads                                         |
+| Auto-refetch on input change | `createEffect()` reads `inputFn()` — Solid tracks the dependency               |
+| `enabled` flag               | Read inside `createEffect` — reactive when passed as a getter                  |
+| Polling cleanup              | `onCleanup()` inside `createEffect` clears interval on re-run                  |
+| Component unmount cleanup    | `onCleanup()` — Solid calls it when owner scope is disposed                    |
 
 ### 7.5 Solid vs Svelte Comparison
 
 SolidJS and Svelte 5 share a similar reactivity model, making the generated code structurally very close:
 
-| Aspect              | SolidJS                    | Svelte 5                   |
-|----------------------|----------------------------|----------------------------|
-| State primitive      | `createSignal()`           | `$state()`                 |
-| Side effects         | `createEffect()`           | `$effect()`                |
-| Cleanup              | `onCleanup()`              | Return from `$effect`      |
-| Value access         | `signal()` (getter call)   | `variable` (direct)        |
-| Value mutation       | `setSignal(value)`         | `variable = value`         |
-| Dependency tracking  | Automatic (getter calls)   | Automatic (compiler)       |
-| File extension       | `.ts`                      | `.svelte.ts`               |
-| Primitive name       | `createQuery`              | `createQuery`              |
+| Aspect              | SolidJS                  | Svelte 5              |
+|---------------------|--------------------------|-----------------------|
+| State primitive     | `createSignal()`         | `$state()`            |
+| Side effects        | `createEffect()`         | `$effect()`           |
+| Cleanup             | `onCleanup()`            | Return from `$effect` |
+| Value access        | `signal()` (getter call) | `variable` (direct)   |
+| Value mutation      | `setSignal(value)`       | `variable = value`    |
+| Dependency tracking | Automatic (getter calls) | Automatic (compiler)  |
+| File extension      | `.ts`                    | `.svelte.ts`          |
+| Primitive name      | `createQuery`            | `createQuery`         |
 
 Key difference: Solid signals are accessed via function calls (`data()`), while Svelte 5 runes use direct variable access. The generated `QueryResult`/`MutationResult` interfaces reflect this — Solid exposes `data: () => T` accessors, Svelte uses `get data()` property getters.
 
@@ -583,40 +583,40 @@ pub fn generate_solid_file(
 
 ### 8.3 Conditional Emission
 
-| Manifest state          | What's emitted                                      |
-|-------------------------|-----------------------------------------------------|
+| Manifest state          | What's emitted                                         |
+|-------------------------|--------------------------------------------------------|
 | Has queries + mutations | Full file with both `createQuery` and `createMutation` |
-| Queries only            | `createQuery` only, no mutation types               |
-| Mutations only          | `createMutation` only, no query types               |
-| Empty manifest          | Not generated (skip file entirely)                  |
+| Queries only            | `createQuery` only, no mutation types                  |
+| Mutations only          | `createMutation` only, no query types                  |
+| Empty manifest          | Not generated (skip file entirely)                     |
 
 ## 9. Test Plan
 
 ### Unit Tests
 
-| Test                                     | Description                                                           |
-|------------------------------------------|-----------------------------------------------------------------------|
-| `solid_imports_client_and_types`         | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures`   |
-| `solid_imports_solid`                    | Output imports `createSignal`, `createEffect`, `onCleanup` from `"solid-js"` |
-| `solid_contains_create_query`           | Output contains `createQuery` function                                |
-| `solid_contains_create_mutation`        | Output contains `createMutation` function                             |
-| `solid_void_query_no_input_overload`    | Void-input queries have overload without `input` parameter            |
-| `solid_non_void_query_input_getter`     | Non-void queries take `input: () => QueryInput<K>`                    |
-| `solid_queries_only_no_mutation`        | Queries-only manifest omits `createMutation`                          |
-| `solid_mutations_only_no_query`         | Mutations-only manifest omits `createQuery`                           |
-| `solid_empty_manifest_not_generated`    | Empty manifest produces empty string                                  |
-| `solid_uses_create_signal`              | Output contains `createSignal(` calls                                 |
-| `solid_uses_create_effect`              | Output contains `createEffect(` call                                  |
-| `solid_uses_on_cleanup`                | Output contains `onCleanup(` call                                     |
-| `solid_accessor_return_type`            | `QueryResult` uses `() => T` accessor pattern, not plain `T`         |
-| `solid_enabled_accepts_getter`          | `enabled` option typed as `boolean \| (() => boolean)`                |
-| `solid_refetch_interval_cleanup`        | `onCleanup` clears interval inside `createEffect`                     |
-| `solid_mutation_has_reset`              | `MutationResult` includes `reset` method                              |
-| `solid_mutation_has_mutate_async`       | `MutationResult` includes `mutateAsync` method                        |
-| `solid_custom_import_paths`             | Custom import paths are used in generated imports                     |
-| `snapshot_solid_full`                   | Insta snapshot with mixed queries and mutations                       |
-| `snapshot_solid_queries_only`           | Insta snapshot with queries only                                      |
-| `snapshot_solid_mutations_only`         | Insta snapshot with mutations only                                    |
+| Test                                 | Description                                                                  |
+|--------------------------------------|------------------------------------------------------------------------------|
+| `solid_imports_client_and_types`     | Output imports `RpcClient`, `RpcError`, `CallOptions`, `Procedures`          |
+| `solid_imports_solid`                | Output imports `createSignal`, `createEffect`, `onCleanup` from `"solid-js"` |
+| `solid_contains_create_query`        | Output contains `createQuery` function                                       |
+| `solid_contains_create_mutation`     | Output contains `createMutation` function                                    |
+| `solid_void_query_no_input_overload` | Void-input queries have overload without `input` parameter                   |
+| `solid_non_void_query_input_getter`  | Non-void queries take `input: () => QueryInput<K>`                           |
+| `solid_queries_only_no_mutation`     | Queries-only manifest omits `createMutation`                                 |
+| `solid_mutations_only_no_query`      | Mutations-only manifest omits `createQuery`                                  |
+| `solid_empty_manifest_not_generated` | Empty manifest produces empty string                                         |
+| `solid_uses_create_signal`           | Output contains `createSignal(` calls                                        |
+| `solid_uses_create_effect`           | Output contains `createEffect(` call                                         |
+| `solid_uses_on_cleanup`              | Output contains `onCleanup(` call                                            |
+| `solid_accessor_return_type`         | `QueryResult` uses `() => T` accessor pattern, not plain `T`                 |
+| `solid_enabled_accepts_getter`       | `enabled` option typed as `boolean \| (() => boolean)`                       |
+| `solid_refetch_interval_cleanup`     | `onCleanup` clears interval inside `createEffect`                            |
+| `solid_mutation_has_reset`           | `MutationResult` includes `reset` method                                     |
+| `solid_mutation_has_mutate_async`    | `MutationResult` includes `mutateAsync` method                               |
+| `solid_custom_import_paths`          | Custom import paths are used in generated imports                            |
+| `snapshot_solid_full`                | Insta snapshot with mixed queries and mutations                              |
+| `snapshot_solid_queries_only`        | Insta snapshot with queries only                                             |
+| `snapshot_solid_mutations_only`      | Insta snapshot with mutations only                                           |
 
 ### Config Tests
 
