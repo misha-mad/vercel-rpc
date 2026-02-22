@@ -173,6 +173,25 @@ fn option_inner_type(ty: &RustType) -> Option<&RustType> {
     }
 }
 
+/// Renders a single struct/variant field as `name: T` or `name?: T | null`.
+///
+/// When a field has `#[serde(default)]` and is `Option<T>`, it becomes optional
+/// (`name?: T | null`). Otherwise it renders as a required field (`name: T`).
+fn render_field_str(
+    field: &FieldDef,
+    container_rename_all: Option<RenameRule>,
+    config_naming: FieldNaming,
+) -> String {
+    let name = resolve_field_name(field, container_rename_all, config_naming);
+    if field.has_default
+        && let Some(inner) = option_inner_type(&field.ty)
+    {
+        format!("{}?: {} | null", name, rust_type_to_ts(inner))
+    } else {
+        format!("{}: {}", name, rust_type_to_ts(&field.ty))
+    }
+}
+
 /// Generates a TypeScript interface from a struct definition.
 fn generate_interface(
     s: &StructDef,
@@ -188,16 +207,8 @@ fn generate_interface(
         if field.skip {
             continue;
         }
-        let field_name = resolve_field_name(field, s.rename_all, field_naming);
-        if field.has_default
-            && let Some(inner) = option_inner_type(&field.ty)
-        {
-            let ts_type = rust_type_to_ts(inner);
-            emit!(out, "  {field_name}?: {ts_type} | null;");
-            continue;
-        }
-        let ts_type = rust_type_to_ts(&field.ty);
-        emit!(out, "  {field_name}: {ts_type};");
+        let rendered = render_field_str(field, s.rename_all, field_naming);
+        emit!(out, "  {rendered};");
     }
     emit!(out, "}}");
 }
@@ -272,10 +283,7 @@ fn generate_enum_external(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
                     let field_strs: Vec<String> = fields
                         .iter()
                         .filter(|f| !f.skip)
-                        .map(|field| {
-                            let field_name = resolve_field_name(field, e.rename_all, field_naming);
-                            format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
-                        })
+                        .map(|field| render_field_str(field, e.rename_all, field_naming))
                         .collect();
                     variant_types.push(format!(
                         "{{ {variant_name}: {{ {} }} }}",
@@ -318,10 +326,7 @@ fn generate_enum_internal(e: &EnumDef, tag: &str, field_naming: FieldNaming, out
                 let field_strs: Vec<String> = fields
                     .iter()
                     .filter(|f| !f.skip)
-                    .map(|field| {
-                        let field_name = resolve_field_name(field, e.rename_all, field_naming);
-                        format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
-                    })
+                    .map(|field| render_field_str(field, e.rename_all, field_naming))
                     .collect();
                 let mut parts = vec![format!("{tag}: \"{variant_name}\"")];
                 parts.extend(field_strs);
@@ -390,10 +395,7 @@ fn generate_enum_adjacent(
                 let field_strs: Vec<String> = fields
                     .iter()
                     .filter(|f| !f.skip)
-                    .map(|field| {
-                        let field_name = resolve_field_name(field, e.rename_all, field_naming);
-                        format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
-                    })
+                    .map(|field| render_field_str(field, e.rename_all, field_naming))
                     .collect();
                 variant_types.push(format!(
                     "{{ {tag}: \"{variant_name}\"; {content}: {{ {} }} }}",
@@ -443,10 +445,7 @@ fn generate_enum_untagged(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
                 let field_strs: Vec<String> = fields
                     .iter()
                     .filter(|f| !f.skip)
-                    .map(|field| {
-                        let field_name = resolve_field_name(field, e.rename_all, field_naming);
-                        format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
-                    })
+                    .map(|field| render_field_str(field, e.rename_all, field_naming))
                     .collect();
                 variant_types.push(format!("{{ {} }}", field_strs.join("; ")));
             }

@@ -1414,6 +1414,125 @@ fn adjacent_tag_with_rename_all() {
     );
 }
 
+// --- Optional fields in enum struct variants ---
+
+#[test]
+fn external_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::External,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ V: { label?: string | null } }"));
+}
+
+#[test]
+fn internal_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ type: \"V\"; label?: string | null }"));
+}
+
+#[test]
+fn adjacent_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ t: \"V\"; c: { label?: string | null } }"));
+}
+
+#[test]
+fn untagged_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ label?: string | null }"));
+}
+
 // --- Tagging snapshot tests ---
 
 #[test]
