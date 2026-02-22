@@ -1,3 +1,4 @@
+#![warn(missing_docs)]
 //! Procedural macros that turn async Rust functions into
 //! [Vercel](https://vercel.com) serverless lambda handlers.
 //!

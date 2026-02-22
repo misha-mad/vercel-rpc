@@ -184,7 +184,7 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
             let rust_type = extract_rust_type(ty);
             // Unwrap Result<T, _> to just T
             if rust_type.name == "Result" && !rust_type.generics.is_empty() {
-                Some(rust_type.generics[0].clone())
+                rust_type.generics.into_iter().next()
             } else {
                 Some(rust_type)
             }

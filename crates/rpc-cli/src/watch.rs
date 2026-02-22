@@ -1,5 +1,5 @@
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use std::sync::{Arc, mpsc};
 use std::time::Instant;
 
@@ -8,9 +8,8 @@ use colored::Colorize;
 use notify::RecursiveMode;
 use notify_debouncer_mini::{DebouncedEventKind, new_debouncer};
 
-use crate::commands::write_file;
+use crate::commands;
 use crate::config::RpcConfig;
-use crate::{codegen, parser};
 
 /// Runs the watch loop: performs an initial generation, then watches for changes
 /// in the api directory and regenerates TypeScript files on each change.
@@ -22,7 +21,7 @@ pub fn run(config: &RpcConfig) -> Result<()> {
     let running_clone = running.clone();
 
     ctrlc::set_handler(move || {
-        running_clone.store(false, Ordering::SeqCst);
+        running_clone.store(false, Relaxed);
     })
     .context("Failed to set Ctrl+C handler")?;
 
@@ -54,7 +53,7 @@ pub fn run(config: &RpcConfig) -> Result<()> {
         config.input.dir.display().to_string().underline(),
     );
 
-    while running.load(Ordering::SeqCst) {
+    while running.load(Relaxed) {
         match rx.recv_timeout(std::time::Duration::from_millis(100)) {
             Ok(Ok(events)) => {
                 let has_rs_change = events.iter().any(|e| {
@@ -98,107 +97,15 @@ pub fn run(config: &RpcConfig) -> Result<()> {
 fn generate(config: &RpcConfig) -> Result<()> {
     let start = Instant::now();
 
-    let manifest = parser::scan_directory(&config.input)?;
-
-    let types_content = codegen::typescript::generate_types_file(
-        &manifest,
-        config.codegen.preserve_docs,
-        config.codegen.naming.fields,
-    );
-    write_file(&config.output.types, &types_content)?;
-
-    let client_content = codegen::client::generate_client_file(
-        &manifest,
-        &config.output.imports.types_specifier(),
-        config.codegen.preserve_docs,
-    );
-    write_file(&config.output.client, &client_content)?;
-
-    if let Some(svelte_path) = &config.output.svelte {
-        let client_stem = config
-            .output
-            .client
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy();
-        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
-        let svelte_content = codegen::svelte::generate_svelte_file(
-            &manifest,
-            &client_import,
-            &config.output.imports.types_specifier(),
-            config.codegen.preserve_docs,
-        );
-        if !svelte_content.is_empty() {
-            write_file(svelte_path, &svelte_content)?;
-        }
-    }
-
-    if let Some(react_path) = &config.output.react {
-        let client_stem = config
-            .output
-            .client
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy();
-        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
-        let react_content = codegen::react::generate_react_file(
-            &manifest,
-            &client_import,
-            &config.output.imports.types_specifier(),
-            config.codegen.preserve_docs,
-        );
-        if !react_content.is_empty() {
-            write_file(react_path, &react_content)?;
-        }
-    }
-
-    if let Some(vue_path) = &config.output.vue {
-        let client_stem = config
-            .output
-            .client
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy();
-        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
-        let vue_content = codegen::vue::generate_vue_file(
-            &manifest,
-            &client_import,
-            &config.output.imports.types_specifier(),
-            config.codegen.preserve_docs,
-        );
-        if !vue_content.is_empty() {
-            write_file(vue_path, &vue_content)?;
-        }
-    }
-
-    if let Some(solid_path) = &config.output.solid {
-        let client_stem = config
-            .output
-            .client
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy();
-        let client_import = format!("./{client_stem}{}", config.output.imports.extension);
-        let solid_content = codegen::solid::generate_solid_file(
-            &manifest,
-            &client_import,
-            &config.output.imports.types_specifier(),
-            config.codegen.preserve_docs,
-        );
-        if !solid_content.is_empty() {
-            write_file(solid_path, &solid_content)?;
-        }
-    }
+    let manifest = commands::generate_all(config)?;
 
     let elapsed = start.elapsed();
-    let proc_count = manifest.procedures.len();
-    let struct_count = manifest.structs.len();
 
     println!(
         "  {} Generated {} procedure(s), {} struct(s) in {:.0?}",
         "✓".green().bold(),
-        proc_count.to_string().bold(),
-        struct_count.to_string().bold(),
+        manifest.procedures.len().to_string().bold(),
+        manifest.structs.len().to_string().bold(),
         elapsed,
     );
     println!(
@@ -211,32 +118,19 @@ fn generate(config: &RpcConfig) -> Result<()> {
         "→".dimmed(),
         config.output.client.display().to_string().dimmed(),
     );
-    if let Some(svelte) = &config.output.svelte {
+    for path in [
+        &config.output.svelte,
+        &config.output.react,
+        &config.output.vue,
+        &config.output.solid,
+    ]
+    .into_iter()
+    .flatten()
+    {
         println!(
             "    {} {}",
             "→".dimmed(),
-            svelte.display().to_string().dimmed(),
-        );
-    }
-    if let Some(react) = &config.output.react {
-        println!(
-            "    {} {}",
-            "→".dimmed(),
-            react.display().to_string().dimmed(),
-        );
-    }
-    if let Some(vue) = &config.output.vue {
-        println!(
-            "    {} {}",
-            "→".dimmed(),
-            vue.display().to_string().dimmed(),
-        );
-    }
-    if let Some(solid) = &config.output.solid {
-        println!(
-            "    {} {}",
-            "→".dimmed(),
-            solid.display().to_string().dimmed(),
+            path.display().to_string().dimmed(),
         );
     }
 

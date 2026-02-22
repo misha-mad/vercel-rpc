@@ -344,8 +344,6 @@ fn svelte_query_status_enum() {
     );
 }
 
-
-
 #[test]
 fn svelte_query_is_placeholder_data() {
     let manifest = common::make_manifest(vec![common::make_query(
