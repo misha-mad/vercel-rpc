@@ -324,12 +324,15 @@ The transform also applies to struct variant fields in enums. Enum variant *name
 
 The codegen respects `#[serde(...)]` attributes so that generated TypeScript matches the actual JSON output. Supported attributes:
 
-| Attribute                   | Level           | Effect                                                                                                                                                                  |
-|-----------------------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `rename_all = "..."`        | struct / enum   | Transforms all field or variant names (`camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `lowercase`, `UPPERCASE`) |
-| `rename = "..."`            | field / variant | Overrides the name of a single field or variant                                                                                                                         |
-| `skip` / `skip_serializing` | field           | Omits the field from the generated TypeScript interface                                                                                                                 |
-| `default`                   | field           | Makes `Option<T>` fields optional: `field?: T \| null`                                                                                                                  |
+| Attribute                      | Level           | Effect                                                                                                                                                                  |
+|--------------------------------|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `rename_all = "..."`           | struct / enum   | Transforms all field or variant names (`camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `lowercase`, `UPPERCASE`) |
+| `rename = "..."`               | field / variant | Overrides the name of a single field or variant                                                                                                                         |
+| `skip` / `skip_serializing`    | field           | Omits the field from the generated TypeScript interface                                                                                                                 |
+| `default`                      | field           | Makes `Option<T>` fields optional: `field?: T \| null`                                                                                                                  |
+| `tag = "..."`                  | enum            | Internally tagged enum representation                                                                                                                                   |
+| `tag = "...", content = "..."` | enum            | Adjacently tagged enum representation                                                                                                                                   |
+| `untagged`                     | enum            | Untagged enum representation                                                                                                                                            |
 
 **Priority:** field-level `rename` > container-level `rename_all` > `codegen.naming.fields` config > original name.
 
@@ -658,6 +661,46 @@ export interface UserProfile {
 export type Status = "Active" | "Inactive" | "Banned";
 
 export type ApiResult = { Ok: string } | "NotFound" | { Error: { code: number; message: string } };
+```
+
+#### Enum tagging strategies
+
+All four serde enum representations are supported:
+
+| Strategy           | Serde attribute                      | TypeScript output                |
+|--------------------|--------------------------------------|----------------------------------|
+| External (default) | *(none)*                             | `{ Variant: data }`              |
+| Internal           | `#[serde(tag = "type")]`             | `{ type: "Variant"; ...fields }` |
+| Adjacent           | `#[serde(tag = "t", content = "c")]` | `{ t: "Variant"; c: data }`      |
+| Untagged           | `#[serde(untagged)]`                 | `data` (no wrapper)              |
+
+```rust
+// Internally tagged
+#[derive(Serialize)]
+#[serde(tag = "type")]
+enum Shape {
+    Circle { radius: f64 },
+    Rect { w: f64, h: f64 },
+}
+// → { type: "Circle"; radius: number } | { type: "Rect"; w: number; h: number }
+
+// Adjacently tagged
+#[derive(Serialize)]
+#[serde(tag = "t", content = "c")]
+enum Event {
+    Click { x: i32, y: i32 },
+    Scroll(f64),
+}
+// → { t: "Click"; c: { x: number; y: number } } | { t: "Scroll"; c: number }
+
+// Untagged
+#[derive(Serialize)]
+#[serde(untagged)]
+enum StringOrInt {
+    Str(String),
+    Int(i32),
+}
+// → string | number
 ```
 
 ### Generated handler features

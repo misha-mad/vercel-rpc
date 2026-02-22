@@ -66,58 +66,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented across all four framework wrappers. Each effect cycle creates an `AbortController`, passes `signal` to `fetchData`, merges with user-provided `callOptions.signal` via `AbortSignal.any()`, and guards state updates with `signal?.aborted` checks. Cleanup aborts the controller and clears intervals. Manual `refetch()` does not pass a signal.
 
-### Serde Enum Representations
+### ~~Serde Enum Representations~~ ✅
 
-Serde supports four enum tagging strategies. Currently, only the default (externally tagged) is handled.
-
-#### Internally tagged
-
-```rust
-#[derive(Serialize)]
-#[serde(tag = "type")]
-enum Shape {
-    Circle { radius: f64 },
-    Rect { w: f64, h: f64 },
-}
-```
-
-```typescript
-type Shape =
-  | { type: "Circle"; radius: number }
-  | { type: "Rect"; w: number; h: number };
-```
-
-#### Adjacently tagged
-
-```rust
-#[derive(Serialize)]
-#[serde(tag = "t", content = "c")]
-enum Event {
-    Click { x: i32, y: i32 },
-    Scroll(f64),
-}
-```
-
-```typescript
-type Event =
-  | { t: "Click"; c: { x: number; y: number } }
-  | { t: "Scroll"; c: number };
-```
-
-#### Untagged
-
-```rust
-#[derive(Serialize)]
-#[serde(untagged)]
-enum StringOrInt {
-    Str(String),
-    Int(i32),
-}
-```
-
-```typescript
-type StringOrInt = string | number;
-```
+> Implemented in [PR #68](https://github.com/misha-mad/vercel-rpc/pull/68). All four serde enum tagging strategies are supported: externally tagged (default), internally tagged (`#[serde(tag = "...")]`), adjacently tagged (`#[serde(tag = "...", content = "...")]`), and untagged (`#[serde(untagged)]`). `#[serde(default)]` on `Option<T>` fields in enum struct variants is also handled correctly.
 
 ### Generics
 
@@ -261,9 +212,9 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 ## Summary
 
-| Phase | Focus      | Key Deliverables                                                                                                                                                  |
-|-------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                            |
-| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                             |
-| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, enum representations, generics, branded types, flatten |
-| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                                                      |
+| Phase | Focus      | Key Deliverables                                                                                                                                                        |
+|-------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                  |
+| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                   |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, generics, branded types, flatten |
+| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                                                            |
