@@ -373,7 +373,9 @@ fn react_abort_guard_in_catch() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("signal?.aborted"));
+    // Generation counter guards replace signal?.aborted
+    assert!(output.contains("gen !== generationRef.current"));
+    assert!(output.contains("gen === generationRef.current"));
 }
 
 #[test]
@@ -418,6 +420,81 @@ fn react_enabled_supports_getter() {
     )]);
     let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("enabled?: boolean | (() => boolean)"));
+}
+
+// --- VOID_QUERY_KEYS ---
+
+#[test]
+fn react_void_query_keys_set() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query(
+            "hello",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(r#"const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["time"])"#));
+    assert!(output.contains("VOID_QUERY_KEYS.has(key)"));
+}
+
+// --- Generation counter ---
+
+#[test]
+fn react_generation_counter() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("generationRef"));
+    assert!(output.contains("generationRef.current++"));
+    assert!(output.contains("gen !== generationRef.current"));
+}
+
+// --- refetch race safety ---
+
+#[test]
+fn react_refetch_has_local_controller() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("const localController = new AbortController()"));
+    assert!(output.contains("refetch: async ()"));
+}
+
+// --- serializedInput in deps ---
+
+#[test]
+fn react_serialized_input_in_deps() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("const serializedInput = JSON.stringify(input)"));
+    assert!(output.contains("serializedInput"));
+    // Must NOT contain JSON.stringify directly in deps array
+    assert!(!output.contains("], [fetchData, enabled, JSON.stringify("));
+}
+
+// --- enabled=false resets isLoading ---
+
+#[test]
+fn react_disabled_resets_loading() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("if (!enabled) {\n      setIsLoading(false);\n      return;\n    }"));
 }
 
 // --- insta snapshot tests ---
