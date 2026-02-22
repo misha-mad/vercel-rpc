@@ -491,14 +491,16 @@ fn vue_fetch_receives_signal() {
 }
 
 #[test]
-fn vue_abort_guard_in_catch() {
+fn vue_generation_guard_in_fetch() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
     let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("signal?.aborted"));
+    assert!(output.contains("gen !== generation"));
+    assert!(output.contains("gen === generation"));
+    assert!(output.contains("let generation = 0"));
 }
 
 #[test]
