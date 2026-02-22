@@ -201,6 +201,7 @@ cargo run -p vercel-rpc-cli -- generate \
 | `--solid-output`        | *(none)*                | SolidJS primitives output path (opt-in)  |
 | `--types-import`        | `./rpc-types`           | Import path for types in client          |
 | `--config`              | *(auto-discover)*       | Path to config file                      |
+| `--branded-newtypes`    | `false`                 | Branded types for newtypes               |
 | `--no-config`           | `false`                 | Disable config file loading              |
 
 ### `rpc watch`
@@ -237,6 +238,7 @@ extension = ""               # suffix appended to import (e.g. ".js" for ESM)
 
 [codegen]
 preserve_docs = false        # forward Rust `///` doc comments as JSDoc
+branded_newtypes = false     # branded types for single-field tuple structs
 
 [codegen.naming]
 fields = "preserve"          # "preserve" (default) or "camelCase"
@@ -735,6 +737,39 @@ export type Procedures = {
 };
 ```
 
+#### Tuple structs & branded newtypes
+
+Single-field tuple structs (newtypes) produce type aliases. Multi-field tuple structs produce TypeScript tuples:
+
+```rust
+#[derive(Serialize)]
+struct UserId(String);
+
+#[derive(Serialize)]
+struct Pair(String, i32);
+```
+
+```typescript
+// Default:
+export type UserId = string;
+export type Pair = [string, number];
+```
+
+Enable `codegen.branded_newtypes` for nominal type safety on newtypes — prevents accidental mixing of structurally identical types:
+
+```toml
+[codegen]
+branded_newtypes = true
+```
+
+```typescript
+// With branded_newtypes = true:
+export type UserId = string & { readonly __brand: "UserId" };
+export type Pair = [string, number];  // multi-field tuples are unaffected
+```
+
+Also available as `--branded-newtypes` CLI flag.
+
 ### Generated handler features
 
 Every macro-annotated function automatically gets:
@@ -764,6 +799,8 @@ Every macro-annotated function automatically gets:
 | `[T; N]`                                 | `T[]`                                            |
 | `Result<T, E>`                           | `T` (error handled at runtime)                   |
 | Custom structs                           | `interface` with same fields                     |
+| Newtype structs (`UserId(String)`)       | `type UserId = string` (or branded)              |
+| Tuple structs (`Pair(A, B)`)             | `type Pair = [A, B]`                             |
 | Generic structs (`Paginated<T>`)         | `interface Paginated<T>` (generic preserved)     |
 | Enums (unit variants)                    | `"A" \| "B" \| "C"` (string union)               |
 | Enums (tuple variants)                   | `{ A: string } \| { B: number }` (tagged union)  |

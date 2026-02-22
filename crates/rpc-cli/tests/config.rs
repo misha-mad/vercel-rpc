@@ -250,6 +250,7 @@ client = "client.ts"
         types_import: Some("./my-types".to_string()),
         extension: Some(".js".to_string()),
         preserve_docs: true,
+        branded_newtypes: None,
         fields: Some(FieldNaming::CamelCase),
         debounce_ms: Some(500),
         clear_screen: true,
@@ -287,6 +288,7 @@ fn test_resolve_no_config_flag() {
         types_import: None,
         extension: None,
         preserve_docs: false,
+        branded_newtypes: None,
         fields: None,
         debounce_ms: None,
         clear_screen: false,
@@ -314,6 +316,7 @@ fn test_resolve_client_output_override() {
         types_import: None,
         extension: None,
         preserve_docs: false,
+        branded_newtypes: None,
         fields: None,
         debounce_ms: None,
         clear_screen: false,
@@ -444,4 +447,65 @@ fn test_cli_solid_override() {
     };
     let config = resolve(overrides).unwrap();
     assert_eq!(config.output.solid, Some(PathBuf::from("custom.solid.ts")));
+}
+
+#[test]
+fn test_parse_codegen_branded_newtypes() {
+    let toml_str = r#"
+[codegen]
+branded_newtypes = true
+"#;
+    let config: RpcConfig = toml::from_str(toml_str).unwrap();
+    assert!(config.codegen.branded_newtypes);
+    // Other fields should be defaults
+    assert!(!config.codegen.preserve_docs);
+    assert_eq!(config.codegen.naming.fields, FieldNaming::Preserve);
+}
+
+#[test]
+fn test_cli_branded_newtypes_overrides_config() {
+    let tmp = TempDir::new().unwrap();
+    let config_path = tmp.path().join(CONFIG_FILE_NAME);
+    std::fs::write(
+        &config_path,
+        r#"
+[codegen]
+branded_newtypes = true
+"#,
+    )
+    .unwrap();
+
+    // CLI can disable what config enables
+    let overrides = CliOverrides {
+        config: Some(config_path),
+        no_config: false,
+        branded_newtypes: Some(false),
+        ..CliOverrides::default()
+    };
+    let config = resolve(overrides).unwrap();
+    assert!(!config.codegen.branded_newtypes);
+}
+
+#[test]
+fn test_cli_branded_newtypes_none_preserves_config() {
+    let tmp = TempDir::new().unwrap();
+    let config_path = tmp.path().join(CONFIG_FILE_NAME);
+    std::fs::write(
+        &config_path,
+        r#"
+[codegen]
+branded_newtypes = true
+"#,
+    )
+    .unwrap();
+
+    // None means don't override — config value preserved
+    let overrides = CliOverrides {
+        config: Some(config_path),
+        no_config: false,
+        branded_newtypes: None,
+        ..CliOverrides::default()
+    };
+    let config = resolve(overrides).unwrap();
+    assert!(config.codegen.branded_newtypes);
 }

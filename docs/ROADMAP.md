@@ -74,22 +74,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented: generic structs/enums produce generic TypeScript interfaces/types. Generic parameters are preserved in procedure signatures (e.g. `Paginated<User>`).
 
-### Newtype Branded Types
+### ~~Newtype Branded Types~~ ✅
 
-Single-field tuple structs (newtypes) can optionally generate branded types for nominal type safety:
-
-```rust
-#[derive(Serialize)]
-struct UserId(String);
-```
-
-```typescript
-// With branded types enabled (codegen.branded_newtypes = true):
-export type UserId = string & { readonly __brand: unique symbol };
-
-// Without (default):
-export type UserId = string;
-```
+> Implemented via `codegen.branded_newtypes` config option and `--branded-newtypes` CLI flag. Single-field tuple structs (newtypes) produce type aliases; multi-field tuple structs produce TS tuples. With branded mode enabled, newtypes get nominal type safety via `& { readonly __brand: "TypeName" }`.
 
 ### `#[serde(flatten)]`
 
@@ -197,5 +184,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                        |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                         |
-| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, branded types, flatten |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, flatten |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                                                                  |

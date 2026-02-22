@@ -191,17 +191,53 @@ fn render_field_str(
     }
 }
 
-/// Generates a TypeScript interface from a struct definition.
+/// Generates a TypeScript interface or type alias from a struct definition.
+///
+/// - Named structs → `export interface Name { ... }`
+/// - Single-field tuple structs (newtypes) → `export type Name = inner;`
+///   (with optional branded type when `branded_newtypes` is enabled)
+/// - Multi-field tuple structs → `export type Name = [A, B, ...];`
 fn generate_interface(
     s: &StructDef,
     preserve_docs: bool,
     field_naming: FieldNaming,
+    branded_newtypes: bool,
     out: &mut String,
 ) {
     if preserve_docs && let Some(doc) = &s.docs {
         emit_jsdoc(doc, "", out);
     }
     let generic_params = format_generic_params(&s.generics);
+
+    // Tuple struct handling
+    if !s.tuple_fields.is_empty() {
+        if s.tuple_fields.len() == 1 {
+            // Newtype: single-field tuple struct
+            let inner = rust_type_to_ts(&s.tuple_fields[0]);
+            if branded_newtypes {
+                emit!(
+                    out,
+                    "export type {}{generic_params} = {inner} & {{ readonly __brand: \"{}\" }};",
+                    s.name,
+                    s.name
+                );
+            } else {
+                emit!(out, "export type {}{generic_params} = {inner};", s.name);
+            }
+        } else {
+            // Multi-field tuple struct → TS tuple
+            let elems: Vec<String> = s.tuple_fields.iter().map(rust_type_to_ts).collect();
+            emit!(
+                out,
+                "export type {}{generic_params} = [{}];",
+                s.name,
+                elems.join(", ")
+            );
+        }
+        return;
+    }
+
+    // Named struct → interface
     emit!(out, "export interface {}{generic_params} {{", s.name);
     for field in &s.fields {
         if field.skip {
@@ -550,6 +586,7 @@ pub fn generate_types_file(
     manifest: &Manifest,
     preserve_docs: bool,
     field_naming: FieldNaming,
+    branded_newtypes: bool,
 ) -> String {
     let mut out = String::with_capacity(1024);
 
@@ -559,7 +596,7 @@ pub fn generate_types_file(
 
     // Emit all structs discovered in the scanned files.
     for s in &manifest.structs {
-        generate_interface(s, preserve_docs, field_naming, &mut out);
+        generate_interface(s, preserve_docs, field_naming, branded_newtypes, &mut out);
         out.push('\n');
     }
 

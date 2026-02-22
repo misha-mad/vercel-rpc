@@ -691,3 +691,67 @@ fn extracts_generic_struct_skips_lifetimes() {
     assert_eq!(manifest.structs.len(), 1);
     assert_eq!(manifest.structs[0].generics, vec!["T".to_string()]);
 }
+
+// --- Tuple struct extraction tests ---
+
+#[test]
+fn extracts_newtype_tuple_field() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct UserId(String);
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    let s = &manifest.structs[0];
+    assert_eq!(s.name, "UserId");
+    assert!(s.fields.is_empty());
+    assert_eq!(s.tuple_fields.len(), 1);
+    assert_eq!(s.tuple_fields[0], RustType::simple("String"));
+}
+
+#[test]
+fn extracts_multi_field_tuple_struct() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Pair(String, i32);
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    let s = &manifest.structs[0];
+    assert!(s.fields.is_empty());
+    assert_eq!(s.tuple_fields.len(), 2);
+    assert_eq!(s.tuple_fields[0], RustType::simple("String"));
+    assert_eq!(s.tuple_fields[1], RustType::simple("i32"));
+}
+
+#[test]
+fn named_struct_has_empty_tuple_fields() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Plain {
+                value: String,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    assert!(manifest.structs[0].tuple_fields.is_empty());
+    assert_eq!(manifest.structs[0].fields.len(), 1);
+}
+
+#[test]
+fn extracts_generic_tuple_struct() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Wrapper<T>(T);
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    let s = &manifest.structs[0];
+    assert_eq!(s.generics, vec!["T".to_string()]);
+    assert_eq!(s.tuple_fields.len(), 1);
+    assert_eq!(s.tuple_fields[0], RustType::simple("T"));
+}

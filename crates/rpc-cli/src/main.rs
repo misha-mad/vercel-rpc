@@ -82,6 +82,10 @@ struct GenerateArgs {
     #[arg(long)]
     preserve_docs: bool,
 
+    /// Generate branded types for single-field tuple structs (newtypes)
+    #[arg(long)]
+    branded_newtypes: bool,
+
     /// Field naming convention for generated TypeScript interfaces
     #[arg(long, value_enum)]
     fields: Option<FieldNaming>,
@@ -148,6 +152,7 @@ fn main() -> Result<()> {
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,
+                branded_newtypes: if args.branded_newtypes { Some(true) } else { None },
                 fields: args.fields,
                 ..config::CliOverrides::default()
             })?;
@@ -173,6 +178,7 @@ fn main() -> Result<()> {
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,
+                branded_newtypes: if args.branded_newtypes { Some(true) } else { None },
                 fields: args.fields,
                 debounce_ms,
                 clear_screen,

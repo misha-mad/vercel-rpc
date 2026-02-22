@@ -43,11 +43,16 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
 
     for s in &manifest.structs {
         let generics = format_generic_params(&s.generics);
-        println!("\n  struct {}{generics} {{", s.name);
-        for field in &s.fields {
-            println!("    {}: {},", field.name, field.ty);
+        if !s.tuple_fields.is_empty() {
+            let types: Vec<String> = s.tuple_fields.iter().map(|t| t.to_string()).collect();
+            println!("\n  struct {}{generics}({})", s.name, types.join(", "));
+        } else {
+            println!("\n  struct {}{generics} {{", s.name);
+            for field in &s.fields {
+                println!("    {}: {},", field.name, field.ty);
+            }
+            println!("  }}");
         }
-        println!("  }}");
     }
 
     for e in &manifest.enums {
@@ -106,6 +111,7 @@ pub fn generate_all(config: &RpcConfig) -> Result<Manifest> {
         &manifest,
         config.codegen.preserve_docs,
         config.codegen.naming.fields,
+        config.codegen.branded_newtypes,
     );
     write_file(&config.output.types, &types_content)?;
 
