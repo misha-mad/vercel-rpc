@@ -54,16 +54,16 @@ export interface QueryResult<K extends QueryKey> {
   /** The latest successfully resolved data, or placeholderData. */
   readonly data: QueryOutput<K> | undefined;
 
-  /** The error from the most recent failed fetch, cleared on success. */
+  /** The error from the most recent failed fetch, cleared on next attempt. */
   readonly error: RpcError | undefined;
 
-  /** Current status of the query state machine. */
+  /** Current status of the query. Derived: loading > error > success > idle. */
   readonly status: QueryStatus;
 
   /** True while a fetch is in-flight (including the initial fetch). */
   readonly isLoading: boolean;
 
-  /** True after the first successful fetch. Stays true across refetches. */
+  /** True after the first successful fetch. Stays true even if a later refetch fails. */
   readonly isSuccess: boolean;
 
   /** True when the most recent fetch failed. */
@@ -72,7 +72,7 @@ export interface QueryResult<K extends QueryKey> {
   /** True when placeholderData is being shown and no real fetch has completed yet. */
   readonly isPlaceholderData: boolean;
 
-  /** Manually trigger a refetch. */
+  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }
 
@@ -90,8 +90,6 @@ export interface MutationOptions<K extends MutationKey> {
   onSettled?: () => void;
 }
 
-export type MutationStatus = "idle" | "loading" | "success" | "error";
-
 export interface MutationResult<K extends MutationKey> {
   /** Execute the mutation. Rejects on error. */
   mutate: (...args: MutationArgs<K>) => Promise<void>;
@@ -104,9 +102,6 @@ export interface MutationResult<K extends MutationKey> {
 
   /** The error from the most recent failed mutation, cleared on next attempt. */
   readonly error: RpcError | undefined;
-
-  /** Current status of the mutation state machine. */
-  readonly status: MutationStatus;
 
   /** True while a mutation is in-flight. */
   readonly isLoading: boolean;
@@ -121,74 +116,150 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }
 
-export function createQuery<K extends "secret">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "status">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "math">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "profile">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "stats">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "types">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;
+const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["secret", "status", "time"]);
+
+export function createQuery<K extends "secret">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "status">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "math">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "profile">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "stats">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "types">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
 ): QueryResult<K> {
   const key = args[0] as K;
 
-  const inputFn = typeof args[1] === "function"
-    ? args[1] as () => QueryInput<K>
-    : undefined;
-  const options = (typeof args[1] === "object" ? args[1] : args[2]) as
-    | QueryOptions<K>
-    | undefined;
+  let inputFn: (() => QueryInput<K>) | undefined;
+  let optionsArg: QueryOptions<K> | (() => QueryOptions<K>) | undefined;
 
-  let data = $state<QueryOutput<K> | undefined>(options?.placeholderData);
+  if (typeof args[1] === "function" && args[2] !== undefined) {
+    inputFn = args[1] as () => QueryInput<K>;
+    optionsArg = args[2] as QueryOptions<K> | (() => QueryOptions<K>) | undefined;
+  } else if (typeof args[1] === "function") {
+    if (VOID_QUERY_KEYS.has(key)) {
+      optionsArg = args[1] as () => QueryOptions<K>;
+    } else {
+      inputFn = args[1] as () => QueryInput<K>;
+    }
+  } else if (typeof args[1] === "object") {
+    optionsArg = args[1] as QueryOptions<K>;
+  }
+
+  function resolveOptions(): QueryOptions<K> | undefined {
+    return typeof optionsArg === "function" ? optionsArg() : optionsArg;
+  }
+
+  function resolveEnabled(): boolean {
+    const opts = resolveOptions();
+    return typeof opts?.enabled === "function"
+      ? opts.enabled()
+      : (opts?.enabled ?? true);
+  }
+
+  let data = $state<QueryOutput<K> | undefined>(resolveOptions()?.placeholderData);
   let error = $state<RpcError | undefined>();
-  let status = $state<QueryStatus>("idle");
+  let hasFetched = $state(false);
+  let loading = $state(false);
 
-  async function fetchData(input?: QueryInput<K>) {
-    status = "loading";
+  let generation = 0;
+  let controller: AbortController | undefined;
+  let intervalId: ReturnType<typeof setInterval> | undefined;
+  async function fetchData(input: QueryInput<K> | undefined, signal: AbortSignal, gen: number) {
+    const opts = resolveOptions();
+    loading = true;
     error = undefined;
     try {
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
-      if (options?.callOptions) callArgs.push(options.callOptions);
-      data = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
-      status = "success";
-      options?.onSuccess?.(data!);
+      const mergedCallOptions = { ...opts?.callOptions, signal: opts?.callOptions?.signal
+          ? AbortSignal.any([signal, opts.callOptions.signal])
+          : signal };
+      callArgs.push(mergedCallOptions);
+      const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
+      if (gen !== generation) return;
+      data = result;
+      hasFetched = true;
+      opts?.onSuccess?.(result);
     } catch (e) {
+      if (gen !== generation) return;
       error = e as RpcError;
-      status = "error";
-      options?.onError?.(error);
+      opts?.onError?.(error);
     } finally {
-      options?.onSettled?.();
+      if (gen === generation) {
+        loading = false;
+        opts?.onSettled?.();
+      }
+    }
+  }
+
+  function setupInterval(enabled: boolean, refetchInterval: number | undefined) {
+    if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
+    if (enabled && refetchInterval) {
+      intervalId = setInterval(() => {
+        if (controller && !controller.signal.aborted) {
+          void fetchData(inputFn?.(), controller.signal, generation);
+        }
+      }, refetchInterval);
     }
   }
 
   $effect(() => {
-    const enabled = typeof options?.enabled === "function"
-      ? options.enabled()
-      : (options?.enabled ?? true);
+    const enabled = resolveEnabled();
     const input = inputFn?.();
-    if (!enabled) return;
+    const refetchInterval = resolveOptions()?.refetchInterval;
 
-    void fetchData(input);
-
-    if (options?.refetchInterval) {
-      const interval = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
-      return () => clearInterval(interval);
+    if (controller) controller.abort();
+    if (enabled) {
+      generation++;
+      const gen = generation;
+      controller = new AbortController();
+      void fetchData(input, controller.signal, gen);
+    } else {
+      loading = false;
+      controller = undefined;
     }
+
+    setupInterval(enabled, refetchInterval);
+
+    return () => {
+      if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
+    };
+  });
+
+  $effect(() => {
+    return () => {
+      generation++;
+      if (controller) { controller.abort(); controller = undefined; }
+    };
   });
 
   return {
     get data() { return data; },
     get error() { return error; },
-    get status() { return status; },
-    get isLoading() { return status === "loading"; },
-    get isSuccess() { return status === "success"; },
-    get isError() { return status === "error"; },
-    get isPlaceholderData() { return status !== "success" && data !== undefined; },
-    refetch: () => fetchData(inputFn?.()),
+    get status(): QueryStatus {
+      if (loading) return "loading";
+      if (error !== undefined) return "error";
+      if (hasFetched) return "success";
+      return "idle";
+    },
+    get isLoading() { return loading; },
+    get isSuccess() { return hasFetched; },
+    get isError() { return error !== undefined; },
+    get isPlaceholderData() { return !hasFetched && data !== undefined; },
+    refetch: async () => {
+      const enabled = resolveEnabled();
+      if (!enabled) return;
+      generation++;
+      const gen = generation;
+      const localController = new AbortController();
+      if (controller) controller.abort();
+      controller = localController;
+      setupInterval(enabled, resolveOptions()?.refetchInterval);
+      await fetchData(inputFn?.(), localController.signal, gen);
+    },
   };
 }
 
@@ -199,26 +270,28 @@ export function createMutation<K extends MutationKey>(
 ): MutationResult<K> {
   let data = $state<MutationOutput<K> | undefined>();
   let error = $state<RpcError | undefined>();
-  let status = $state<MutationStatus>("idle");
+  let loading = $state(false);
+  let hasSucceeded = $state(false);
 
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
-    status = "loading";
+    loading = true;
     error = undefined;
+    hasSucceeded = false;
     try {
       const callArgs: unknown[] = [key];
       if (input.length > 0) callArgs.push(input[0]);
       if (options?.callOptions) callArgs.push(options.callOptions);
       const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       data = result;
-      status = "success";
+      hasSucceeded = true;
       options?.onSuccess?.(result);
       return result;
     } catch (e) {
       error = e as RpcError;
-      status = "error";
       options?.onError?.(error);
       throw e;
     } finally {
+      loading = false;
       options?.onSettled?.();
     }
   }
@@ -228,11 +301,10 @@ export function createMutation<K extends MutationKey>(
     mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     get data() { return data; },
     get error() { return error; },
-    get status() { return status; },
-    get isLoading() { return status === "loading"; },
-    get isSuccess() { return status === "success"; },
-    get isError() { return status === "error"; },
-    reset: () => { data = undefined; error = undefined; status = "idle"; },
+    get isLoading() { return loading; },
+    get isSuccess() { return hasSucceeded; },
+    get isError() { return error !== undefined; },
+    reset: () => { data = undefined; error = undefined; loading = false; hasSucceeded = false; },
   } as MutationResult<K>;
 }
 
