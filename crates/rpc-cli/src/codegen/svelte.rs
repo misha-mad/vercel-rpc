@@ -77,9 +77,7 @@ const MUTATION_OPTIONS_INTERFACE: &str = r#"export interface MutationOptions<K e
   onSettled?: () => void;
 }"#;
 
-const MUTATION_RESULT_INTERFACE: &str = r#"export type MutationStatus = "idle" | "loading" | "success" | "error";
-
-export interface MutationResult<K extends MutationKey> {
+const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K extends MutationKey> {
   /** Execute the mutation. Rejects on error. */
   mutate: (...args: MutationArgs<K>) => Promise<void>;
 
@@ -91,9 +89,6 @@ export interface MutationResult<K extends MutationKey> {
 
   /** The error from the most recent failed mutation, cleared on next attempt. */
   readonly error: RpcError | undefined;
-
-  /** Current status of the mutation state machine. */
-  readonly status: MutationStatus;
 
   /** True while a mutation is in-flight. */
   readonly isLoading: boolean;
@@ -252,26 +247,28 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
 ): MutationResult<K> {
   let data = $state<MutationOutput<K> | undefined>();
   let error = $state<RpcError | undefined>();
-  let status = $state<MutationStatus>("idle");
+  let loading = $state(false);
+  let hasSucceeded = $state(false);
 
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
-    status = "loading";
+    loading = true;
     error = undefined;
+    hasSucceeded = false;
     try {
       const callArgs: unknown[] = [key];
       if (input.length > 0) callArgs.push(input[0]);
       if (options?.callOptions) callArgs.push(options.callOptions);
       const result = await (client.mutate as (...a: unknown[]) => Promise<unknown>)(...callArgs) as MutationOutput<K>;
       data = result;
-      status = "success";
+      hasSucceeded = true;
       options?.onSuccess?.(result);
       return result;
     } catch (e) {
       error = e as RpcError;
-      status = "error";
       options?.onError?.(error);
       throw e;
     } finally {
+      loading = false;
       options?.onSettled?.();
     }
   }
@@ -281,11 +278,10 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
     mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     get data() { return data; },
     get error() { return error; },
-    get status() { return status; },
-    get isLoading() { return status === "loading"; },
-    get isSuccess() { return status === "success"; },
-    get isError() { return status === "error"; },
-    reset: () => { data = undefined; error = undefined; status = "idle"; },
+    get isLoading() { return loading; },
+    get isSuccess() { return hasSucceeded; },
+    get isError() { return error !== undefined; },
+    reset: () => { data = undefined; error = undefined; loading = false; hasSucceeded = false; },
   } as MutationResult<K>;
 }"#;
 

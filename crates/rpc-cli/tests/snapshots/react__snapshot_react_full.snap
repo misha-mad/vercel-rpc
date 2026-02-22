@@ -291,7 +291,7 @@ export function useMutation<K extends MutationKey>(
     mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
     mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     data, error, isLoading,
-    isSuccess: hasSucceeded && error === undefined,
+    isSuccess: hasSucceeded,
     isError: error !== undefined,
     reset,
   };

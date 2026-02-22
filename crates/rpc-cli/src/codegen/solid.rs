@@ -249,7 +249,7 @@ const CREATE_MUTATION_IMPL: &str = r#"export function createMutation<K extends M
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSucceeded, setHasSucceeded] = createSignal(false);
 
-  const isSuccess = createMemo(() => hasSucceeded() && error() === undefined);
+  const isSuccess = createMemo(() => hasSucceeded());
   const isError = createMemo(() => error() !== undefined);
 
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {

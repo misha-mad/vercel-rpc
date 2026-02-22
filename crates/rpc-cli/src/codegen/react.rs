@@ -268,7 +268,7 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
     mutate: async (...args: MutationArgs<K>) => { await execute(...args); },
     mutateAsync: (...args: MutationArgs<K>) => execute(...args),
     data, error, isLoading,
-    isSuccess: hasSucceeded && error === undefined,
+    isSuccess: hasSucceeded,
     isError: error !== undefined,
     reset,
   };

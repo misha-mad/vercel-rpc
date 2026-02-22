@@ -72,7 +72,7 @@ export function createMutation<K extends MutationKey>(
   const [isLoading, setIsLoading] = createSignal(false);
   const [hasSucceeded, setHasSucceeded] = createSignal(false);
 
-  const isSuccess = createMemo(() => hasSucceeded() && error() === undefined);
+  const isSuccess = createMemo(() => hasSucceeded());
   const isError = createMemo(() => error() !== undefined);
 
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {
