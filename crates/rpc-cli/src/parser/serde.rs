@@ -52,6 +52,18 @@ pub fn parse_rename(attrs: &[syn::Attribute]) -> Option<String> {
     })
 }
 
+/// Checks for `#[serde(flatten)]` on a field.
+pub fn is_flattened(attrs: &[syn::Attribute]) -> bool {
+    find_serde_meta(attrs, |meta| {
+        if meta.path.is_ident("flatten") {
+            Some(true)
+        } else {
+            None
+        }
+    })
+    .unwrap_or(false)
+}
+
 /// Checks for `#[serde(skip)]` or `#[serde(skip_serializing)]` on a field.
 pub fn is_skipped(attrs: &[syn::Attribute]) -> bool {
     find_serde_meta(attrs, |meta| {

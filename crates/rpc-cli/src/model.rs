@@ -208,6 +208,8 @@ pub struct FieldDef {
     pub skip: bool,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub has_default: bool,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub flatten: bool,
 }
 
 /// Metadata for a single RPC procedure extracted from a source file.
