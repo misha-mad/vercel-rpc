@@ -95,19 +95,38 @@ const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K ext
   reset: () => void;
 }"#;
 
+const IS_QUERY_OPTIONS_IMPL: &str = r#"const QUERY_OPTIONS_KEYS: string[] = [
+  "enabled", "refetchInterval", "placeholderData", "callOptions",
+  "onSuccess", "onError", "onSettled",
+];
+
+function isQueryOptions(v: unknown): boolean {
+  if (v == null || typeof v !== "object") return false;
+  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
+}"#;
+
 const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
 ): QueryResult<K> {
   const key = args[0] as K;
 
-  const inputFn = typeof args[1] === "function"
-    ? args[1] as () => QueryInput<K>
-    : undefined;
-  const optionsArg = (typeof args[1] === "object" ? args[1] : args[2]) as
-    | QueryOptions<K>
-    | (() => QueryOptions<K>)
-    | undefined;
+  let inputFn: (() => QueryInput<K>) | undefined;
+  let optionsArg: QueryOptions<K> | (() => QueryOptions<K>) | undefined;
+
+  if (typeof args[1] === "function" && args[2] !== undefined) {
+    inputFn = args[1] as () => QueryInput<K>;
+    optionsArg = args[2] as QueryOptions<K> | (() => QueryOptions<K>) | undefined;
+  } else if (typeof args[1] === "function") {
+    const probe = (args[1] as () => unknown)();
+    if (probe != null && typeof probe === "object" && isQueryOptions(probe)) {
+      optionsArg = args[1] as () => QueryOptions<K>;
+    } else {
+      inputFn = args[1] as () => QueryInput<K>;
+    }
+  } else if (typeof args[1] === "object") {
+    optionsArg = args[1] as QueryOptions<K>;
+  }
 
   function resolveOptions(): QueryOptions<K> | undefined {
     return typeof optionsArg === "function" ? optionsArg() : optionsArg;
@@ -162,21 +181,21 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
         ? opts.enabled()
         : (opts?.enabled ?? true);
       const input = inputFn?.();
-      return { enabled, input, serialized: JSON.stringify(input) };
+      return { enabled, input, serialized: JSON.stringify(input), refetchInterval: opts?.refetchInterval };
     },
-    ({ enabled, input }: { enabled: boolean; input: QueryInput<K> | undefined; serialized: string }) => {
+    ({ enabled, input, refetchInterval }: { enabled: boolean; input: QueryInput<K> | undefined; serialized: string; refetchInterval: number | undefined }) => {
       if (controller) { controller.abort(); controller = undefined; }
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
       if (!enabled) return;
 
       controller = new AbortController();
-      void fetchData(input, controller.signal);
+      const ctrl = controller;
+      void fetchData(input, ctrl.signal);
 
-      const opts = resolveOptions();
-      if (opts?.refetchInterval) {
+      if (refetchInterval) {
         intervalId = setInterval(() => {
-          if (!controller?.signal.aborted) fetchData(inputFn?.(), controller!.signal);
-        }, opts.refetchInterval);
+          if (!ctrl.signal.aborted) fetchData(inputFn?.(), ctrl.signal);
+        }, refetchInterval);
       }
     },
     { immediate: true },
@@ -424,6 +443,7 @@ pub fn generate_vue_file(
 
     // useQuery overloads + implementation
     if has_queries {
+        emit!(out, "{IS_QUERY_OPTIONS_IMPL}\n");
         generate_query_overloads(&queries, &mut out);
         emit!(out, "{USE_QUERY_IMPL}\n");
     }

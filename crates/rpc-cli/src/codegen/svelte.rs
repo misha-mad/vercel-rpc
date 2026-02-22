@@ -108,19 +108,38 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }"#;
 
+const IS_QUERY_OPTIONS_IMPL: &str = r#"const QUERY_OPTIONS_KEYS: string[] = [
+  "enabled", "refetchInterval", "placeholderData", "callOptions",
+  "onSuccess", "onError", "onSettled",
+];
+
+function isQueryOptions(v: unknown): boolean {
+  if (v == null || typeof v !== "object") return false;
+  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
+}"#;
+
 const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
 ): QueryResult<K> {
   const key = args[0] as K;
 
-  const inputFn = typeof args[1] === "function"
-    ? args[1] as () => QueryInput<K>
-    : undefined;
-  const optionsArg = (typeof args[1] === "object" ? args[1] : args[2]) as
-    | QueryOptions<K>
-    | (() => QueryOptions<K>)
-    | undefined;
+  let inputFn: (() => QueryInput<K>) | undefined;
+  let optionsArg: QueryOptions<K> | (() => QueryOptions<K>) | undefined;
+
+  if (typeof args[1] === "function" && args[2] !== undefined) {
+    inputFn = args[1] as () => QueryInput<K>;
+    optionsArg = args[2] as QueryOptions<K> | (() => QueryOptions<K>) | undefined;
+  } else if (typeof args[1] === "function") {
+    const probe = (args[1] as () => unknown)();
+    if (probe != null && typeof probe === "object" && isQueryOptions(probe)) {
+      optionsArg = args[1] as () => QueryOptions<K>;
+    } else {
+      inputFn = args[1] as () => QueryInput<K>;
+    }
+  } else if (typeof args[1] === "object") {
+    optionsArg = args[1] as QueryOptions<K>;
+  }
 
   function resolveOptions(): QueryOptions<K> | undefined {
     return typeof optionsArg === "function" ? optionsArg() : optionsArg;
@@ -411,6 +430,7 @@ pub fn generate_svelte_file(
 
     // createQuery overloads + implementation
     if has_queries {
+        emit!(out, "{IS_QUERY_OPTIONS_IMPL}\n");
         generate_query_overloads(&queries, &mut out);
         emit!(out, "{CREATE_QUERY_IMPL}\n");
     }
