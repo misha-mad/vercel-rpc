@@ -190,7 +190,6 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   createEffect(() => {
     const enabled = resolveEnabled();
     const input = inputFn?.();
-    const refetchInterval = resolveOptions()?.refetchInterval;
 
     if (controller) controller.abort();
     if (enabled) {
@@ -203,11 +202,18 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
       controller = undefined;
     }
 
+    onCleanup(() => {
+      if (controller) { controller.abort(); controller = undefined; }
+    });
+  });
+
+  createEffect(() => {
+    const enabled = resolveEnabled();
+    const refetchInterval = resolveOptions()?.refetchInterval;
+
     setupInterval(enabled, refetchInterval);
 
     onCleanup(() => {
-      generation++;
-      if (controller) { controller.abort(); controller = undefined; }
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
     });
   });

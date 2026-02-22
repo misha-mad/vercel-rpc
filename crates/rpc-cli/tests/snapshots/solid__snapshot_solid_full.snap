@@ -213,7 +213,6 @@ export function createQuery<K extends QueryKey>(
   createEffect(() => {
     const enabled = resolveEnabled();
     const input = inputFn?.();
-    const refetchInterval = resolveOptions()?.refetchInterval;
 
     if (controller) controller.abort();
     if (enabled) {
@@ -226,11 +225,18 @@ export function createQuery<K extends QueryKey>(
       controller = undefined;
     }
 
+    onCleanup(() => {
+      if (controller) { controller.abort(); controller = undefined; }
+    });
+  });
+
+  createEffect(() => {
+    const enabled = resolveEnabled();
+    const refetchInterval = resolveOptions()?.refetchInterval;
+
     setupInterval(enabled, refetchInterval);
 
     onCleanup(() => {
-      generation++;
-      if (controller) { controller.abort(); controller = undefined; }
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
     });
   });
