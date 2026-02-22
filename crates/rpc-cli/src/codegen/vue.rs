@@ -170,15 +170,14 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   let controller: AbortController | undefined;
   let intervalId: ReturnType<typeof setInterval> | undefined;
 
-  function setupInterval() {
+  function setupInterval(enabled: boolean, refetchInterval: number | undefined) {
     if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
-    const ri = resolveOptions()?.refetchInterval;
-    if (resolveEnabled() && ri) {
+    if (enabled && refetchInterval) {
       intervalId = setInterval(() => {
         if (controller && !controller.signal.aborted) {
           void fetchData(inputFn?.(), controller.signal);
         }
-      }, ri);
+      }, refetchInterval);
     }
   }
 
@@ -201,7 +200,7 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
         }
       }
 
-      setupInterval();
+      setupInterval(curr.enabled, curr.refetchInterval);
     },
     { immediate: true },
   );
@@ -218,13 +217,13 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     isLoading,
     isSuccess,
     isError,
-    refetch: () => {
-      if (!resolveEnabled()) return Promise.resolve();
+    refetch: async () => {
+      if (!resolveEnabled()) return;
+      const localController = new AbortController();
       if (controller) controller.abort();
-      controller = new AbortController();
-      const promise = fetchData(inputFn?.(), controller.signal);
-      setupInterval();
-      return promise;
+      controller = localController;
+      setupInterval(resolveEnabled(), resolveOptions()?.refetchInterval);
+      await fetchData(inputFn?.(), localController.signal);
     },
   };
 }"#;
