@@ -58,53 +58,13 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > **SolidJS** — Implemented in RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
 
-### Reactive Options for Framework Wrappers
+### ~~Reactive Options for Framework Wrappers~~ ✅
 
-Currently, `QueryOptions` (including `refetchInterval`, callbacks) are read once when the wrapper is created. If the options object changes after initialization, the wrapper does not react to the new values because `options` is not a signal/ref.
+> Implemented across all four framework wrappers. Overloads accept `options?: QueryOptions<K> | (() => QueryOptions<K>)`, with a `resolveOptions()` helper called inside the effect for reactive tracking.
 
-To fix this, wrappers should accept options as a getter (`() => QueryOptions<K>`) so the framework's reactivity system can track changes:
+### ~~Query Race Condition Handling (AbortController)~~ ✅
 
-```typescript
-// SolidJS — options as getter
-const stats = createQuery(rpc, "server_stats", () => ({
-  refetchInterval: pollInterval(),  // reactive — re-evaluates when pollInterval changes
-  enabled: isAuthenticated(),
-}));
-
-// Vue — options as getter
-const stats = useQuery(rpc, "server_stats", () => ({
-  refetchInterval: pollInterval.value,
-  enabled: isAuthenticated.value,
-}));
-```
-
-This is a cross-cutting concern affecting Svelte, React, Vue, and SolidJS wrappers. The current implementation is sufficient for most use cases where options are static.
-
-### Query Race Condition Handling (AbortController)
-
-When input changes rapidly (e.g. `userId: 1 → 2 → 3`), multiple fetch requests fire in parallel and responses may arrive out of order. A late response from an earlier input can overwrite the correct data:
-
-```typescript
-// userId changes: 1 → 2 → 3
-// Requests fire in parallel, responses may arrive: 3, 1, 2
-// setData(user2) overwrites the correct user3
-```
-
-The fix is to abort stale requests via `AbortController` in the `useEffect`/`$effect` cleanup:
-
-```typescript
-const fetchData = useCallback(async (signal: AbortSignal) => {
-  // ... pass signal via callOptions
-}, [...]);
-
-useEffect(() => {
-  const controller = new AbortController();
-  fetchData(controller.signal);
-  return () => controller.abort();
-}, [fetchData]);
-```
-
-This is a known pattern — TanStack Query also didn't ship abort-on-stale in early versions. The current implementation is sufficient for most use cases.
+> Implemented across all four framework wrappers. Each effect cycle creates an `AbortController`, passes `signal` to `fetchData`, merges with user-provided `callOptions.signal` via `AbortSignal.any()`, and guards state updates with `signal?.aborted` checks. Cleanup aborts the controller and clears intervals. Manual `refetch()` does not pass a signal.
 
 ### Serde Enum Representations
 
@@ -301,9 +261,9 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 
 ## Summary
 
-| Phase | Focus      | Key Deliverables                                                                                                                      |
-|-------|------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                |
-| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅ |
-| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, enum representations, generics, branded types, flatten                     |
-| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                          |
+| Phase | Focus      | Key Deliverables                                                                                                                                                  |
+|-------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                            |
+| **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                             |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, enum representations, generics, branded types, flatten |
+| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                                                      |
