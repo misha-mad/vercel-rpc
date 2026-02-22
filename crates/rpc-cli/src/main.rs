@@ -152,7 +152,11 @@ fn main() -> Result<()> {
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,
-                branded_newtypes: if args.branded_newtypes { Some(true) } else { None },
+                branded_newtypes: if args.branded_newtypes {
+                    Some(true)
+                } else {
+                    None
+                },
                 fields: args.fields,
                 ..config::CliOverrides::default()
             })?;
@@ -178,7 +182,11 @@ fn main() -> Result<()> {
                 types_import: args.types_import,
                 extension: args.extension,
                 preserve_docs: args.preserve_docs,
-                branded_newtypes: if args.branded_newtypes { Some(true) } else { None },
+                branded_newtypes: if args.branded_newtypes {
+                    Some(true)
+                } else {
+                    None
+                },
                 fields: args.fields,
                 debounce_ms,
                 clear_screen,
