@@ -26,6 +26,7 @@ macro_rules! emit {
 }
 
 pub mod client;
+pub mod common;
 pub mod react;
 pub mod solid;
 pub mod svelte;
