@@ -149,9 +149,6 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   let generation = 0;
   let controller: AbortController | undefined;
   let intervalId: ReturnType<typeof setInterval> | undefined;
-  let prevEnabled: boolean | undefined;
-  let prevSerialized: string | undefined;
-
   async function fetchData(input: QueryInput<K> | undefined, signal: AbortSignal, gen: number) {
     const opts = resolveOptions();
     loading = true;
@@ -194,24 +191,17 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   $effect(() => {
     const enabled = resolveEnabled();
     const input = inputFn?.();
-    const serialized = JSON.stringify(input);
     const refetchInterval = resolveOptions()?.refetchInterval;
 
-    const inputChanged = prevEnabled === undefined || enabled !== prevEnabled || serialized !== prevSerialized;
-    prevEnabled = enabled;
-    prevSerialized = serialized;
-
-    if (inputChanged) {
-      if (controller) controller.abort();
-      if (enabled) {
-        generation++;
-        const gen = generation;
-        controller = new AbortController();
-        void fetchData(input, controller.signal, gen);
-      } else {
-        loading = false;
-        controller = undefined;
-      }
+    if (controller) controller.abort();
+    if (enabled) {
+      generation++;
+      const gen = generation;
+      controller = new AbortController();
+      void fetchData(input, controller.signal, gen);
+    } else {
+      loading = false;
+      controller = undefined;
     }
 
     setupInterval(enabled, refetchInterval);
