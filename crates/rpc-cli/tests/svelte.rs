@@ -223,7 +223,8 @@ fn svelte_refetch_in_result() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("refetch: () => fetchData(inputFn?.())"));
+    assert!(output.contains("refetch: async ()"));
+    assert!(output.contains("await fetchData(inputFn?.(), localController.signal, gen)"));
 }
 
 #[test]
@@ -365,7 +366,7 @@ fn svelte_query_is_placeholder_data() {
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("isPlaceholderData"));
-    assert!(output.contains(r#"status !== "success" && data !== undefined"#));
+    assert!(output.contains("!hasFetched && data !== undefined"));
 }
 
 #[test]
@@ -376,11 +377,11 @@ fn svelte_status_derives_booleans() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains(r#"status === "loading""#));
-    assert!(output.contains(r#"status === "success""#));
-    assert!(output.contains(r#"status === "error""#));
-    // Must NOT contain the old data-based isSuccess derivation
-    assert!(!output.contains("get isSuccess() { return data !== undefined"));
+    // Status is derived from atomic state, not stored
+    assert!(output.contains("get status(): QueryStatus"));
+    assert!(output.contains("get isLoading() { return loading; }"));
+    assert!(output.contains("get isSuccess() { return hasFetched; }"));
+    assert!(output.contains("get isError() { return error !== undefined; }"));
 }
 
 // --- AbortController & reactive options ---
@@ -416,7 +417,9 @@ fn svelte_abort_guard_in_catch() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("signal?.aborted"));
+    // Generation counter guards replace signal?.aborted
+    assert!(output.contains("gen !== generation"));
+    assert!(output.contains("gen === generation"));
 }
 
 #[test]
@@ -450,6 +453,48 @@ fn svelte_resolve_options_helper() {
     )]);
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("resolveOptions"));
+}
+
+// --- VOID_QUERY_KEYS ---
+
+#[test]
+fn svelte_void_query_keys_set() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query(
+            "hello",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(r#"const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["time"])"#));
+    assert!(output.contains("VOID_QUERY_KEYS.has(key)"));
+}
+
+#[test]
+fn svelte_void_query_keys_multiple() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query("version", None, Some(RustType::simple("String"))),
+    ]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(r#"new Set(["time", "version"])"#));
+}
+
+// --- Generation counter ---
+
+#[test]
+fn svelte_generation_counter() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("let generation = 0"));
+    assert!(output.contains("generation++"));
+    assert!(output.contains("gen !== generation"));
 }
 
 // --- insta snapshot tests ---
