@@ -1,4 +1,4 @@
-use crate::model::RenameRule;
+use crate::model::{EnumTagging, RenameRule};
 
 /// Walks `#[serde(...)]` attributes and calls `visitor` for each nested meta item.
 /// Returns the last value produced by the visitor, or `None` if no match.
@@ -62,6 +62,51 @@ pub fn is_skipped(attrs: &[syn::Attribute]) -> bool {
         }
     })
     .unwrap_or(false)
+}
+
+/// Parses the serde enum tagging strategy from attributes.
+///
+/// Recognizes `#[serde(tag = "...", content = "...")]` and `#[serde(untagged)]`.
+/// Priority: `untagged` → `Untagged`; `tag` + `content` → `Adjacent`;
+/// `tag` only → `Internal`; else → `External`.
+pub fn parse_enum_tagging(attrs: &[syn::Attribute]) -> EnumTagging {
+    let mut tag = None;
+    let mut content = None;
+    let mut untagged = false;
+
+    for attr in attrs {
+        if !attr.path().is_ident("serde") {
+            continue;
+        }
+        let _ = attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("untagged") {
+                untagged = true;
+            } else if meta.path.is_ident("tag")
+                && let Ok(value) = meta.value()
+                && let Ok(lit) = value.parse::<syn::LitStr>()
+            {
+                tag = Some(lit.value());
+            } else if meta.path.is_ident("content")
+                && let Ok(value) = meta.value()
+                && let Ok(lit) = value.parse::<syn::LitStr>()
+            {
+                content = Some(lit.value());
+            }
+            Ok(())
+        });
+    }
+
+    if untagged {
+        EnumTagging::Untagged
+    } else if let Some(tag) = tag {
+        if let Some(content) = content {
+            EnumTagging::Adjacent { tag, content }
+        } else {
+            EnumTagging::Internal { tag }
+        }
+    } else {
+        EnumTagging::External
+    }
 }
 
 /// Checks for `#[serde(default)]` on a field.

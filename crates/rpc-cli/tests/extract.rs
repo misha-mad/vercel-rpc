@@ -535,3 +535,79 @@ fn no_serde_attrs_returns_defaults() {
     assert!(!s.fields[0].skip);
     assert!(!s.fields[0].has_default);
 }
+
+// --- Enum tagging extraction tests ---
+
+#[test]
+fn parse_internally_tagged_enum() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            #[serde(tag = "type")]
+            enum Shape {
+                Circle { radius: f64 },
+                Rect { w: f64, h: f64 },
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums.len(), 1);
+    assert_eq!(
+        manifest.enums[0].tagging,
+        EnumTagging::Internal {
+            tag: "type".to_string()
+        },
+    );
+}
+
+#[test]
+fn parse_adjacently_tagged_enum() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            #[serde(tag = "t", content = "c")]
+            enum Message {
+                Text(String),
+                Ping,
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums.len(), 1);
+    assert_eq!(
+        manifest.enums[0].tagging,
+        EnumTagging::Adjacent {
+            tag: "t".to_string(),
+            content: "c".to_string(),
+        },
+    );
+}
+
+#[test]
+fn parse_untagged_enum() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            #[serde(untagged)]
+            enum Value {
+                Str(String),
+                Num(f64),
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums.len(), 1);
+    assert_eq!(manifest.enums[0].tagging, EnumTagging::Untagged);
+}
+
+#[test]
+fn parse_default_external_enum() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            enum Status {
+                Active,
+                Inactive,
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums.len(), 1);
+    assert_eq!(manifest.enums[0].tagging, EnumTagging::External);
+}

@@ -1,7 +1,7 @@
 use crate::config::FieldNaming;
 use crate::model::{
-    EnumDef, EnumVariant, FieldDef, Manifest, Procedure, ProcedureKind, RenameRule, RustType,
-    StructDef, VariantKind,
+    EnumDef, EnumTagging, EnumVariant, FieldDef, Manifest, Procedure, ProcedureKind, RenameRule,
+    RustType, StructDef, VariantKind,
 };
 
 // Header comment included at the top of every generated file.
@@ -204,13 +204,11 @@ fn generate_interface(
 
 /// Generates a TypeScript type from an enum definition.
 ///
-/// Supports three variant shapes following serde's default (externally tagged) representation:
-/// - Unit variants → string literal union: `"Active" | "Inactive"`
-/// - Tuple variants → `{ VariantName: T }` (single field) or `{ VariantName: [A, B] }` (multiple)
-/// - Struct variants → `{ VariantName: { field: type } }`
-///
-/// If all variants are unit, emits a simple string union.
-/// Otherwise, emits a discriminated union of object types.
+/// Dispatches to the appropriate strategy based on `e.tagging`:
+/// - `External` (default): serde's externally tagged representation
+/// - `Internal { tag }`: internally tagged (`#[serde(tag = "...")]`)
+/// - `Adjacent { tag, content }`: adjacently tagged (`#[serde(tag = "...", content = "...")]`)
+/// - `Untagged`: no tag wrapper (`#[serde(untagged)]`)
 fn generate_enum_type(
     e: &EnumDef,
     preserve_docs: bool,
@@ -220,13 +218,25 @@ fn generate_enum_type(
     if preserve_docs && let Some(doc) = &e.docs {
         emit_jsdoc(doc, "", out);
     }
+
+    match &e.tagging {
+        EnumTagging::External => generate_enum_external(e, field_naming, out),
+        EnumTagging::Internal { tag } => generate_enum_internal(e, tag, field_naming, out),
+        EnumTagging::Adjacent { tag, content } => {
+            generate_enum_adjacent(e, tag, content, field_naming, out);
+        }
+        EnumTagging::Untagged => generate_enum_untagged(e, field_naming, out),
+    }
+}
+
+/// Externally tagged (serde default): `{ "Variant": data }` or string literal for unit variants.
+fn generate_enum_external(e: &EnumDef, field_naming: FieldNaming, out: &mut String) {
     let all_unit = e
         .variants
         .iter()
         .all(|v| matches!(v.kind, VariantKind::Unit));
 
     if all_unit {
-        // Simple string literal union
         let variants: Vec<String> = e
             .variants
             .iter()
@@ -241,7 +251,6 @@ fn generate_enum_type(
             emit!(out, "export type {} = {};", e.name, variants.join(" | "));
         }
     } else {
-        // Tagged union (serde externally tagged default)
         let mut variant_types: Vec<String> = Vec::new();
 
         for v in &e.variants {
@@ -260,8 +269,6 @@ fn generate_enum_type(
                     variant_types.push(format!("{{ {variant_name}: {inner} }}"));
                 }
                 VariantKind::Struct(fields) => {
-                    // Serde applies the container-level rename_all to struct variant
-                    // fields as well, so we pass e.rename_all here intentionally.
                     let field_strs: Vec<String> = fields
                         .iter()
                         .filter(|f| !f.skip)
@@ -285,6 +292,173 @@ fn generate_enum_type(
             variant_types.join(" | ")
         );
     }
+}
+
+/// Internally tagged: `{ "tag": "Variant", ...fields }`.
+///
+/// - Unit → `{ tag: "Name" }`
+/// - Struct → `{ tag: "Name"; field: T; ... }`
+/// - Tuple(1) → `{ tag: "Name" } & InnerType` (newtype wrapping struct)
+/// - Tuple(n>1) → skipped (serde rejects multi-field tuples in internally tagged)
+fn generate_enum_internal(e: &EnumDef, tag: &str, field_naming: FieldNaming, out: &mut String) {
+    if e.variants.is_empty() {
+        emit!(out, "export type {} = never;", e.name);
+        return;
+    }
+
+    let mut variant_types: Vec<String> = Vec::new();
+
+    for v in &e.variants {
+        let variant_name = resolve_variant_name(v, e.rename_all);
+        match &v.kind {
+            VariantKind::Unit => {
+                variant_types.push(format!("{{ {tag}: \"{variant_name}\" }}"));
+            }
+            VariantKind::Struct(fields) => {
+                let field_strs: Vec<String> = fields
+                    .iter()
+                    .filter(|f| !f.skip)
+                    .map(|field| {
+                        let field_name = resolve_field_name(field, e.rename_all, field_naming);
+                        format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
+                    })
+                    .collect();
+                let mut parts = vec![format!("{tag}: \"{variant_name}\"")];
+                parts.extend(field_strs);
+                variant_types.push(format!("{{ {} }}", parts.join("; ")));
+            }
+            VariantKind::Tuple(types) => {
+                if types.len() == 1 {
+                    let inner = rust_type_to_ts(&types[0]);
+                    variant_types.push(format!("{{ {tag}: \"{variant_name}\" }} & {inner}"));
+                }
+                // Multi-field tuples are rejected by serde for internal tagging — skip
+            }
+        }
+    }
+
+    if variant_types.is_empty() {
+        emit!(out, "export type {} = never;", e.name);
+    } else {
+        emit!(
+            out,
+            "export type {} = {};",
+            e.name,
+            variant_types.join(" | ")
+        );
+    }
+}
+
+/// Adjacently tagged: `{ "tag": "Variant", "content": data }`.
+///
+/// - Unit → `{ tag: "Name" }` (no content key)
+/// - Tuple(1) → `{ tag: "Name"; content: T }`
+/// - Tuple(n) → `{ tag: "Name"; content: [A, B, ...] }`
+/// - Struct → `{ tag: "Name"; content: { field: T; ... } }`
+fn generate_enum_adjacent(
+    e: &EnumDef,
+    tag: &str,
+    content: &str,
+    field_naming: FieldNaming,
+    out: &mut String,
+) {
+    if e.variants.is_empty() {
+        emit!(out, "export type {} = never;", e.name);
+        return;
+    }
+
+    let mut variant_types: Vec<String> = Vec::new();
+
+    for v in &e.variants {
+        let variant_name = resolve_variant_name(v, e.rename_all);
+        match &v.kind {
+            VariantKind::Unit => {
+                variant_types.push(format!("{{ {tag}: \"{variant_name}\" }}"));
+            }
+            VariantKind::Tuple(types) => {
+                let inner = if types.len() == 1 {
+                    rust_type_to_ts(&types[0])
+                } else {
+                    let elems: Vec<String> = types.iter().map(rust_type_to_ts).collect();
+                    format!("[{}]", elems.join(", "))
+                };
+                variant_types.push(format!(
+                    "{{ {tag}: \"{variant_name}\"; {content}: {inner} }}"
+                ));
+            }
+            VariantKind::Struct(fields) => {
+                let field_strs: Vec<String> = fields
+                    .iter()
+                    .filter(|f| !f.skip)
+                    .map(|field| {
+                        let field_name = resolve_field_name(field, e.rename_all, field_naming);
+                        format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
+                    })
+                    .collect();
+                variant_types.push(format!(
+                    "{{ {tag}: \"{variant_name}\"; {content}: {{ {} }} }}",
+                    field_strs.join("; ")
+                ));
+            }
+        }
+    }
+
+    emit!(
+        out,
+        "export type {} = {};",
+        e.name,
+        variant_types.join(" | ")
+    );
+}
+
+/// Untagged: no wrapper, just the data.
+///
+/// - Unit → `null`
+/// - Tuple(1) → `T`
+/// - Tuple(n) → `[A, B, ...]`
+/// - Struct → `{ field: T; ... }`
+/// - Empty enum → `never`
+fn generate_enum_untagged(e: &EnumDef, field_naming: FieldNaming, out: &mut String) {
+    if e.variants.is_empty() {
+        emit!(out, "export type {} = never;", e.name);
+        return;
+    }
+
+    let mut variant_types: Vec<String> = Vec::new();
+
+    for v in &e.variants {
+        match &v.kind {
+            VariantKind::Unit => {
+                variant_types.push("null".to_string());
+            }
+            VariantKind::Tuple(types) => {
+                if types.len() == 1 {
+                    variant_types.push(rust_type_to_ts(&types[0]));
+                } else {
+                    let elems: Vec<String> = types.iter().map(rust_type_to_ts).collect();
+                    variant_types.push(format!("[{}]", elems.join(", ")));
+                }
+            }
+            VariantKind::Struct(fields) => {
+                let field_strs: Vec<String> = fields
+                    .iter()
+                    .filter(|f| !f.skip)
+                    .map(|field| {
+                        let field_name = resolve_field_name(field, e.rename_all, field_naming);
+                        format!("{}: {}", field_name, rust_type_to_ts(&field.ty))
+                    })
+                    .collect();
+                variant_types.push(format!("{{ {} }}", field_strs.join("; ")));
+            }
+        }
+    }
+
+    emit!(
+        out,
+        "export type {} = {};",
+        e.name,
+        variant_types.join(" | ")
+    );
 }
 
 /// Generates the `Procedures` type that maps procedure names to their input/output types,

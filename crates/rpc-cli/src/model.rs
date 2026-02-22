@@ -269,6 +269,27 @@ pub enum VariantKind {
     Struct(Vec<FieldDef>),
 }
 
+/// Serde enum tagging strategy.
+///
+/// Corresponds to the four representations serde supports:
+/// - `External` (default): `{ "Variant": data }`
+/// - `Internal { tag }`: `{ "tag": "Variant", ...data }`
+/// - `Adjacent { tag, content }`: `{ "tag": "Variant", "content": data }`
+/// - `Untagged`: `data` (no wrapping)
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum EnumTagging {
+    #[default]
+    External,
+    Internal {
+        tag: String,
+    },
+    Adjacent {
+        tag: String,
+        content: String,
+    },
+    Untagged,
+}
+
 /// All user-defined enum types found in the scanned source files.
 /// Needed for generating corresponding TypeScript union types.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -285,6 +306,9 @@ pub struct EnumDef {
     /// Container-level `#[serde(rename_all = "...")]`
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rename_all: Option<RenameRule>,
+    /// Serde enum tagging strategy
+    #[serde(default)]
+    pub tagging: EnumTagging,
 }
 
 /// Complete manifest of all discovered RPC metadata from a scan.
