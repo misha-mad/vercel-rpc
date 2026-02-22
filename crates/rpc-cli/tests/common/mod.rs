@@ -101,6 +101,7 @@ pub fn make_test_manifest() -> Manifest {
         structs: vec![
             StructDef {
                 name: "TimeResponse".to_string(),
+                generics: vec![],
                 fields: vec![
                     field("timestamp", RustType::simple("u64")),
                     field("message", RustType::simple("String")),
@@ -111,6 +112,7 @@ pub fn make_test_manifest() -> Manifest {
             },
             StructDef {
                 name: "CreateInput".to_string(),
+                generics: vec![],
                 fields: vec![
                     field("title", RustType::simple("String")),
                     field("count", RustType::simple("i32")),
@@ -121,6 +123,7 @@ pub fn make_test_manifest() -> Manifest {
             },
             StructDef {
                 name: "Item".to_string(),
+                generics: vec![],
                 fields: vec![
                     field("id", RustType::simple("u64")),
                     field("title", RustType::simple("String")),
