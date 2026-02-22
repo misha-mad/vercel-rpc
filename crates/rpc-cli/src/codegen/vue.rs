@@ -39,19 +39,19 @@ const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends Q
   /** The latest successfully resolved data, or placeholderData. */
   readonly data: Ref<QueryOutput<K> | undefined>;
 
-  /** The error from the most recent failed fetch, cleared on success. */
+  /** The error from the most recent failed fetch, cleared on next attempt. */
   readonly error: Ref<RpcError | undefined>;
 
   /** True while a fetch is in-flight (including the initial fetch). */
   readonly isLoading: Ref<boolean>;
 
-  /** True after the first successful fetch. Stays true across refetches. */
+  /** True after the first successful fetch. Stays true even if a later refetch fails. */
   readonly isSuccess: ComputedRef<boolean>;
 
   /** True when the most recent fetch failed. */
   readonly isError: ComputedRef<boolean>;
 
-  /** Manually trigger a refetch. */
+  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }"#;
 
@@ -95,16 +95,6 @@ const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K ext
   reset: () => void;
 }"#;
 
-const IS_QUERY_OPTIONS_IMPL: &str = r#"const QUERY_OPTIONS_KEYS: string[] = [
-  "enabled", "refetchInterval", "placeholderData", "callOptions",
-  "onSuccess", "onError", "onSettled",
-];
-
-function isQueryOptions(v: unknown): boolean {
-  if (v == null || typeof v !== "object") return false;
-  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
-}"#;
-
 const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
@@ -118,8 +108,7 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     inputFn = args[1] as () => QueryInput<K>;
     optionsArg = args[2] as QueryOptions<K> | (() => QueryOptions<K>) | undefined;
   } else if (typeof args[1] === "function") {
-    const probe = (args[1] as () => unknown)();
-    if (probe != null && typeof probe === "object" && isQueryOptions(probe)) {
+    if (VOID_QUERY_KEYS.has(key)) {
       optionsArg = args[1] as () => QueryOptions<K>;
     } else {
       inputFn = args[1] as () => QueryInput<K>;
@@ -132,77 +121,94 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     return typeof optionsArg === "function" ? optionsArg() : optionsArg;
   }
 
+  function resolveEnabled(): boolean {
+    const opts = resolveOptions();
+    return typeof opts?.enabled === "function"
+      ? opts.enabled()
+      : (opts?.enabled ?? true);
+  }
+
   const data = ref<QueryOutput<K> | undefined>(resolveOptions()?.placeholderData) as Ref<QueryOutput<K> | undefined>;
   const error = ref<RpcError | undefined>();
   const hasFetched = ref(false);
   const isLoading = ref(false);
-  const isSuccess = computed(() => hasFetched.value && error.value === undefined);
+  const isSuccess = computed(() => hasFetched.value);
   const isError = computed(() => error.value !== undefined);
 
-  async function fetchData(input?: QueryInput<K>, signal?: AbortSignal) {
+  let generation = 0;
+  let controller: AbortController | undefined;
+  let intervalId: ReturnType<typeof setInterval> | undefined;
+
+  async function fetchData(input: QueryInput<K> | undefined, signal: AbortSignal, gen: number) {
     const opts = resolveOptions();
     isLoading.value = true;
     error.value = undefined;
     try {
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
-      const mergedCallOptions = signal
-        ? { ...opts?.callOptions, signal: opts?.callOptions?.signal
-            ? AbortSignal.any([signal, opts.callOptions.signal])
-            : signal }
-        : opts?.callOptions;
-      if (mergedCallOptions) callArgs.push(mergedCallOptions);
+      const mergedCallOptions = { ...opts?.callOptions, signal: opts?.callOptions?.signal
+          ? AbortSignal.any([signal, opts.callOptions.signal])
+          : signal };
+      callArgs.push(mergedCallOptions);
       const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as QueryOutput<K>;
-      if (signal?.aborted) return;
+      if (gen !== generation) return;
       data.value = result;
       hasFetched.value = true;
       opts?.onSuccess?.(data.value!);
     } catch (e) {
-      if (signal?.aborted) return;
+      if (gen !== generation) return;
       error.value = e as RpcError;
       opts?.onError?.(error.value);
     } finally {
-      if (!signal?.aborted) {
+      if (gen === generation) {
         isLoading.value = false;
         opts?.onSettled?.();
       }
     }
   }
 
-  let controller: AbortController | undefined;
-  let intervalId: ReturnType<typeof setInterval> | undefined;
+  function setupInterval(enabled: boolean, refetchInterval: number | undefined) {
+    if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
+    if (enabled && refetchInterval) {
+      intervalId = setInterval(() => {
+        if (controller && !controller.signal.aborted) {
+          void fetchData(inputFn?.(), controller.signal, generation);
+        }
+      }, refetchInterval);
+    }
+  }
 
   const stopWatch = watch(
     () => {
-      const opts = resolveOptions();
-      const enabled = typeof opts?.enabled === "function"
-        ? opts.enabled()
-        : (opts?.enabled ?? true);
+      const enabled = resolveEnabled();
       const input = inputFn?.();
-      return { enabled, input, serialized: JSON.stringify(input), refetchInterval: opts?.refetchInterval };
+      return { enabled, input, serialized: JSON.stringify(input), refetchInterval: resolveOptions()?.refetchInterval };
     },
-    ({ enabled, input, refetchInterval }: { enabled: boolean; input: QueryInput<K> | undefined; serialized: string; refetchInterval: number | undefined }) => {
-      if (controller) { controller.abort(); controller = undefined; }
-      if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
-      if (!enabled) return;
+    (curr, prev) => {
+      const inputChanged = !prev || curr.enabled !== prev.enabled || curr.serialized !== prev.serialized;
 
-      controller = new AbortController();
-      const ctrl = controller;
-      void fetchData(input, ctrl.signal);
-
-      if (refetchInterval) {
-        intervalId = setInterval(() => {
-          if (!ctrl.signal.aborted) fetchData(inputFn?.(), ctrl.signal);
-        }, refetchInterval);
+      if (inputChanged) {
+        if (controller) { controller.abort(); controller = undefined; }
+        if (curr.enabled) {
+          generation++;
+          const gen = generation;
+          controller = new AbortController();
+          void fetchData(curr.input, controller.signal, gen);
+        } else {
+          isLoading.value = false;
+        }
       }
+
+      setupInterval(curr.enabled, curr.refetchInterval);
     },
     { immediate: true },
   );
 
   onScopeDispose(() => {
     stopWatch();
+    generation++;
     if (controller) controller.abort();
     if (intervalId) clearInterval(intervalId);
   });
@@ -213,7 +219,17 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     isLoading,
     isSuccess,
     isError,
-    refetch: () => fetchData(inputFn?.()),
+    refetch: async () => {
+      const enabled = resolveEnabled();
+      if (!enabled) return;
+      generation++;
+      const gen = generation;
+      const localController = new AbortController();
+      if (controller) controller.abort();
+      controller = localController;
+      setupInterval(enabled, resolveOptions()?.refetchInterval);
+      await fetchData(inputFn?.(), localController.signal, gen);
+    },
   };
 }"#;
 
@@ -443,7 +459,16 @@ pub fn generate_vue_file(
 
     // useQuery overloads + implementation
     if has_queries {
-        emit!(out, "{IS_QUERY_OPTIONS_IMPL}\n");
+        let void_names: Vec<_> = queries
+            .iter()
+            .filter(|p| is_void_input(p))
+            .map(|p| format!("\"{}\"", p.name))
+            .collect();
+        emit!(
+            out,
+            "const VOID_QUERY_KEYS: Set<QueryKey> = new Set([{}]);\n",
+            void_names.join(", ")
+        );
         generate_query_overloads(&queries, &mut out);
         emit!(out, "{USE_QUERY_IMPL}\n");
     }

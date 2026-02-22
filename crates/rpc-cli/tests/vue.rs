@@ -224,6 +224,52 @@ fn vue_no_void_query_type_when_all_non_void() {
     assert!(!output.contains("type VoidQueryKey"));
 }
 
+// --- VOID_QUERY_KEYS runtime set ---
+
+#[test]
+fn vue_void_query_keys_set() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query(
+            "hello",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("const VOID_QUERY_KEYS: Set<QueryKey> = new Set([\"time\"])"));
+    assert!(output.contains("VOID_QUERY_KEYS.has(key)"));
+    assert!(!output.contains("isQueryOptions"));
+}
+
+#[test]
+fn vue_void_query_keys_empty_when_all_non_void() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("const VOID_QUERY_KEYS: Set<QueryKey> = new Set([])"));
+}
+
+#[test]
+fn vue_void_query_keys_multiple() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query("version", None, Some(RustType::simple("String"))),
+        common::make_query(
+            "hello",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(
+        output.contains("const VOID_QUERY_KEYS: Set<QueryKey> = new Set([\"time\", \"version\"])")
+    );
+}
+
 // --- Conditional emission ---
 
 #[test]
@@ -441,18 +487,20 @@ fn vue_fetch_receives_signal() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("ctrl.signal"));
+    assert!(output.contains("controller.signal"));
 }
 
 #[test]
-fn vue_abort_guard_in_catch() {
+fn vue_generation_guard_in_fetch() {
     let manifest = common::make_manifest(vec![common::make_query(
         "hello",
         Some(RustType::simple("String")),
         Some(RustType::simple("String")),
     )]);
     let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("signal?.aborted"));
+    assert!(output.contains("gen !== generation"));
+    assert!(output.contains("gen === generation"));
+    assert!(output.contains("let generation = 0"));
 }
 
 #[test]
