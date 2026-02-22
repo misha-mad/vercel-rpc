@@ -191,8 +191,9 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     let interval: ReturnType<typeof setInterval> | undefined;
     if (refetchInterval) {
       interval = setInterval(() => {
-        if (!controller.signal.aborted) {
-          void fetchData(inputRef.current, controller.signal, generationRef.current);
+        const ctrl = controllerRef.current;
+        if (ctrl && !ctrl.signal.aborted) {
+          void fetchData(inputRef.current, ctrl.signal, generationRef.current);
         }
       }, refetchInterval);
     }

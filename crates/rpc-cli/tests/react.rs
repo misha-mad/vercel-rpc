@@ -497,6 +497,21 @@ fn react_disabled_resets_loading() {
     assert!(output.contains("if (!enabled) {\n      setIsLoading(false);\n      return;\n    }"));
 }
 
+// --- interval uses controllerRef ---
+
+#[test]
+fn react_interval_uses_controller_ref() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    // Interval callback must read controllerRef.current (not a stale closure capture)
+    assert!(output.contains("const ctrl = controllerRef.current"));
+    assert!(output.contains("ctrl && !ctrl.signal.aborted"));
+}
+
 // --- insta snapshot tests ---
 
 #[test]
