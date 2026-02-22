@@ -335,7 +335,14 @@ The parser recognizes:
 - **Structs** with `#[derive(Serialize)]` — converted to TypeScript interfaces.
 - **Enums** with `#[derive(Serialize)]` — converted to TypeScript union types
   (unit variants become string literals, tuple/struct variants become tagged
-  objects).
+  objects). All four serde enum tagging strategies are supported:
+
+| Strategy           | Serde attribute                      | TypeScript output                |
+|--------------------|--------------------------------------|----------------------------------|
+| External (default) | *(none)*                             | `{ Variant: data }`              |
+| Internal           | `#[serde(tag = "type")]`             | `{ type: "Variant"; ...fields }` |
+| Adjacent           | `#[serde(tag = "t", content = "c")]` | `{ t: "Variant"; c: data }`      |
+| Untagged           | `#[serde(untagged)]`                 | `data` (no wrapper)              |
 
 ## Type mapping
 
@@ -770,14 +777,14 @@ const stats = useQuery(rpc, "server_stats", {
 
 **`QueryResult<K>`:**
 
-| Property    | Type                          | Description                                       |
-|-------------|-------------------------------|---------------------------------------------------|
-| `data`      | `Ref<QueryOutput<K> \| undefined>` | Latest resolved data, or `placeholderData`   |
-| `error`     | `Ref<RpcError \| undefined>`  | Error from the most recent failed fetch           |
-| `isLoading` | `Ref<boolean>`                | True while a fetch is in-flight                   |
-| `isSuccess` | `ComputedRef<boolean>`        | True after the first successful fetch             |
-| `isError`   | `ComputedRef<boolean>`        | True when `error` is set                          |
-| `refetch`   | `() => Promise<void>`         | Manually trigger a refetch                        |
+| Property    | Type                               | Description                                |
+|-------------|------------------------------------|--------------------------------------------|
+| `data`      | `Ref<QueryOutput<K> \| undefined>` | Latest resolved data, or `placeholderData` |
+| `error`     | `Ref<RpcError \| undefined>`       | Error from the most recent failed fetch    |
+| `isLoading` | `Ref<boolean>`                     | True while a fetch is in-flight            |
+| `isSuccess` | `ComputedRef<boolean>`             | True after the first successful fetch      |
+| `isError`   | `ComputedRef<boolean>`             | True when `error` is set                   |
+| `refetch`   | `() => Promise<void>`              | Manually trigger a refetch                 |
 
 ### `useMutation`
 
@@ -852,14 +859,14 @@ const stats = createQuery(rpc, "server_stats", {
 
 **`QueryResult<K>`:**
 
-| Property    | Type                                 | Description                                        |
-|-------------|--------------------------------------|----------------------------------------------------|
-| `data`      | `Accessor<QueryOutput<K> \| undefined>` | Signal accessor for latest resolved data        |
-| `error`     | `Accessor<RpcError \| undefined>`    | Signal accessor for error from the most recent fetch |
-| `isLoading` | `Accessor<boolean>`                  | Signal — true while a fetch is in-flight           |
-| `isSuccess` | `Accessor<boolean>`                  | Memo — true after the first successful fetch       |
-| `isError`   | `Accessor<boolean>`                  | Memo — true when `error` is set                    |
-| `refetch`   | `() => Promise<void>`               | Manually trigger a refetch                         |
+| Property    | Type                                    | Description                                          |
+|-------------|-----------------------------------------|------------------------------------------------------|
+| `data`      | `Accessor<QueryOutput<K> \| undefined>` | Signal accessor for latest resolved data             |
+| `error`     | `Accessor<RpcError \| undefined>`       | Signal accessor for error from the most recent fetch |
+| `isLoading` | `Accessor<boolean>`                     | Signal — true while a fetch is in-flight             |
+| `isSuccess` | `Accessor<boolean>`                     | Memo — true after the first successful fetch         |
+| `isError`   | `Accessor<boolean>`                     | Memo — true when `error` is set                      |
+| `refetch`   | `() => Promise<void>`                   | Manually trigger a refetch                           |
 
 ### `createMutation`
 
@@ -879,16 +886,16 @@ const item = await createItem.mutateAsync({ title: "New Item" });
 
 **`MutationResult<K>`:**
 
-| Property      | Type                                        | Description                                          |
-|---------------|---------------------------------------------|------------------------------------------------------|
-| `mutate`      | `(input) => Promise<void>`                 | Execute the mutation (void for void-input mutations) |
-| `mutateAsync` | `(input) => Promise<Output>`               | Execute and return the result                        |
-| `data`        | `Accessor<MutationOutput<K> \| undefined>` | Signal accessor for latest resolved data             |
+| Property      | Type                                       | Description                                             |
+|---------------|--------------------------------------------|---------------------------------------------------------|
+| `mutate`      | `(input) => Promise<void>`                 | Execute the mutation (void for void-input mutations)    |
+| `mutateAsync` | `(input) => Promise<Output>`               | Execute and return the result                           |
+| `data`        | `Accessor<MutationOutput<K> \| undefined>` | Signal accessor for latest resolved data                |
 | `error`       | `Accessor<RpcError \| undefined>`          | Signal accessor for error from the most recent mutation |
-| `isLoading`   | `Accessor<boolean>`                        | Signal — true while a mutation is in-flight          |
-| `isSuccess`   | `Accessor<boolean>`                        | Memo — true after the most recent mutation succeeded |
-| `isError`     | `Accessor<boolean>`                        | Memo — true when `error` is set                      |
-| `reset`       | `() => void`                               | Reset state back to idle (batched update)            |
+| `isLoading`   | `Accessor<boolean>`                        | Signal — true while a mutation is in-flight             |
+| `isSuccess`   | `Accessor<boolean>`                        | Memo — true after the most recent mutation succeeded    |
+| `isError`     | `Accessor<boolean>`                        | Memo — true when `error` is set                         |
+| `reset`       | `() => void`                               | Reset state back to idle (batched update)               |
 
 See [RFC-10](../../docs/RFC/RFC-10.md) for the full design and implementation details.
 

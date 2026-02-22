@@ -273,6 +273,7 @@ fn generates_unit_enum_as_string_union() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -301,6 +302,7 @@ fn generates_tuple_enum_as_tagged_union() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -325,6 +327,7 @@ fn generates_struct_enum_as_tagged_union() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -361,6 +364,7 @@ fn generates_mixed_enum() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -380,6 +384,7 @@ fn generates_empty_enum_as_never() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -401,6 +406,7 @@ fn generates_multi_field_tuple_variant() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -458,6 +464,7 @@ fn test_jsdoc_on_enum() {
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("Entity status.".to_string()),
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
@@ -582,6 +589,7 @@ fn test_camel_case_enum_struct_variant() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
@@ -716,6 +724,7 @@ fn test_serde_rename_all_on_enum() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: Some(RenameRule::SnakeCase),
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -744,6 +753,7 @@ fn test_serde_variant_rename_override() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: Some(RenameRule::SnakeCase),
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -874,6 +884,7 @@ fn snapshot_enum_unit() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -910,6 +921,7 @@ fn snapshot_enum_mixed() {
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
+            tagging: EnumTagging::External,
         }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
@@ -965,6 +977,691 @@ fn snapshot_serde_skip_and_default() {
             rename_all: None,
         }],
         enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+// --- Internal tagging codegen tests ---
+
+#[test]
+fn internal_tag_struct_variants() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Shape".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Circle".to_string(),
+                    kind: VariantKind::Struct(vec![field("radius", RustType::simple("f64"))]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Rect".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        field("w", RustType::simple("f64")),
+                        field("h", RustType::simple("f64")),
+                    ]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains(
+        "export type Shape = { type: \"Circle\"; radius: number } | { type: \"Rect\"; w: number; h: number };"
+    ));
+}
+
+#[test]
+fn internal_tag_unit_variants() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Status".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Active".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Inactive".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Status = { type: \"Active\" } | { type: \"Inactive\" };"));
+}
+
+#[test]
+fn internal_tag_mixed_unit_struct() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Action".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Noop".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Move".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        field("x", RustType::simple("i32")),
+                        field("y", RustType::simple("i32")),
+                    ]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "kind".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains(
+        "export type Action = { kind: \"Noop\" } | { kind: \"Move\"; x: number; y: number };"
+    ));
+}
+
+#[test]
+fn internal_tag_newtype_variant() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Wrapper".to_string(),
+            variants: vec![EnumVariant {
+                name: "Data".to_string(),
+                kind: VariantKind::Tuple(vec![RustType::simple("Payload")]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Wrapper = { type: \"Data\" } & Payload;"));
+}
+
+// --- Adjacent tagging codegen tests ---
+
+#[test]
+fn adjacent_tag_struct_variant() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Event".to_string(),
+            variants: vec![EnumVariant {
+                name: "Click".to_string(),
+                kind: VariantKind::Struct(vec![
+                    field("x", RustType::simple("i32")),
+                    field("y", RustType::simple("i32")),
+                ]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Event = { t: \"Click\"; c: { x: number; y: number } };"));
+}
+
+#[test]
+fn adjacent_tag_tuple_variant() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Msg".to_string(),
+            variants: vec![EnumVariant {
+                name: "Scroll".to_string(),
+                kind: VariantKind::Tuple(vec![RustType::simple("f64")]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Msg = { t: \"Scroll\"; c: number };"));
+}
+
+#[test]
+fn adjacent_tag_unit_variant() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Signal".to_string(),
+            variants: vec![EnumVariant {
+                name: "Empty".to_string(),
+                kind: VariantKind::Unit,
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Signal = { t: \"Empty\" };"));
+}
+
+#[test]
+fn adjacent_tag_mixed() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Cmd".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Noop".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Set".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Move".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        field("x", RustType::simple("i32")),
+                        field("y", RustType::simple("i32")),
+                    ]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains(
+        "export type Cmd = { t: \"Noop\" } | { t: \"Set\"; c: string } | { t: \"Move\"; c: { x: number; y: number } };"
+    ));
+}
+
+// --- Untagged codegen tests ---
+
+#[test]
+fn untagged_tuple_variants() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Value".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Str".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Num".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("f64")]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Value = string | number;"));
+}
+
+#[test]
+fn untagged_struct_variant() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Wrapper".to_string(),
+            variants: vec![EnumVariant {
+                name: "Data".to_string(),
+                kind: VariantKind::Struct(vec![field("value", RustType::simple("String"))]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Wrapper = { value: string };"));
+}
+
+#[test]
+fn untagged_unit_variant() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Maybe".to_string(),
+            variants: vec![EnumVariant {
+                name: "Nothing".to_string(),
+                kind: VariantKind::Unit,
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Maybe = null;"));
+}
+
+#[test]
+fn untagged_mixed() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Input".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "None".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Text".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Form".to_string(),
+                    kind: VariantKind::Struct(vec![field("field", RustType::simple("String"))]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Input = null | string | { field: string };"));
+}
+
+// --- Tagging + rename_all tests ---
+
+#[test]
+fn internal_tag_with_rename_all() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Event".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "UserLogin".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "UserLogout".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::SnakeCase),
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(
+        output
+            .contains("export type Event = { type: \"user_login\" } | { type: \"user_logout\" };")
+    );
+}
+
+#[test]
+fn adjacent_tag_with_rename_all() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Msg".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "UserLogin".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "SystemError".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::KebabCase),
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(
+        output.contains(
+            "export type Msg = { t: \"user-login\"; c: string } | { t: \"system-error\" };"
+        )
+    );
+}
+
+// --- Optional fields in enum struct variants ---
+
+#[test]
+fn external_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::External,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ V: { label?: string | null } }"));
+}
+
+#[test]
+fn internal_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ type: \"V\"; label?: string | null }"));
+}
+
+#[test]
+fn adjacent_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ t: \"V\"; c: { label?: string | null } }"));
+}
+
+#[test]
+fn untagged_struct_variant_optional_field() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "E".to_string(),
+            variants: vec![EnumVariant {
+                name: "V".to_string(),
+                kind: VariantKind::Struct(vec![FieldDef {
+                    name: "label".to_string(),
+                    ty: RustType::with_generics("Option", vec![RustType::simple("String")]),
+                    rename: None,
+                    skip: false,
+                    has_default: true,
+                }]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("{ label?: string | null }"));
+}
+
+// --- Tagging snapshot tests ---
+
+#[test]
+fn snapshot_internal_tagged() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Shape".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Circle".to_string(),
+                    kind: VariantKind::Struct(vec![field("radius", RustType::simple("f64"))]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Rect".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        field("w", RustType::simple("f64")),
+                        field("h", RustType::simple("f64")),
+                    ]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Unknown".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_adjacent_tagged() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Message".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Text".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Binary".to_string(),
+                    kind: VariantKind::Tuple(vec![
+                        RustType::simple("String"),
+                        RustType::simple("u32"),
+                    ]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Ping".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Data".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        field("key", RustType::simple("String")),
+                        field("value", RustType::simple("String")),
+                    ]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+#[test]
+fn snapshot_untagged() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Value".to_string(),
+            variants: vec![
+                EnumVariant {
+                    name: "Null".to_string(),
+                    kind: VariantKind::Unit,
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Text".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Pair".to_string(),
+                    kind: VariantKind::Tuple(vec![
+                        RustType::simple("String"),
+                        RustType::simple("i32"),
+                    ]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Record".to_string(),
+                    kind: VariantKind::Struct(vec![
+                        field("id", RustType::simple("u64")),
+                        field("name", RustType::simple("String")),
+                    ]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
     insta::assert_snapshot!(output);

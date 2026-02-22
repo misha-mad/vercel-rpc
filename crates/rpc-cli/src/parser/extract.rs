@@ -111,6 +111,7 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
             Item::Enum(item_enum) => {
                 if has_serde_derive(&item_enum.attrs) {
                     let rename_all = serde_attr::parse_rename_all(&item_enum.attrs);
+                    let tagging = serde_attr::parse_enum_tagging(&item_enum.attrs);
                     let variants = extract_enum_variants(item_enum);
                     let docs = extract_docs(&item_enum.attrs);
                     manifest.enums.push(EnumDef {
@@ -119,6 +120,7 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
                         source_file: path.to_path_buf(),
                         docs,
                         rename_all,
+                        tagging,
                     });
                 }
             }
