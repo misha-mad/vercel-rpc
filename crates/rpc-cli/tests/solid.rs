@@ -25,7 +25,7 @@ fn solid_imports_solid() {
     let manifest = common::make_test_manifest();
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains(
-        "import { createSignal, createEffect, createMemo, onCleanup, batch } from \"solid-js\""
+        "import { createSignal, createEffect, createMemo, onCleanup, batch, untrack } from \"solid-js\""
     ));
 }
 
@@ -481,7 +481,9 @@ fn solid_abort_guard_in_catch() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("signal?.aborted"));
+    // Generation counter guards replace signal?.aborted
+    assert!(output.contains("gen !== generation"));
+    assert!(output.contains("gen === generation"));
 }
 
 #[test]
@@ -515,6 +517,76 @@ fn solid_resolve_options_helper() {
     )]);
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("resolveOptions"));
+}
+
+// --- VOID_QUERY_KEYS ---
+
+#[test]
+fn solid_void_query_keys_set() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query(
+            "hello",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(r#"const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["time"])"#));
+    assert!(output.contains("VOID_QUERY_KEYS.has(key)"));
+}
+
+#[test]
+fn solid_void_query_keys_multiple() {
+    let manifest = common::make_manifest(vec![
+        common::make_query("time", None, Some(RustType::simple("String"))),
+        common::make_query("version", None, Some(RustType::simple("String"))),
+    ]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(r#"new Set(["time", "version"])"#));
+}
+
+// --- Generation counter ---
+
+#[test]
+fn solid_generation_counter() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("let generation = 0"));
+    assert!(output.contains("generation++"));
+    assert!(output.contains("gen !== generation"));
+}
+
+// --- refetch race safety ---
+
+#[test]
+fn solid_refetch_has_local_controller() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("const localController = new AbortController()"));
+    assert!(output.contains("refetch: async ()"));
+}
+
+// --- enabled=false resets isLoading ---
+
+#[test]
+fn solid_disabled_resets_loading() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    // When enabled becomes false in createEffect, isLoading must be reset
+    assert!(output.contains("setIsLoading(false);\n      controller = undefined;"));
 }
 
 // --- insta snapshot tests ---
