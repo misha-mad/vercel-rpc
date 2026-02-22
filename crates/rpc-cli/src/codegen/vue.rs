@@ -220,13 +220,14 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     isSuccess,
     isError,
     refetch: async () => {
-      if (!resolveEnabled()) return;
+      const enabled = resolveEnabled();
+      if (!enabled) return;
       generation++;
       const gen = generation;
       const localController = new AbortController();
       if (controller) controller.abort();
       controller = localController;
-      setupInterval(resolveEnabled(), resolveOptions()?.refetchInterval);
+      setupInterval(enabled, resolveOptions()?.refetchInterval);
       await fetchData(inputFn?.(), localController.signal, gen);
     },
   };
