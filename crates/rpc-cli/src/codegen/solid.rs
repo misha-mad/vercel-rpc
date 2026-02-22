@@ -138,6 +138,7 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   const [isLoading, setIsLoading] = createSignal(initialEnabled);
   const [hasFetched, setHasFetched] = createSignal(false);
 
+  const resolvedEnabled = createMemo(() => resolveEnabled());
   const isSuccess = createMemo(() => hasFetched());
   const isError = createMemo(() => error() !== undefined);
 
@@ -188,7 +189,7 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   }
 
   createEffect(() => {
-    const enabled = resolveEnabled();
+    const enabled = resolvedEnabled();
     const input = inputFn?.();
 
     if (controller) controller.abort();
@@ -196,7 +197,7 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
       generation++;
       const gen = generation;
       controller = new AbortController();
-      void fetchData(input, controller.signal, gen);
+      untrack(() => { void fetchData(input, controller.signal, gen); });
     } else {
       setIsLoading(false);
       controller = undefined;
@@ -326,7 +327,7 @@ pub fn generate_solid_file(
     // SolidJS imports
     emit!(
         out,
-        "import {{ createSignal, createEffect, createMemo, onCleanup, batch }} from \"solid-js\";\n"
+        "import {{ createSignal, createEffect, createMemo, onCleanup, batch, untrack }} from \"solid-js\";\n"
     );
 
     // Imports from client

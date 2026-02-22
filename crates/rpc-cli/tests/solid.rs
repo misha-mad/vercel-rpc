@@ -25,7 +25,7 @@ fn solid_imports_solid() {
     let manifest = common::make_test_manifest();
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains(
-        "import { createSignal, createEffect, createMemo, onCleanup, batch } from \"solid-js\""
+        "import { createSignal, createEffect, createMemo, onCleanup, batch, untrack } from \"solid-js\""
     ));
 }
 
