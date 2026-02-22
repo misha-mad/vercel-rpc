@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.6...vercel-rpc-macro-v0.1.7) - 2026-02-22
+
+### Other
+
+- *(rpc-cli)* extract shared codegen logic and fix best practice violations
+
 ## [0.1.6](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.5...vercel-rpc-macro-v0.1.6) - 2026-02-21
 
 ### Other
