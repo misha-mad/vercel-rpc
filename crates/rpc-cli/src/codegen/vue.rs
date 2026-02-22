@@ -95,16 +95,6 @@ const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K ext
   reset: () => void;
 }"#;
 
-const IS_QUERY_OPTIONS_IMPL: &str = r#"const QUERY_OPTIONS_KEYS: string[] = [
-  "enabled", "refetchInterval", "placeholderData", "callOptions",
-  "onSuccess", "onError", "onSettled",
-];
-
-function isQueryOptions(v: unknown): boolean {
-  if (v == null || typeof v !== "object") return false;
-  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
-}"#;
-
 const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
@@ -118,8 +108,7 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     inputFn = args[1] as () => QueryInput<K>;
     optionsArg = args[2] as QueryOptions<K> | (() => QueryOptions<K>) | undefined;
   } else if (typeof args[1] === "function") {
-    const probe = (args[1] as () => unknown)();
-    if (probe != null && typeof probe === "object" && isQueryOptions(probe)) {
+    if (VOID_QUERY_KEYS.has(key)) {
       optionsArg = args[1] as () => QueryOptions<K>;
     } else {
       inputFn = args[1] as () => QueryInput<K>;
@@ -466,7 +455,16 @@ pub fn generate_vue_file(
 
     // useQuery overloads + implementation
     if has_queries {
-        emit!(out, "{IS_QUERY_OPTIONS_IMPL}\n");
+        let void_names: Vec<_> = queries
+            .iter()
+            .filter(|p| is_void_input(p))
+            .map(|p| format!("\"{}\"", p.name))
+            .collect();
+        emit!(
+            out,
+            "const VOID_QUERY_KEYS: Set<QueryKey> = new Set([{}]);\n",
+            void_names.join(", ")
+        );
         generate_query_overloads(&queries, &mut out);
         emit!(out, "{USE_QUERY_IMPL}\n");
     }

@@ -114,15 +114,7 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }
 
-const QUERY_OPTIONS_KEYS: string[] = [
-  "enabled", "refetchInterval", "placeholderData", "callOptions",
-  "onSuccess", "onError", "onSettled",
-];
-
-function isQueryOptions(v: unknown): boolean {
-  if (v == null || typeof v !== "object") return false;
-  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
-}
+const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["time"]);
 
 export function useQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function useQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
@@ -139,8 +131,7 @@ export function useQuery<K extends QueryKey>(
     inputFn = args[1] as () => QueryInput<K>;
     optionsArg = args[2] as QueryOptions<K> | (() => QueryOptions<K>) | undefined;
   } else if (typeof args[1] === "function") {
-    const probe = (args[1] as () => unknown)();
-    if (probe != null && typeof probe === "object" && isQueryOptions(probe)) {
+    if (VOID_QUERY_KEYS.has(key)) {
       optionsArg = args[1] as () => QueryOptions<K>;
     } else {
       inputFn = args[1] as () => QueryInput<K>;
