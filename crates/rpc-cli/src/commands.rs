@@ -53,7 +53,11 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
     for e in &manifest.enums {
         let generics = format_generic_params(&e.generics);
         let variants: Vec<&str> = e.variants.iter().map(|v| v.name.as_str()).collect();
-        println!("\n  enum {}{generics} {{ {} }}", e.name, variants.join(", "));
+        println!(
+            "\n  enum {}{generics} {{ {} }}",
+            e.name,
+            variants.join(", ")
+        );
     }
 
     // Also output raw JSON for tooling consumption
