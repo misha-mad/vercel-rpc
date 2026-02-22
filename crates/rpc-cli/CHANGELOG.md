@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.2.2...vercel-rpc-cli-v0.3.0) - 2026-02-22
+
+### Added
+
+- *(rpc-cli)* support all 4 serde enum tagging strategies
+- *(rpc-cli)* add reactive options and AbortController to query wrappers
+- *(rpc-cli)* add SolidJS reactive wrapper codegen (RFC-10)
+- *(rpc-cli)* add Vue 3 Composition API reactive wrapper codegen (RFC-9)
+- *(rpc-cli)* add React hooks wrapper codegen (RFC-8)
+- *(rpc-cli)* use createQuery/createMutation in demo examples page
+- *(rpc-cli)* add Svelte 5 reactive wrapper codegen (RFC-7)
+
+### Fixed
+
+- *(rpc-cli)* mutation isSuccess should persist through subsequent errors
+- *(rpc-cli)* use controllerRef.current in interval to survive refetch()
+- *(rpc-cli)* fix 6 bugs in React useQuery codegen
+- *(rpc-cli)* prevent refetchInterval changes from triggering fetch in Solid
+- *(rpc-cli)* fix 7 bugs in Solid createQuery codegen
+- *(rpc-cli)* fix 6 bugs in Svelte createQuery codegen
+- *(rpc-cli)* cache resolveEnabled() in refetch to avoid double read
+- *(rpc-cli)* use generation counter to decouple UI state from AbortController
+- *(rpc-cli)* isolate refetch controller and parameterize setupInterval
+- *(rpc-cli)* reset polling interval on manual refetch and extract setupInterval helper
+- *(rpc-cli)* fix 5 bugs in Vue useQuery codegen
+- *(rpc-cli)* handle `has_default + Option<T>` in enum struct variant fields
+- *(rpc-cli)* disambiguate void-query options getter and fix Vue controller safety
+- *(rpc-cli)* improve SolidJS codegen correctness
+- *(rpc-cli)* reuse computed input from watch source instead of re-calling getter
+- *(rpc-cli)* type watch callback parameter to fix TS7031 implicit any
+- *(rpc-cli)* use computed() for Vue reactive isSuccess/isError, serialize watch input
+- *(rpc-cli)* use hasSucceeded flag for useMutation isSuccess
+- *(rpc-cli)* fix Svelte createQuery double inputFn call and type safety
+- *(rpc-cli)* fix React useQuery argument parsing and type safety
+- *(rpc-cli)* adjust assertions formatting in svelte tests and fix README typo
+- *(rpc-cli)* use status enum instead of data-based isSuccess in Svelte wrappers
+
+### Other
+
+- *(rpc-cli)* extract shared codegen logic and fix best practice violations
+- *(rpc-cli)* isolate interval into separate createEffect in Solid codegen
+- *(rpc-cli)* remove redundant prev* comparison in Svelte $effect
+- *(rpc-cli)* replace runtime probe heuristic with VOID_QUERY_KEYS set in Vue codegen
+- *(rpc-cli)* document enum tagging strategies and mark roadmap complete
+- *(docs, rpc-cli)* enhance table formatting and argument alignment
+- *(rpc-cli)* update RFC-10, ROADMAP, and READMEs with SolidJS fixes
+- *(rpc-cli)* update all docs for SolidJS primitives (RFC-10)
+- *(rpc-cli)* update all docs for Vue 3 composables (RFC-9)
+- *(rpc-cli)* update all docs for React hooks and RFC directory restructure
+- *(docs, rpc-cli)* enhance table formatting and argument alignment
+
 ### Added
 
 - *(rpc-cli)* add Vue 3 composables codegen with `useQuery` and `useMutation` (RFC-9)
