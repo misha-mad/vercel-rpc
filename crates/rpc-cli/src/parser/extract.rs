@@ -96,11 +96,13 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
             }
             Item::Struct(item_struct) => {
                 if has_serde_derive(&item_struct.attrs) {
+                    let generics = extract_generic_param_names(&item_struct.generics);
                     let fields = extract_struct_fields(&item_struct.fields);
                     let docs = extract_docs(&item_struct.attrs);
                     let rename_all = serde_attr::parse_rename_all(&item_struct.attrs);
                     manifest.structs.push(StructDef {
                         name: item_struct.ident.to_string(),
+                        generics,
                         fields,
                         source_file: path.to_path_buf(),
                         docs,
@@ -110,12 +112,14 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
             }
             Item::Enum(item_enum) => {
                 if has_serde_derive(&item_enum.attrs) {
+                    let generics = extract_generic_param_names(&item_enum.generics);
                     let rename_all = serde_attr::parse_rename_all(&item_enum.attrs);
                     let tagging = serde_attr::parse_enum_tagging(&item_enum.attrs);
                     let variants = extract_enum_variants(item_enum);
                     let docs = extract_docs(&item_enum.attrs);
                     manifest.enums.push(EnumDef {
                         name: item_enum.ident.to_string(),
+                        generics,
                         variants,
                         source_file: path.to_path_buf(),
                         docs,
@@ -212,6 +216,20 @@ fn detect_rpc_kind(attrs: &[Attribute]) -> Option<ProcedureKind> {
         }
     }
     None
+}
+
+/// Extracts generic type parameter names from `syn::Generics`.
+///
+/// Only type parameters are extracted; lifetimes and const generics are skipped.
+fn extract_generic_param_names(generics: &syn::Generics) -> Vec<String> {
+    generics
+        .params
+        .iter()
+        .filter_map(|p| match p {
+            syn::GenericParam::Type(t) => Some(t.ident.to_string()),
+            _ => None,
+        })
+        .collect()
 }
 
 /// Extracts variants from a Rust enum into `EnumVariant` representations.

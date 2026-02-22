@@ -611,3 +611,83 @@ fn parse_default_external_enum() {
     assert_eq!(manifest.enums.len(), 1);
     assert_eq!(manifest.enums[0].tagging, EnumTagging::External);
 }
+
+// --- Generic extraction tests ---
+
+#[test]
+fn extracts_generic_struct() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Paginated<T> {
+                items: Vec<T>,
+                total: u64,
+                page: u32,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    assert_eq!(manifest.structs[0].name, "Paginated");
+    assert_eq!(manifest.structs[0].generics, vec!["T".to_string()]);
+}
+
+#[test]
+fn extracts_multi_generic_struct() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Pair<A, B> {
+                first: A,
+                second: B,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    assert_eq!(
+        manifest.structs[0].generics,
+        vec!["A".to_string(), "B".to_string()]
+    );
+}
+
+#[test]
+fn extracts_non_generic_struct_has_empty_generics() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Plain {
+                value: String,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    assert!(manifest.structs[0].generics.is_empty());
+}
+
+#[test]
+fn extracts_generic_enum() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            enum Response<T> {
+                Ok(T),
+                Error(String),
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums.len(), 1);
+    assert_eq!(manifest.enums[0].generics, vec!["T".to_string()]);
+}
+
+#[test]
+fn extracts_generic_struct_skips_lifetimes() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Borrowed<'a, T> {
+                data: &'a T,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    assert_eq!(manifest.structs[0].generics, vec!["T".to_string()]);
+}

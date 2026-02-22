@@ -253,6 +253,7 @@ fn generates_unit_enum_as_string_union() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Status".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Active".to_string(),
@@ -287,6 +288,7 @@ fn generates_tuple_enum_as_tagged_union() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Response".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Ok".to_string(),
@@ -316,6 +318,7 @@ fn generates_struct_enum_as_tagged_union() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Event".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Click".to_string(),
                 kind: VariantKind::Struct(vec![
@@ -341,6 +344,7 @@ fn generates_mixed_enum() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Shape".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Circle".to_string(),
@@ -380,6 +384,7 @@ fn generates_empty_enum_as_never() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Empty".to_string(),
+            generics: vec![],
             variants: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
@@ -398,6 +403,7 @@ fn generates_multi_field_tuple_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Pair".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Both".to_string(),
                 kind: VariantKind::Tuple(vec![RustType::simple("String"), RustType::simple("i32")]),
@@ -421,6 +427,7 @@ fn test_jsdoc_on_struct() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Foo".to_string(),
+            generics: vec![],
             fields: vec![field("x", RustType::simple("i32"))],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("A foo struct.".to_string()),
@@ -438,6 +445,7 @@ fn test_jsdoc_on_struct_multiline() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Bar".to_string(),
+            generics: vec![],
             fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("Line one.\nLine two.".to_string()),
@@ -456,6 +464,7 @@ fn test_jsdoc_on_enum() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Status".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Active".to_string(),
                 kind: VariantKind::Unit,
@@ -524,6 +533,7 @@ fn test_no_jsdoc_when_disabled() {
         }],
         structs: vec![StructDef {
             name: "Foo".to_string(),
+            generics: vec![],
             fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("A foo.".to_string()),
@@ -554,6 +564,7 @@ fn test_camel_case_fields() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "ServerInfo".to_string(),
+            generics: vec![],
             fields: vec![
                 field("uptime_secs", RustType::simple("u64")),
                 field("user_id", RustType::simple("String")),
@@ -578,6 +589,7 @@ fn test_camel_case_enum_struct_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Event".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Click".to_string(),
                 kind: VariantKind::Struct(vec![
@@ -604,6 +616,7 @@ fn test_serde_rename_all_camel_case_on_struct() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "UserProfile".to_string(),
+            generics: vec![],
             fields: vec![
                 field("first_name", RustType::simple("String")),
                 field("last_name", RustType::simple("String")),
@@ -627,6 +640,7 @@ fn test_serde_field_rename_overrides_rename_all() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Config".to_string(),
+            generics: vec![],
             fields: vec![
                 FieldDef {
                     name: "api_key".to_string(),
@@ -654,6 +668,7 @@ fn test_serde_skip_field_omitted() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Session".to_string(),
+            generics: vec![],
             fields: vec![
                 field("token", RustType::simple("String")),
                 FieldDef {
@@ -681,6 +696,7 @@ fn test_serde_default_option_field() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Params".to_string(),
+            generics: vec![],
             fields: vec![
                 field("required", RustType::simple("String")),
                 FieldDef {
@@ -709,6 +725,7 @@ fn test_serde_rename_all_on_enum() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "EventKind".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "UserLogin".to_string(),
@@ -738,6 +755,7 @@ fn test_serde_variant_rename_override() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Status".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Active".to_string(),
@@ -769,6 +787,7 @@ fn test_serde_rename_all_takes_priority_over_config_naming() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Data".to_string(),
+            generics: vec![],
             fields: vec![field("my_field", RustType::simple("String"))],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
@@ -789,6 +808,7 @@ fn test_serde_default_on_non_option_field_is_not_optional() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Config".to_string(),
+            generics: vec![],
             fields: vec![FieldDef {
                 name: "retries".to_string(),
                 ty: RustType::simple("u32"),
@@ -842,6 +862,7 @@ fn snapshot_types_camel_case() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "ServerInfo".to_string(),
+            generics: vec![],
             fields: vec![
                 field("uptime_secs", RustType::simple("u64")),
                 field("user_id", RustType::simple("String")),
@@ -864,6 +885,7 @@ fn snapshot_enum_unit() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Status".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Active".to_string(),
@@ -898,6 +920,7 @@ fn snapshot_enum_mixed() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Shape".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Circle".to_string(),
@@ -934,6 +957,7 @@ fn snapshot_serde_rename_all() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "UserProfile".to_string(),
+            generics: vec![],
             fields: vec![
                 field("first_name", RustType::simple("String")),
                 field("last_name", RustType::simple("String")),
@@ -955,6 +979,7 @@ fn snapshot_serde_skip_and_default() {
         procedures: vec![],
         structs: vec![StructDef {
             name: "Config".to_string(),
+            generics: vec![],
             fields: vec![
                 field("name", RustType::simple("String")),
                 FieldDef {
@@ -991,6 +1016,7 @@ fn internal_tag_struct_variants() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Shape".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Circle".to_string(),
@@ -1027,6 +1053,7 @@ fn internal_tag_unit_variants() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Status".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Active".to_string(),
@@ -1058,6 +1085,7 @@ fn internal_tag_mixed_unit_struct() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Action".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Noop".to_string(),
@@ -1094,6 +1122,7 @@ fn internal_tag_newtype_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Wrapper".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Data".to_string(),
                 kind: VariantKind::Tuple(vec![RustType::simple("Payload")]),
@@ -1120,6 +1149,7 @@ fn adjacent_tag_struct_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Event".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Click".to_string(),
                 kind: VariantKind::Struct(vec![
@@ -1148,6 +1178,7 @@ fn adjacent_tag_tuple_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Msg".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Scroll".to_string(),
                 kind: VariantKind::Tuple(vec![RustType::simple("f64")]),
@@ -1173,6 +1204,7 @@ fn adjacent_tag_unit_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Signal".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Empty".to_string(),
                 kind: VariantKind::Unit,
@@ -1198,6 +1230,7 @@ fn adjacent_tag_mixed() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Cmd".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Noop".to_string(),
@@ -1242,6 +1275,7 @@ fn untagged_tuple_variants() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Value".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Str".to_string(),
@@ -1271,6 +1305,7 @@ fn untagged_struct_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Wrapper".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Data".to_string(),
                 kind: VariantKind::Struct(vec![field("value", RustType::simple("String"))]),
@@ -1293,6 +1328,7 @@ fn untagged_unit_variant() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Maybe".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "Nothing".to_string(),
                 kind: VariantKind::Unit,
@@ -1315,6 +1351,7 @@ fn untagged_mixed() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Input".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "None".to_string(),
@@ -1351,6 +1388,7 @@ fn internal_tag_with_rename_all() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Event".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "UserLogin".to_string(),
@@ -1385,6 +1423,7 @@ fn adjacent_tag_with_rename_all() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Msg".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "UserLogin".to_string(),
@@ -1423,6 +1462,7 @@ fn external_struct_variant_optional_field() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "E".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "V".to_string(),
                 kind: VariantKind::Struct(vec![FieldDef {
@@ -1451,6 +1491,7 @@ fn internal_struct_variant_optional_field() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "E".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "V".to_string(),
                 kind: VariantKind::Struct(vec![FieldDef {
@@ -1481,6 +1522,7 @@ fn adjacent_struct_variant_optional_field() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "E".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "V".to_string(),
                 kind: VariantKind::Struct(vec![FieldDef {
@@ -1512,6 +1554,7 @@ fn untagged_struct_variant_optional_field() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "E".to_string(),
+            generics: vec![],
             variants: vec![EnumVariant {
                 name: "V".to_string(),
                 kind: VariantKind::Struct(vec![FieldDef {
@@ -1542,6 +1585,7 @@ fn snapshot_internal_tagged() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Shape".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Circle".to_string(),
@@ -1581,6 +1625,7 @@ fn snapshot_adjacent_tagged() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Message".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Text".to_string(),
@@ -1629,6 +1674,7 @@ fn snapshot_untagged() {
         structs: vec![],
         enums: vec![EnumDef {
             name: "Value".to_string(),
+            generics: vec![],
             variants: vec![
                 EnumVariant {
                     name: "Null".to_string(),
@@ -1662,6 +1708,174 @@ fn snapshot_untagged() {
             rename_all: None,
             tagging: EnumTagging::Untagged,
         }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    insta::assert_snapshot!(output);
+}
+
+// --- Generic struct/enum codegen tests ---
+
+#[test]
+fn generates_generic_interface() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Paginated".to_string(),
+            generics: vec!["T".to_string()],
+            fields: vec![
+                field(
+                    "items",
+                    RustType::with_generics("Vec", vec![RustType::simple("T")]),
+                ),
+                field("total", RustType::simple("u64")),
+                field("page", RustType::simple("u32")),
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export interface Paginated<T> {"));
+    assert!(output.contains("  items: T[];"));
+    assert!(output.contains("  total: number;"));
+    assert!(output.contains("  page: number;"));
+}
+
+#[test]
+fn generates_multi_param_interface() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Pair".to_string(),
+            generics: vec!["A".to_string(), "B".to_string()],
+            fields: vec![
+                field("first", RustType::simple("A")),
+                field("second", RustType::simple("B")),
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export interface Pair<A, B> {"));
+}
+
+#[test]
+fn maps_user_defined_with_generics() {
+    let ty = RustType::with_generics("Paginated", vec![RustType::simple("User")]);
+    assert_eq!(rust_type_to_ts(&ty), "Paginated<User>");
+}
+
+#[test]
+fn maps_user_defined_nested_generics() {
+    let ty = RustType::with_generics(
+        "Paginated",
+        vec![RustType::with_generics(
+            "Vec",
+            vec![RustType::simple("User")],
+        )],
+    );
+    assert_eq!(rust_type_to_ts(&ty), "Paginated<User[]>");
+}
+
+#[test]
+fn procedure_output_preserves_generics() {
+    let manifest = Manifest {
+        procedures: vec![Procedure {
+            name: "list_users".to_string(),
+            kind: ProcedureKind::Query,
+            input: None,
+            output: Some(RustType::with_generics(
+                "Paginated",
+                vec![RustType::simple("User")],
+            )),
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+        }],
+        structs: vec![],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("output: Paginated<User>"));
+}
+
+#[test]
+fn generates_generic_enum() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Response".to_string(),
+            generics: vec!["T".to_string()],
+            variants: vec![
+                EnumVariant {
+                    name: "Ok".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("T")]),
+                    rename: None,
+                },
+                EnumVariant {
+                    name: "Error".to_string(),
+                    kind: VariantKind::Tuple(vec![RustType::simple("String")]),
+                    rename: None,
+                },
+            ],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::External,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    assert!(output.contains("export type Response<T> = { Ok: T } | { Error: string };"));
+}
+
+#[test]
+fn snapshot_generic_struct() {
+    let manifest = Manifest {
+        procedures: vec![Procedure {
+            name: "list_users".to_string(),
+            kind: ProcedureKind::Query,
+            input: None,
+            output: Some(RustType::with_generics(
+                "Paginated",
+                vec![RustType::simple("User")],
+            )),
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+        }],
+        structs: vec![
+            StructDef {
+                name: "Paginated".to_string(),
+                generics: vec!["T".to_string()],
+                fields: vec![
+                    field(
+                        "items",
+                        RustType::with_generics("Vec", vec![RustType::simple("T")]),
+                    ),
+                    field("total", RustType::simple("u64")),
+                    field("page", RustType::simple("u32")),
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "User".to_string(),
+                generics: vec![],
+                fields: vec![
+                    field("id", RustType::simple("u64")),
+                    field("name", RustType::simple("String")),
+                ],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+                rename_all: None,
+            },
+        ],
+        enums: vec![],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
     insta::assert_snapshot!(output);

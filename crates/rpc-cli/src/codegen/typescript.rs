@@ -86,8 +86,15 @@ pub fn rust_type_to_ts(ty: &RustType) -> String {
             format!("[{}]", elems.join(", "))
         }
 
-        // User-defined types or unknown — pass through as-is
-        other => other.to_string(),
+        // User-defined types or unknown — pass through, preserving generics
+        other => {
+            if ty.generics.is_empty() {
+                other.to_string()
+            } else {
+                let params: Vec<String> = ty.generics.iter().map(rust_type_to_ts).collect();
+                format!("{other}<{}>", params.join(", "))
+            }
+        }
     }
 }
 
@@ -194,7 +201,8 @@ fn generate_interface(
     if preserve_docs && let Some(doc) = &s.docs {
         emit_jsdoc(doc, "", out);
     }
-    emit!(out, "export interface {} {{", s.name);
+    let generic_params = format_generic_params(&s.generics);
+    emit!(out, "export interface {}{generic_params} {{", s.name);
     for field in &s.fields {
         if field.skip {
             continue;
@@ -234,6 +242,7 @@ fn generate_enum_type(
 
 /// Externally tagged (serde default): `{ "Variant": data }` or string literal for unit variants.
 fn generate_enum_external(e: &EnumDef, field_naming: FieldNaming, out: &mut String) {
+    let generic_params = format_generic_params(&e.generics);
     let all_unit = e
         .variants
         .iter()
@@ -249,9 +258,14 @@ fn generate_enum_external(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
             })
             .collect();
         if variants.is_empty() {
-            emit!(out, "export type {} = never;", e.name);
+            emit!(out, "export type {}{generic_params} = never;", e.name);
         } else {
-            emit!(out, "export type {} = {};", e.name, variants.join(" | "));
+            emit!(
+                out,
+                "export type {}{generic_params} = {};",
+                e.name,
+                variants.join(" | ")
+            );
         }
     } else {
         let mut variant_types: Vec<String> = Vec::new();
@@ -287,7 +301,7 @@ fn generate_enum_external(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
 
         emit!(
             out,
-            "export type {} = {};",
+            "export type {}{generic_params} = {};",
             e.name,
             variant_types.join(" | ")
         );
@@ -301,8 +315,9 @@ fn generate_enum_external(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
 /// - Tuple(1) → `{ tag: "Name" } & InnerType` (newtype wrapping struct)
 /// - Tuple(n>1) → skipped (serde rejects multi-field tuples in internally tagged)
 fn generate_enum_internal(e: &EnumDef, tag: &str, field_naming: FieldNaming, out: &mut String) {
+    let generic_params = format_generic_params(&e.generics);
     if e.variants.is_empty() {
-        emit!(out, "export type {} = never;", e.name);
+        emit!(out, "export type {}{generic_params} = never;", e.name);
         return;
     }
 
@@ -335,11 +350,11 @@ fn generate_enum_internal(e: &EnumDef, tag: &str, field_naming: FieldNaming, out
     }
 
     if variant_types.is_empty() {
-        emit!(out, "export type {} = never;", e.name);
+        emit!(out, "export type {}{generic_params} = never;", e.name);
     } else {
         emit!(
             out,
-            "export type {} = {};",
+            "export type {}{generic_params} = {};",
             e.name,
             variant_types.join(" | ")
         );
@@ -359,8 +374,9 @@ fn generate_enum_adjacent(
     field_naming: FieldNaming,
     out: &mut String,
 ) {
+    let generic_params = format_generic_params(&e.generics);
     if e.variants.is_empty() {
-        emit!(out, "export type {} = never;", e.name);
+        emit!(out, "export type {}{generic_params} = never;", e.name);
         return;
     }
 
@@ -399,7 +415,7 @@ fn generate_enum_adjacent(
 
     emit!(
         out,
-        "export type {} = {};",
+        "export type {}{generic_params} = {};",
         e.name,
         variant_types.join(" | ")
     );
@@ -413,8 +429,9 @@ fn generate_enum_adjacent(
 /// - Struct → `{ field: T; ... }`
 /// - Empty enum → `never`
 fn generate_enum_untagged(e: &EnumDef, field_naming: FieldNaming, out: &mut String) {
+    let generic_params = format_generic_params(&e.generics);
     if e.variants.is_empty() {
-        emit!(out, "export type {} = never;", e.name);
+        emit!(out, "export type {}{generic_params} = never;", e.name);
         return;
     }
 
@@ -446,10 +463,21 @@ fn generate_enum_untagged(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
 
     emit!(
         out,
-        "export type {} = {};",
+        "export type {}{generic_params} = {};",
         e.name,
         variant_types.join(" | ")
     );
+}
+
+/// Formats generic type parameters for TypeScript output (e.g. `<T>`, `<A, B>`).
+///
+/// Returns an empty string when there are no generic parameters.
+fn format_generic_params(generics: &[String]) -> String {
+    if generics.is_empty() {
+        String::new()
+    } else {
+        format!("<{}>", generics.join(", "))
+    }
 }
 
 /// Generates the `Procedures` type that maps procedure names to their input/output types,

@@ -289,6 +289,7 @@ fn svelte_imports_user_types() {
         )],
         structs: vec![StructDef {
             name: "TimeResponse".to_string(),
+            generics: vec![],
             fields: vec![common::field("timestamp", RustType::simple("u64"))],
             source_file: PathBuf::from("api/time.rs"),
             docs: None,

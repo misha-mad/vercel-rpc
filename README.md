@@ -703,6 +703,38 @@ enum StringOrInt {
 // → string | number
 ```
 
+#### Generic types
+
+Generic structs and enums produce generic TypeScript interfaces and types. Generic parameters are also preserved in procedure signatures:
+
+```rust
+#[derive(Serialize)]
+struct Paginated<T> {
+    items: Vec<T>,
+    total: u64,
+    page: u32,
+}
+
+#[rpc_query]
+async fn list_users() -> Paginated<User> { /* ... */ }
+```
+
+Generated TypeScript:
+
+```typescript
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+}
+
+export type Procedures = {
+  queries: {
+    list_users: { input: void; output: Paginated<User> };
+  };
+};
+```
+
 ### Generated handler features
 
 Every macro-annotated function automatically gets:
@@ -732,6 +764,7 @@ Every macro-annotated function automatically gets:
 | `[T; N]`                                 | `T[]`                                            |
 | `Result<T, E>`                           | `T` (error handled at runtime)                   |
 | Custom structs                           | `interface` with same fields                     |
+| Generic structs (`Paginated<T>`)         | `interface Paginated<T>` (generic preserved)     |
 | Enums (unit variants)                    | `"A" \| "B" \| "C"` (string union)               |
 | Enums (tuple variants)                   | `{ A: string } \| { B: number }` (tagged union)  |
 | Enums (struct variants)                  | `{ A: { x: number; y: number } }` (tagged union) |

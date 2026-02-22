@@ -226,6 +226,7 @@ fn imports_referenced_structs() {
         )],
         structs: vec![StructDef {
             name: "TimeResponse".to_string(),
+            generics: vec![],
             fields: vec![common::field("timestamp", RustType::simple("u64"))],
             source_file: PathBuf::from("api/time.rs"),
             docs: None,
@@ -588,6 +589,7 @@ fn snapshot_client_imports_structs() {
         structs: vec![
             StructDef {
                 name: "TimeResponse".to_string(),
+                generics: vec![],
                 fields: vec![common::field("timestamp", RustType::simple("u64"))],
                 source_file: PathBuf::from("api/time.rs"),
                 docs: None,
@@ -595,6 +597,7 @@ fn snapshot_client_imports_structs() {
             },
             StructDef {
                 name: "CreateInput".to_string(),
+                generics: vec![],
                 fields: vec![common::field("title", RustType::simple("String"))],
                 source_file: PathBuf::from("api/create.rs"),
                 docs: None,
@@ -602,6 +605,7 @@ fn snapshot_client_imports_structs() {
             },
             StructDef {
                 name: "Item".to_string(),
+                generics: vec![],
                 fields: vec![common::field("id", RustType::simple("u64"))],
                 source_file: PathBuf::from("api/create.rs"),
                 docs: None,

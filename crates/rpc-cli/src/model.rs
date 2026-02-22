@@ -234,6 +234,9 @@ pub struct Procedure {
 pub struct StructDef {
     /// Struct name
     pub name: String,
+    /// Generic type parameter names (e.g. `["T"]`, `["A", "B"]`)
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub generics: Vec<String>,
     /// Named fields with their types
     pub fields: Vec<FieldDef>,
     /// Source file this struct was defined in
@@ -296,6 +299,9 @@ pub enum EnumTagging {
 pub struct EnumDef {
     /// Enum name
     pub name: String,
+    /// Generic type parameter names (e.g. `["T"]`, `["A", "B"]`)
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub generics: Vec<String>,
     /// Variants of the enum
     pub variants: Vec<EnumVariant>,
     /// Source file this enum was defined in

@@ -42,7 +42,8 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
     }
 
     for s in &manifest.structs {
-        println!("\n  struct {} {{", s.name);
+        let generics = format_generic_params(&s.generics);
+        println!("\n  struct {}{generics} {{", s.name);
         for field in &s.fields {
             println!("    {}: {},", field.name, field.ty);
         }
@@ -50,8 +51,9 @@ pub fn cmd_scan(config: &RpcConfig) -> Result<()> {
     }
 
     for e in &manifest.enums {
+        let generics = format_generic_params(&e.generics);
         let variants: Vec<&str> = e.variants.iter().map(|v| v.name.as_str()).collect();
-        println!("\n  enum {} {{ {} }}", e.name, variants.join(", "));
+        println!("\n  enum {}{generics} {{ {} }}", e.name, variants.join(", "));
     }
 
     // Also output raw JSON for tooling consumption
@@ -178,6 +180,15 @@ pub fn write_file(path: &Path, content: &str) -> Result<()> {
     }
     fs::write(path, content).with_context(|| format!("Failed to write {}", path.display()))?;
     Ok(())
+}
+
+/// Formats generic type parameters for display (e.g. `<T>`, `<A, B>`).
+fn format_generic_params(generics: &[String]) -> String {
+    if generics.is_empty() {
+        String::new()
+    } else {
+        format!("<{}>", generics.join(", "))
+    }
 }
 
 /// Formats byte count in a human-readable way.

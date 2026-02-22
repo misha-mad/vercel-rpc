@@ -70,28 +70,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented in [PR #68](https://github.com/misha-mad/vercel-rpc/pull/68). All four serde enum tagging strategies are supported: externally tagged (default), internally tagged (`#[serde(tag = "...")]`), adjacently tagged (`#[serde(tag = "...", content = "...")]`), and untagged (`#[serde(untagged)]`). `#[serde(default)]` on `Option<T>` fields in enum struct variants is also handled correctly.
 
-### Generics
+### ~~Generics~~ ✅
 
-Support generic structs that produce generic TypeScript interfaces:
-
-```rust
-#[derive(Serialize)]
-struct Paginated<T> {
-    items: Vec<T>,
-    total: u64,
-    page: u32,
-}
-```
-
-```typescript
-export interface Paginated<T> {
-  items: T[];
-  total: number;
-  page: number;
-}
-```
-
-When used in a procedure signature like `Paginated<User>`, the codegen emits `Paginated<User>` in the procedures map.
+> Implemented: generic structs/enums produce generic TypeScript interfaces/types. Generic parameters are preserved in procedure signatures (e.g. `Paginated<User>`).
 
 ### Newtype Branded Types
 
@@ -216,5 +197,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                  |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                   |
-| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, generics, branded types, flatten |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, branded types, flatten |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                                                            |
