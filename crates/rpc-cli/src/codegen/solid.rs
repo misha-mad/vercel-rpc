@@ -39,19 +39,19 @@ const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends Q
   /** The latest successfully resolved data, or placeholderData. */
   data: () => QueryOutput<K> | undefined;
 
-  /** The error from the most recent failed fetch, cleared on success. */
+  /** The error from the most recent failed fetch, cleared on next attempt. */
   error: () => RpcError | undefined;
 
   /** True while a fetch is in-flight (including the initial fetch). */
   isLoading: () => boolean;
 
-  /** True after the first successful fetch. Stays true across refetches. */
+  /** True after the first successful fetch. Stays true even if a later refetch fails. */
   isSuccess: () => boolean;
 
   /** True when the most recent fetch failed. */
   isError: () => boolean;
 
-  /** Manually trigger a refetch. */
+  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }"#;
 
@@ -95,16 +95,6 @@ const MUTATION_RESULT_INTERFACE: &str = r#"export interface MutationResult<K ext
   reset: () => void;
 }"#;
 
-const IS_QUERY_OPTIONS_IMPL: &str = r#"const QUERY_OPTIONS_KEYS: string[] = [
-  "enabled", "refetchInterval", "placeholderData", "callOptions",
-  "onSuccess", "onError", "onSettled",
-];
-
-function isQueryOptions(v: unknown): boolean {
-  if (v == null || typeof v !== "object") return false;
-  return Object.keys(v as object).every(k => QUERY_OPTIONS_KEYS.includes(k));
-}"#;
-
 const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
@@ -118,8 +108,7 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     inputFn = args[1] as () => QueryInput<K>;
     optionsArg = args[2] as QueryOptions<K> | (() => QueryOptions<K>) | undefined;
   } else if (typeof args[1] === "function") {
-    const probe = (args[1] as () => unknown)();
-    if (probe != null && typeof probe === "object" && isQueryOptions(probe)) {
+    if (VOID_QUERY_KEYS.has(key)) {
       optionsArg = args[1] as () => QueryOptions<K>;
     } else {
       inputFn = args[1] as () => QueryInput<K>;
@@ -132,6 +121,13 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     return typeof optionsArg === "function" ? optionsArg() : optionsArg;
   }
 
+  function resolveEnabled(): boolean {
+    const opts = resolveOptions();
+    return typeof opts?.enabled === "function"
+      ? opts.enabled()
+      : (opts?.enabled ?? true);
+  }
+
   const initialOpts = resolveOptions();
   const initialEnabled = typeof initialOpts?.enabled === "function"
     ? initialOpts.enabled()
@@ -142,63 +138,77 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   const [isLoading, setIsLoading] = createSignal(initialEnabled);
   const [hasFetched, setHasFetched] = createSignal(false);
 
-  const isSuccess = createMemo(() => hasFetched() && error() === undefined);
+  const isSuccess = createMemo(() => hasFetched());
   const isError = createMemo(() => error() !== undefined);
 
-  async function fetchData(input?: QueryInput<K>, signal?: AbortSignal) {
+  let generation = 0;
+  let controller: AbortController | undefined;
+  let intervalId: ReturnType<typeof setInterval> | undefined;
+
+  async function fetchData(input: QueryInput<K> | undefined, signal: AbortSignal, gen: number) {
     const opts = resolveOptions();
     setIsLoading(true);
     setError(undefined);
     try {
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
-      const mergedCallOptions = signal
-        ? { ...opts?.callOptions, signal: opts?.callOptions?.signal
-            ? AbortSignal.any([signal, opts.callOptions.signal])
-            : signal }
-        : opts?.callOptions;
-      if (mergedCallOptions) callArgs.push(mergedCallOptions);
+      const mergedCallOptions = { ...opts?.callOptions, signal: opts?.callOptions?.signal
+          ? AbortSignal.any([signal, opts.callOptions.signal])
+          : signal };
+      callArgs.push(mergedCallOptions);
       const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as QueryOutput<K>;
-      if (signal?.aborted) return;
+      if (gen !== generation) return;
       setData(result as Exclude<QueryOutput<K> | undefined, Function>);
       setHasFetched(true);
       opts?.onSuccess?.(result);
     } catch (e) {
-      if (signal?.aborted) return;
+      if (gen !== generation) return;
       const err = e as RpcError;
       setError(err as Exclude<RpcError | undefined, Function>);
       opts?.onError?.(err);
     } finally {
-      if (!signal?.aborted) {
+      if (gen === generation) {
         setIsLoading(false);
         opts?.onSettled?.();
       }
     }
   }
 
+  function setupInterval(enabled: boolean, refetchInterval: number | undefined) {
+    if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
+    if (enabled && refetchInterval) {
+      intervalId = setInterval(() => {
+        if (controller && !controller.signal.aborted) {
+          void fetchData(inputFn?.(), controller.signal, generation);
+        }
+      }, refetchInterval);
+    }
+  }
+
   createEffect(() => {
-    const opts = resolveOptions();
-    const enabled = typeof opts?.enabled === "function"
-      ? opts.enabled()
-      : (opts?.enabled ?? true);
+    const enabled = resolveEnabled();
     const input = inputFn?.();
-    if (!enabled) return;
+    const refetchInterval = resolveOptions()?.refetchInterval;
 
-    const controller = new AbortController();
-    void fetchData(input, controller.signal);
-
-    let interval: ReturnType<typeof setInterval> | undefined;
-    if (opts?.refetchInterval) {
-      interval = setInterval(() => {
-        if (!controller.signal.aborted) fetchData(inputFn?.(), controller.signal);
-      }, opts.refetchInterval);
+    if (controller) controller.abort();
+    if (enabled) {
+      generation++;
+      const gen = generation;
+      controller = new AbortController();
+      void fetchData(input, controller.signal, gen);
+    } else {
+      setIsLoading(false);
+      controller = undefined;
     }
 
+    setupInterval(enabled, refetchInterval);
+
     onCleanup(() => {
-      controller.abort();
-      if (interval) clearInterval(interval);
+      generation++;
+      if (controller) { controller.abort(); controller = undefined; }
+      if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
     });
   });
 
@@ -208,7 +218,17 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     isLoading,
     isSuccess,
     isError,
-    refetch: () => fetchData(inputFn?.()),
+    refetch: async () => {
+      const enabled = resolveEnabled();
+      if (!enabled) return;
+      generation++;
+      const gen = generation;
+      const localController = new AbortController();
+      if (controller) controller.abort();
+      controller = localController;
+      setupInterval(enabled, resolveOptions()?.refetchInterval);
+      await fetchData(inputFn?.(), localController.signal, gen);
+    },
   };
 }"#;
 
@@ -440,7 +460,16 @@ pub fn generate_solid_file(
 
     // createQuery overloads + implementation
     if has_queries {
-        emit!(out, "{IS_QUERY_OPTIONS_IMPL}\n");
+        let void_names: Vec<_> = queries
+            .iter()
+            .filter(|p| is_void_input(p))
+            .map(|p| format!("\"{}\"", p.name))
+            .collect();
+        emit!(
+            out,
+            "const VOID_QUERY_KEYS: Set<QueryKey> = new Set([{}]);\n",
+            void_names.join(", ")
+        );
         generate_query_overloads(&queries, &mut out);
         emit!(out, "{CREATE_QUERY_IMPL}\n");
     }
