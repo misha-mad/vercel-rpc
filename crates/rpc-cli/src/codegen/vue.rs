@@ -51,7 +51,7 @@ const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends Q
   /** True when the most recent fetch failed. */
   readonly isError: ComputedRef<boolean>;
 
-  /** Manually trigger a refetch. No-op when `enabled` is false. */
+  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }"#;
 
@@ -181,6 +181,18 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   let controller: AbortController | undefined;
   let intervalId: ReturnType<typeof setInterval> | undefined;
 
+  function setupInterval() {
+    if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
+    const ri = resolveOptions()?.refetchInterval;
+    if (resolveEnabled() && ri) {
+      intervalId = setInterval(() => {
+        if (controller && !controller.signal.aborted) {
+          void fetchData(inputFn?.(), controller.signal);
+        }
+      }, ri);
+    }
+  }
+
   const stopWatch = watch(
     () => {
       const enabled = resolveEnabled();
@@ -190,22 +202,17 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     (curr, prev) => {
       const inputChanged = !prev || curr.enabled !== prev.enabled || curr.serialized !== prev.serialized;
 
-      if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
-
       if (inputChanged) {
         if (controller) { controller.abort(); controller = undefined; }
-        if (!curr.enabled) { isLoading.value = false; return; }
-        controller = new AbortController();
-        void fetchData(curr.input, controller.signal);
+        if (curr.enabled) {
+          controller = new AbortController();
+          void fetchData(curr.input, controller.signal);
+        } else {
+          isLoading.value = false;
+        }
       }
 
-      if (curr.enabled && curr.refetchInterval) {
-        intervalId = setInterval(() => {
-          if (controller && !controller.signal.aborted) {
-            void fetchData(inputFn?.(), controller.signal);
-          }
-        }, curr.refetchInterval);
-      }
+      setupInterval();
     },
     { immediate: true },
   );
@@ -226,7 +233,9 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
       if (!resolveEnabled()) return Promise.resolve();
       if (controller) controller.abort();
       controller = new AbortController();
-      return fetchData(inputFn?.(), controller.signal);
+      const promise = fetchData(inputFn?.(), controller.signal);
+      setupInterval();
+      return promise;
     },
   };
 }"#;
