@@ -62,6 +62,7 @@ pub struct NamingConfig {
 #[serde(default)]
 pub struct CodegenConfig {
     pub preserve_docs: bool,
+    pub branded_newtypes: bool,
     pub naming: NamingConfig,
 }
 
@@ -163,6 +164,7 @@ pub struct CliOverrides {
     pub extension: Option<String>,
     // codegen
     pub preserve_docs: bool,
+    pub branded_newtypes: Option<bool>,
     pub fields: Option<FieldNaming>,
     // watch
     pub debounce_ms: Option<u64>,
@@ -219,6 +221,9 @@ pub fn resolve(cli: CliOverrides) -> Result<RpcConfig> {
     }
     if cli.preserve_docs {
         config.codegen.preserve_docs = true;
+    }
+    if let Some(branded) = cli.branded_newtypes {
+        config.codegen.branded_newtypes = branded;
     }
     if let Some(fields) = cli.fields {
         config.codegen.naming.fields = fields;

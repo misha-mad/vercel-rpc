@@ -7,7 +7,7 @@ use syn::{Attribute, File, FnArg, Item, ItemFn, ReturnType};
 use walkdir::WalkDir;
 
 use super::serde as serde_attr;
-use super::types::{extract_rust_type, extract_struct_fields};
+use super::types::{extract_rust_type, extract_struct_fields, extract_tuple_fields};
 use crate::config::InputConfig;
 use crate::model::{
     EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, StructDef, VariantKind,
@@ -97,13 +97,19 @@ pub fn parse_file(path: &Path) -> Result<Manifest> {
             Item::Struct(item_struct) => {
                 if has_serde_derive(&item_struct.attrs) {
                     let generics = extract_generic_param_names(&item_struct.generics);
-                    let fields = extract_struct_fields(&item_struct.fields);
+                    let tuple_fields = extract_tuple_fields(&item_struct.fields);
+                    let fields = if tuple_fields.is_empty() {
+                        extract_struct_fields(&item_struct.fields)
+                    } else {
+                        vec![]
+                    };
                     let docs = extract_docs(&item_struct.attrs);
                     let rename_all = serde_attr::parse_rename_all(&item_struct.attrs);
                     manifest.structs.push(StructDef {
                         name: item_struct.ident.to_string(),
                         generics,
                         fields,
+                        tuple_fields,
                         source_file: path.to_path_buf(),
                         docs,
                         rename_all,

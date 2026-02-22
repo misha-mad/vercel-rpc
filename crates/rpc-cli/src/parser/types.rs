@@ -1,4 +1,4 @@
-use syn::{Fields, FieldsNamed, Type};
+use syn::{Fields, FieldsNamed, FieldsUnnamed, Type};
 
 use super::serde as serde_attr;
 use crate::model::{FieldDef, RustType};
@@ -63,6 +63,18 @@ fn extract_generic_args(arguments: &syn::PathArguments) -> Vec<RustType> {
                 _ => None,
             })
             .collect(),
+        _ => vec![],
+    }
+}
+
+/// Extracts unnamed (tuple) fields from a struct into `RustType` values.
+///
+/// Returns an empty vec for named or unit structs.
+pub fn extract_tuple_fields(fields: &Fields) -> Vec<RustType> {
+    match fields {
+        Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
+            unnamed.iter().map(|f| extract_rust_type(&f.ty)).collect()
+        }
         _ => vec![],
     }
 }

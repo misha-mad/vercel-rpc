@@ -162,7 +162,7 @@ fn maps_nested_generics() {
 #[test]
 fn generates_complete_types_file() {
     let manifest = common::make_test_manifest();
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
 
     // Header present
     assert!(output.starts_with("// This file is auto-generated"));
@@ -192,7 +192,7 @@ fn generates_complete_types_file() {
 #[test]
 fn generates_empty_manifest() {
     let manifest = Manifest::default();
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
 
     assert!(output.contains("queries: {"));
     assert!(output.contains("mutations: {"));
@@ -214,7 +214,7 @@ fn generates_queries_only() {
         structs: vec![],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
 
     assert!(output.contains("    ping: { input: void; output: string };"));
     assert!(!output.contains("export interface"));
@@ -240,7 +240,7 @@ fn generates_complex_nested_types() {
         structs: vec![],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("    search: { input: string; output: (Item | null)[] };"));
 }
 
@@ -277,7 +277,7 @@ fn generates_unit_enum_as_string_union() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Status = \"Active\" | \"Inactive\" | \"Banned\";"));
 }
 
@@ -307,7 +307,7 @@ fn generates_tuple_enum_as_tagged_union() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Response = { Ok: string } | { Error: number };"));
 }
 
@@ -333,7 +333,7 @@ fn generates_struct_enum_as_tagged_union() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Event = { Click: { x: number; y: number } };"));
 }
 
@@ -371,7 +371,7 @@ fn generates_mixed_enum() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains(
         "export type Shape = { Circle: number } | { Rect: { w: number; h: number } } | \"Unknown\";"
     ));
@@ -392,7 +392,7 @@ fn generates_empty_enum_as_never() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Empty = never;"));
 }
 
@@ -415,7 +415,7 @@ fn generates_multi_field_tuple_variant() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Pair = { Both: [string, number] };"));
 }
 
@@ -429,13 +429,14 @@ fn test_jsdoc_on_struct() {
             name: "Foo".to_string(),
             generics: vec![],
             fields: vec![field("x", RustType::simple("i32"))],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("A foo struct.".to_string()),
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve, false);
     assert!(output.contains("/** A foo struct. */\nexport interface Foo {"));
 }
 
@@ -447,13 +448,14 @@ fn test_jsdoc_on_struct_multiline() {
             name: "Bar".to_string(),
             generics: vec![],
             fields: vec![],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("Line one.\nLine two.".to_string()),
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve, false);
     assert!(output.contains("/**\n * Line one.\n * Line two.\n */\nexport interface Bar {"));
 }
 
@@ -476,7 +478,7 @@ fn test_jsdoc_on_enum() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve, false);
     assert!(output.contains("/** Entity status. */\nexport type Status ="));
 }
 
@@ -494,7 +496,7 @@ fn test_jsdoc_on_procedure() {
         structs: vec![],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve, false);
     assert!(
         output.contains("    /** Say hello. */\n    hello: { input: string; output: string };")
     );
@@ -514,7 +516,7 @@ fn test_jsdoc_on_mutation_procedure() {
         structs: vec![],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve, false);
     assert!(
         output.contains("    /** Update item. */\n    update: { input: string; output: boolean };")
     );
@@ -535,13 +537,14 @@ fn test_no_jsdoc_when_disabled() {
             name: "Foo".to_string(),
             generics: vec![],
             fields: vec![],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: Some("A foo.".to_string()),
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(!output.contains("/**"));
 }
 
@@ -570,13 +573,14 @@ fn test_camel_case_fields() {
                 field("user_id", RustType::simple("String")),
                 field("message", RustType::simple("String")),
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase, false);
     assert!(output.contains("  uptimeSecs: number;"));
     assert!(output.contains("  userId: string;"));
     assert!(output.contains("  message: string;"));
@@ -604,7 +608,7 @@ fn test_camel_case_enum_struct_variant() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase, false);
     assert!(output.contains("{ Click: { pageX: number; pageY: number } }"));
 }
 
@@ -622,13 +626,14 @@ fn test_serde_rename_all_camel_case_on_struct() {
                 field("last_name", RustType::simple("String")),
                 field("created_at", RustType::simple("u64")),
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: Some(RenameRule::CamelCase),
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("  firstName: string;"));
     assert!(output.contains("  lastName: string;"));
     assert!(output.contains("  createdAt: number;"));
@@ -651,13 +656,14 @@ fn test_serde_field_rename_overrides_rename_all() {
                 },
                 field("host_name", RustType::simple("String")),
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: Some(RenameRule::CamelCase),
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("  API_KEY: string;"));
     assert!(output.contains("  hostName: string;"));
 }
@@ -679,13 +685,14 @@ fn test_serde_skip_field_omitted() {
                     has_default: false,
                 },
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("  token: string;"));
     assert!(!output.contains("internal_id"));
 }
@@ -707,13 +714,14 @@ fn test_serde_default_option_field() {
                     has_default: true,
                 },
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("  required: string;"));
     assert!(output.contains("  label?: string | null;"));
 }
@@ -744,7 +752,7 @@ fn test_serde_rename_all_on_enum() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type EventKind = \"user_login\" | \"user_logout\";"));
 }
 
@@ -774,7 +782,7 @@ fn test_serde_variant_rename_override() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     // rename overrides rename_all for the first variant
     assert!(output.contains("\"enabled\""));
     // rename_all applies to the second variant
@@ -789,6 +797,7 @@ fn test_serde_rename_all_takes_priority_over_config_naming() {
             name: "Data".to_string(),
             generics: vec![],
             fields: vec![field("my_field", RustType::simple("String"))],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: Some(RenameRule::ScreamingSnakeCase),
@@ -796,7 +805,7 @@ fn test_serde_rename_all_takes_priority_over_config_naming() {
         enums: vec![],
     };
     // Even with CamelCase config, serde rename_all wins
-    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase, false);
     assert!(output.contains("  MY_FIELD: string;"));
 }
 
@@ -816,13 +825,14 @@ fn test_serde_default_on_non_option_field_is_not_optional() {
                 skip: false,
                 has_default: true,
             }],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("  retries: number;"));
     assert!(!output.contains("retries?"));
 }
@@ -832,14 +842,14 @@ fn test_serde_default_on_non_option_field_is_not_optional() {
 #[test]
 fn snapshot_complete_types() {
     let manifest = common::make_test_manifest();
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
 #[test]
 fn snapshot_empty_manifest() {
     let manifest = Manifest::default();
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -852,7 +862,7 @@ fn snapshot_types_with_jsdoc() {
     for p in &mut manifest.procedures {
         p.docs = Some(format!("Documentation for {}.", p.name));
     }
-    let output = generate_types_file(&manifest, true, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -868,13 +878,14 @@ fn snapshot_types_camel_case() {
                 field("user_id", RustType::simple("String")),
                 field("is_active", RustType::simple("bool")),
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase);
+    let output = generate_types_file(&manifest, false, FieldNaming::CamelCase, false);
     insta::assert_snapshot!(output);
 }
 
@@ -909,7 +920,7 @@ fn snapshot_enum_unit() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -947,7 +958,7 @@ fn snapshot_enum_mixed() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -963,13 +974,14 @@ fn snapshot_serde_rename_all() {
                 field("last_name", RustType::simple("String")),
                 field("created_at", RustType::simple("u64")),
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: Some(RenameRule::CamelCase),
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -997,13 +1009,14 @@ fn snapshot_serde_skip_and_default() {
                     has_default: true,
                 },
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -1040,7 +1053,7 @@ fn internal_tag_struct_variants() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains(
         "export type Shape = { type: \"Circle\"; radius: number } | { type: \"Rect\"; w: number; h: number };"
     ));
@@ -1074,7 +1087,7 @@ fn internal_tag_unit_variants() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Status = { type: \"Active\" } | { type: \"Inactive\" };"));
 }
 
@@ -1109,7 +1122,7 @@ fn internal_tag_mixed_unit_struct() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains(
         "export type Action = { kind: \"Noop\" } | { kind: \"Move\"; x: number; y: number };"
     ));
@@ -1136,7 +1149,7 @@ fn internal_tag_newtype_variant() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Wrapper = { type: \"Data\" } & Payload;"));
 }
 
@@ -1167,7 +1180,7 @@ fn adjacent_tag_struct_variant() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Event = { t: \"Click\"; c: { x: number; y: number } };"));
 }
 
@@ -1193,7 +1206,7 @@ fn adjacent_tag_tuple_variant() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Msg = { t: \"Scroll\"; c: number };"));
 }
 
@@ -1219,7 +1232,7 @@ fn adjacent_tag_unit_variant() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Signal = { t: \"Empty\" };"));
 }
 
@@ -1260,7 +1273,7 @@ fn adjacent_tag_mixed() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains(
         "export type Cmd = { t: \"Noop\" } | { t: \"Set\"; c: string } | { t: \"Move\"; c: { x: number; y: number } };"
     ));
@@ -1294,7 +1307,7 @@ fn untagged_tuple_variants() {
             tagging: EnumTagging::Untagged,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Value = string | number;"));
 }
 
@@ -1317,7 +1330,7 @@ fn untagged_struct_variant() {
             tagging: EnumTagging::Untagged,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Wrapper = { value: string };"));
 }
 
@@ -1340,7 +1353,7 @@ fn untagged_unit_variant() {
             tagging: EnumTagging::Untagged,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Maybe = null;"));
 }
 
@@ -1375,7 +1388,7 @@ fn untagged_mixed() {
             tagging: EnumTagging::Untagged,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Input = null | string | { field: string };"));
 }
 
@@ -1409,7 +1422,7 @@ fn internal_tag_with_rename_all() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(
         output
             .contains("export type Event = { type: \"user_login\" } | { type: \"user_logout\" };")
@@ -1445,7 +1458,7 @@ fn adjacent_tag_with_rename_all() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(
         output.contains(
             "export type Msg = { t: \"user-login\"; c: string } | { t: \"system-error\" };"
@@ -1480,7 +1493,7 @@ fn external_struct_variant_optional_field() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("{ V: { label?: string | null } }"));
 }
 
@@ -1511,7 +1524,7 @@ fn internal_struct_variant_optional_field() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("{ type: \"V\"; label?: string | null }"));
 }
 
@@ -1543,7 +1556,7 @@ fn adjacent_struct_variant_optional_field() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("{ t: \"V\"; c: { label?: string | null } }"));
 }
 
@@ -1572,7 +1585,7 @@ fn untagged_struct_variant_optional_field() {
             tagging: EnumTagging::Untagged,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("{ label?: string | null }"));
 }
 
@@ -1614,7 +1627,7 @@ fn snapshot_internal_tagged() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -1663,7 +1676,7 @@ fn snapshot_adjacent_tagged() {
             },
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -1709,7 +1722,7 @@ fn snapshot_untagged() {
             tagging: EnumTagging::Untagged,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
 
@@ -1730,13 +1743,14 @@ fn generates_generic_interface() {
                 field("total", RustType::simple("u64")),
                 field("page", RustType::simple("u32")),
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export interface Paginated<T> {"));
     assert!(output.contains("  items: T[];"));
     assert!(output.contains("  total: number;"));
@@ -1754,13 +1768,14 @@ fn generates_multi_param_interface() {
                 field("first", RustType::simple("A")),
                 field("second", RustType::simple("B")),
             ],
+            tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
             rename_all: None,
         }],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export interface Pair<A, B> {"));
 }
 
@@ -1799,7 +1814,7 @@ fn procedure_output_preserves_generics() {
         structs: vec![],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("output: Paginated<User>"));
 }
 
@@ -1829,7 +1844,7 @@ fn generates_generic_enum() {
             tagging: EnumTagging::External,
         }],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     assert!(output.contains("export type Response<T> = { Ok: T } | { Error: string };"));
 }
 
@@ -1859,6 +1874,7 @@ fn snapshot_generic_struct() {
                     field("total", RustType::simple("u64")),
                     field("page", RustType::simple("u32")),
                 ],
+                tuple_fields: vec![],
                 source_file: PathBuf::from("api/test.rs"),
                 docs: None,
                 rename_all: None,
@@ -1870,6 +1886,7 @@ fn snapshot_generic_struct() {
                     field("id", RustType::simple("u64")),
                     field("name", RustType::simple("String")),
                 ],
+                tuple_fields: vec![],
                 source_file: PathBuf::from("api/test.rs"),
                 docs: None,
                 rename_all: None,
@@ -1877,6 +1894,201 @@ fn snapshot_generic_struct() {
         ],
         enums: vec![],
     };
-    let output = generate_types_file(&manifest, false, FieldNaming::Preserve);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    insta::assert_snapshot!(output);
+}
+
+// --- Newtype / Tuple struct codegen tests ---
+
+#[test]
+fn generates_newtype_alias() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "UserId".to_string(),
+            generics: vec![],
+            fields: vec![],
+            tuple_fields: vec![RustType::simple("String")],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("export type UserId = string;"));
+    assert!(!output.contains("export interface"));
+}
+
+#[test]
+fn generates_branded_newtype() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "UserId".to_string(),
+            generics: vec![],
+            fields: vec![],
+            tuple_fields: vec![RustType::simple("String")],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, true);
+    assert!(output.contains("export type UserId = string & { readonly __brand: \"UserId\" };"));
+}
+
+#[test]
+fn generates_multi_field_tuple_type() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Pair".to_string(),
+            generics: vec![],
+            fields: vec![],
+            tuple_fields: vec![RustType::simple("String"), RustType::simple("i32")],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("export type Pair = [string, number];"));
+}
+
+#[test]
+fn generates_generic_branded_newtype() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Wrapper".to_string(),
+            generics: vec!["T".to_string()],
+            fields: vec![],
+            tuple_fields: vec![RustType::simple("T")],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, true);
+    assert!(output.contains("export type Wrapper<T> = T & { readonly __brand: \"Wrapper\" };"));
+}
+
+#[test]
+fn procedure_uses_newtype() {
+    let manifest = Manifest {
+        procedures: vec![Procedure {
+            name: "get_user".to_string(),
+            kind: ProcedureKind::Query,
+            input: Some(RustType::simple("UserId")),
+            output: Some(RustType::simple("User")),
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+        }],
+        structs: vec![StructDef {
+            name: "UserId".to_string(),
+            generics: vec![],
+            fields: vec![],
+            tuple_fields: vec![RustType::simple("String")],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, true);
+    assert!(output.contains("export type UserId = string & { readonly __brand: \"UserId\" };"));
+    assert!(output.contains("input: UserId; output: User"));
+}
+
+#[test]
+fn generates_newtype_with_jsdoc() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "UserId".to_string(),
+            generics: vec![],
+            fields: vec![],
+            tuple_fields: vec![RustType::simple("String")],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: Some("A unique user identifier.".to_string()),
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, true, FieldNaming::Preserve, true);
+    assert!(output.contains("/** A unique user identifier. */\nexport type UserId = string & { readonly __brand: \"UserId\" };"));
+}
+
+#[test]
+fn multi_field_tuple_ignores_branded_flag() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Pair".to_string(),
+            generics: vec![],
+            fields: vec![],
+            tuple_fields: vec![RustType::simple("String"), RustType::simple("i32")],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    // Branded flag should not affect multi-field tuple structs
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, true);
+    assert!(output.contains("export type Pair = [string, number];"));
+    assert!(!output.contains("__brand"));
+}
+
+#[test]
+fn snapshot_branded_newtypes() {
+    let manifest = Manifest {
+        procedures: vec![Procedure {
+            name: "get_user".to_string(),
+            kind: ProcedureKind::Query,
+            input: Some(RustType::simple("UserId")),
+            output: Some(RustType::simple("User")),
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+        }],
+        structs: vec![
+            StructDef {
+                name: "UserId".to_string(),
+                generics: vec![],
+                fields: vec![],
+                tuple_fields: vec![RustType::simple("String")],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "User".to_string(),
+                generics: vec![],
+                fields: vec![
+                    field("id", RustType::simple("u64")),
+                    field("name", RustType::simple("String")),
+                ],
+                tuple_fields: vec![],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "Coords".to_string(),
+                generics: vec![],
+                fields: vec![],
+                tuple_fields: vec![RustType::simple("f64"), RustType::simple("f64")],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+                rename_all: None,
+            },
+        ],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, true);
     insta::assert_snapshot!(output);
 }

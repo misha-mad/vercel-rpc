@@ -239,6 +239,9 @@ pub struct StructDef {
     pub generics: Vec<String>,
     /// Named fields with their types
     pub fields: Vec<FieldDef>,
+    /// Unnamed fields for tuple structs (e.g. `struct UserId(String)`)
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tuple_fields: Vec<RustType>,
     /// Source file this struct was defined in
     pub source_file: PathBuf,
     /// Doc comment extracted from `///` lines
