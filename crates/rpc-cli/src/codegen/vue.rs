@@ -242,7 +242,7 @@ const USE_MUTATION_IMPL: &str = r#"export function useMutation<K extends Mutatio
   const error = ref<RpcError | undefined>();
   const isLoading = ref(false);
   const hasSucceeded = ref(false);
-  const isSuccess = computed(() => hasSucceeded.value && error.value === undefined);
+  const isSuccess = computed(() => hasSucceeded.value);
   const isError = computed(() => error.value !== undefined);
 
   async function execute(...input: MutationArgs<K>): Promise<MutationOutput<K>> {

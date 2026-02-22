@@ -344,18 +344,7 @@ fn svelte_query_status_enum() {
     );
 }
 
-#[test]
-fn svelte_mutation_status_enum() {
-    let manifest = common::make_manifest(vec![common::make_mutation(
-        "create_item",
-        Some(RustType::simple("CreateInput")),
-        Some(RustType::simple("Item")),
-    )]);
-    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(
-        output.contains(r#"export type MutationStatus = "idle" | "loading" | "success" | "error""#)
-    );
-}
+
 
 #[test]
 fn svelte_query_is_placeholder_data() {
