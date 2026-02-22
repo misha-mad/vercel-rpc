@@ -441,7 +441,7 @@ fn vue_fetch_receives_signal() {
         Some(RustType::simple("String")),
     )]);
     let output = generate_vue_file(&manifest, "./rpc-client", "./rpc-types", false);
-    assert!(output.contains("ctrl.signal"));
+    assert!(output.contains("controller.signal"));
 }
 
 #[test]

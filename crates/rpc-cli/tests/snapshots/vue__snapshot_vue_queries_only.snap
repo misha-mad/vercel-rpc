@@ -53,19 +53,19 @@ export interface QueryResult<K extends QueryKey> {
   /** The latest successfully resolved data, or placeholderData. */
   readonly data: Ref<QueryOutput<K> | undefined>;
 
-  /** The error from the most recent failed fetch, cleared on success. */
+  /** The error from the most recent failed fetch, cleared on next attempt. */
   readonly error: Ref<RpcError | undefined>;
 
   /** True while a fetch is in-flight (including the initial fetch). */
   readonly isLoading: Ref<boolean>;
 
-  /** True after the first successful fetch. Stays true across refetches. */
+  /** True after the first successful fetch. Stays true even if a later refetch fails. */
   readonly isSuccess: ComputedRef<boolean>;
 
   /** True when the most recent fetch failed. */
   readonly isError: ComputedRef<boolean>;
 
-  /** Manually trigger a refetch. */
+  /** Manually trigger a refetch. No-op when `enabled` is false. */
   refetch: () => Promise<void>;
 }
 
@@ -108,11 +108,18 @@ export function useQuery<K extends QueryKey>(
     return typeof optionsArg === "function" ? optionsArg() : optionsArg;
   }
 
+  function resolveEnabled(): boolean {
+    const opts = resolveOptions();
+    return typeof opts?.enabled === "function"
+      ? opts.enabled()
+      : (opts?.enabled ?? true);
+  }
+
   const data = ref<QueryOutput<K> | undefined>(resolveOptions()?.placeholderData) as Ref<QueryOutput<K> | undefined>;
   const error = ref<RpcError | undefined>();
   const hasFetched = ref(false);
   const isLoading = ref(false);
-  const isSuccess = computed(() => hasFetched.value && error.value === undefined);
+  const isSuccess = computed(() => hasFetched.value);
   const isError = computed(() => error.value !== undefined);
 
   async function fetchData(input?: QueryInput<K>, signal?: AbortSignal) {
@@ -152,26 +159,28 @@ export function useQuery<K extends QueryKey>(
 
   const stopWatch = watch(
     () => {
-      const opts = resolveOptions();
-      const enabled = typeof opts?.enabled === "function"
-        ? opts.enabled()
-        : (opts?.enabled ?? true);
+      const enabled = resolveEnabled();
       const input = inputFn?.();
-      return { enabled, input, serialized: JSON.stringify(input), refetchInterval: opts?.refetchInterval };
+      return { enabled, input, serialized: JSON.stringify(input), refetchInterval: resolveOptions()?.refetchInterval };
     },
-    ({ enabled, input, refetchInterval }: { enabled: boolean; input: QueryInput<K> | undefined; serialized: string; refetchInterval: number | undefined }) => {
-      if (controller) { controller.abort(); controller = undefined; }
+    (curr, prev) => {
+      const inputChanged = !prev || curr.enabled !== prev.enabled || curr.serialized !== prev.serialized;
+
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
-      if (!enabled) return;
 
-      controller = new AbortController();
-      const ctrl = controller;
-      void fetchData(input, ctrl.signal);
+      if (inputChanged) {
+        if (controller) { controller.abort(); controller = undefined; }
+        if (!curr.enabled) { isLoading.value = false; return; }
+        controller = new AbortController();
+        void fetchData(curr.input, controller.signal);
+      }
 
-      if (refetchInterval) {
+      if (curr.enabled && curr.refetchInterval) {
         intervalId = setInterval(() => {
-          if (!ctrl.signal.aborted) fetchData(inputFn?.(), ctrl.signal);
-        }, refetchInterval);
+          if (controller && !controller.signal.aborted) {
+            void fetchData(inputFn?.(), controller.signal);
+          }
+        }, curr.refetchInterval);
       }
     },
     { immediate: true },
@@ -189,6 +198,11 @@ export function useQuery<K extends QueryKey>(
     isLoading,
     isSuccess,
     isError,
-    refetch: () => fetchData(inputFn?.()),
+    refetch: () => {
+      if (!resolveEnabled()) return Promise.resolve();
+      if (controller) controller.abort();
+      controller = new AbortController();
+      return fetchData(inputFn?.(), controller.signal);
+    },
   };
 }
