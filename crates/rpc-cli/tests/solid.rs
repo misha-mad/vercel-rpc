@@ -169,7 +169,7 @@ fn solid_void_query_overload() {
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type VoidQueryKey = \"time\""));
     assert!(output.contains(
-        "createQuery<K extends \"time\">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>"
+        "createQuery<K extends \"time\">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>"
     ));
 }
 
@@ -183,7 +183,7 @@ fn solid_non_void_query_overload() {
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type NonVoidQueryKey = \"hello\""));
     assert!(output.contains(
-        "createQuery<K extends \"hello\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>"
+        "createQuery<K extends \"hello\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>"
     ));
 }
 
@@ -353,6 +353,7 @@ fn solid_refetch_interval_cleanup() {
     assert!(output.contains("setInterval"));
     assert!(output.contains("clearInterval"));
     assert!(output.contains("onCleanup("));
+    assert!(output.contains("controller.abort()"));
 }
 
 // --- Void mutation ---
@@ -443,7 +444,77 @@ fn solid_is_loading_initial_true() {
     )]);
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("const [isLoading, setIsLoading] = createSignal(initialEnabled)"));
+    assert!(output.contains("const initialOpts = resolveOptions()"));
     assert!(output.contains("const initialEnabled ="));
+}
+
+// --- AbortController & reactive options ---
+
+#[test]
+fn solid_abort_controller_in_effect() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("new AbortController()"));
+    assert!(output.contains("controller.abort()"));
+}
+
+#[test]
+fn solid_fetch_receives_signal() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("controller.signal"));
+}
+
+#[test]
+fn solid_abort_guard_in_catch() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("signal?.aborted"));
+}
+
+#[test]
+fn solid_signal_merge() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("AbortSignal.any("));
+}
+
+#[test]
+fn solid_options_accepts_getter() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("QueryOptions<K> | (() => QueryOptions<K>)"));
+}
+
+#[test]
+fn solid_resolve_options_helper() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("resolveOptions"));
 }
 
 // --- insta snapshot tests ---

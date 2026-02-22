@@ -134,7 +134,7 @@ fn svelte_void_query_overload() {
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type VoidQueryKey = \"time\""));
     assert!(output.contains(
-        "createQuery<K extends \"time\">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>"
+        "createQuery<K extends \"time\">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>"
     ));
 }
 
@@ -148,7 +148,7 @@ fn svelte_non_void_query_overload() {
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("type NonVoidQueryKey = \"hello\""));
     assert!(output.contains(
-        "createQuery<K extends \"hello\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>"
+        "createQuery<K extends \"hello\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>"
     ));
 }
 
@@ -312,6 +312,7 @@ fn svelte_refetch_interval_cleanup() {
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
     assert!(output.contains("setInterval"));
     assert!(output.contains("clearInterval"));
+    assert!(output.contains("controller.abort()"));
 }
 
 // --- Void mutation ---
@@ -380,6 +381,75 @@ fn svelte_status_derives_booleans() {
     assert!(output.contains(r#"status === "error""#));
     // Must NOT contain the old data-based isSuccess derivation
     assert!(!output.contains("get isSuccess() { return data !== undefined"));
+}
+
+// --- AbortController & reactive options ---
+
+#[test]
+fn svelte_abort_controller_in_effect() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("new AbortController()"));
+    assert!(output.contains("controller.abort()"));
+}
+
+#[test]
+fn svelte_fetch_receives_signal() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("controller.signal"));
+}
+
+#[test]
+fn svelte_abort_guard_in_catch() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("signal?.aborted"));
+}
+
+#[test]
+fn svelte_signal_merge() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("AbortSignal.any("));
+}
+
+#[test]
+fn svelte_options_accepts_getter() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("QueryOptions<K> | (() => QueryOptions<K>)"));
+}
+
+#[test]
+fn svelte_resolve_options_helper() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("resolveOptions"));
 }
 
 // --- insta snapshot tests ---

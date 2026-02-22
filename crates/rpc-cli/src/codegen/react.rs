@@ -8,8 +8,13 @@ const GENERATED_HEADER: &str = "\
 ";
 
 const QUERY_OPTIONS_INTERFACE: &str = r#"export interface QueryOptions<K extends QueryKey> {
-  /** Whether to execute the query. @default true */
-  enabled?: boolean;
+  /**
+   * Whether to execute the query. @default true
+   *
+   * Pass a getter `() => bool` for reactive updates — a plain `boolean` is
+   * read once when `useQuery` is called and will not trigger re-fetches.
+   */
+  enabled?: boolean | (() => boolean);
 
   /** Auto-refetch interval in milliseconds. Set to 0 or omit to disable. */
   refetchInterval?: number;
@@ -106,55 +111,92 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
 ): QueryResult<K> {
   const key = args[0] as K;
 
-  const hasInput = args[1] !== undefined && !isQueryOptions(args[1]);
+  const hasInput = args[1] !== undefined && !isQueryOptions(args[1]) && typeof args[1] !== "function";
   const input = hasInput ? args[1] as QueryInput<K> : undefined;
-  const options = (hasInput ? args[2] : args[1]) as QueryOptions<K> | undefined;
+  const optionsArg = (hasInput ? args[2] : args[1]) as
+    | QueryOptions<K>
+    | (() => QueryOptions<K>)
+    | undefined;
 
-  const [data, setData] = useState<QueryOutput<K> | undefined>(options?.placeholderData);
+  const optionsArgRef = useRef(optionsArg);
+  optionsArgRef.current = optionsArg;
+
+  const resolveOptions = useCallback((): QueryOptions<K> | undefined =>
+    typeof optionsArgRef.current === "function"
+      ? optionsArgRef.current()
+      : optionsArgRef.current,
+  []);
+
+  const initialOpts = resolveOptions();
+  const initialEnabled = typeof initialOpts?.enabled === "function"
+    ? initialOpts.enabled()
+    : (initialOpts?.enabled ?? true);
+
+  const [data, setData] = useState<QueryOutput<K> | undefined>(initialOpts?.placeholderData);
   const [error, setError] = useState<RpcError | undefined>();
-  const [isLoading, setIsLoading] = useState(options?.enabled !== false);
+  const [isLoading, setIsLoading] = useState(initialEnabled);
   const [hasFetched, setHasFetched] = useState(false);
 
-  const optionsRef = useRef(options);
-  optionsRef.current = options;
-
-  const fetchData = useCallback(async () => {
-    if (optionsRef.current?.enabled === false) return;
+  const fetchData = useCallback(async (inputVal?: QueryInput<K>, signal?: AbortSignal) => {
+    const opts = resolveOptions();
     setIsLoading(true);
     setError(undefined);
     try {
       const callArgs: unknown[] = [key];
-      if (input !== undefined) callArgs.push(input);
-      if (optionsRef.current?.callOptions) callArgs.push(optionsRef.current.callOptions);
+      if (inputVal !== undefined) callArgs.push(inputVal);
+      const mergedCallOptions = signal
+        ? { ...opts?.callOptions, signal: opts?.callOptions?.signal
+            ? AbortSignal.any([signal, opts.callOptions.signal])
+            : signal }
+        : opts?.callOptions;
+      if (mergedCallOptions) callArgs.push(mergedCallOptions);
       const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
+      if (signal?.aborted) return;
       setData(result);
       setHasFetched(true);
-      optionsRef.current?.onSuccess?.(result);
+      opts?.onSuccess?.(result);
     } catch (e) {
+      if (signal?.aborted) return;
       const err = e as RpcError;
       setError(err);
-      optionsRef.current?.onError?.(err);
+      opts?.onError?.(err);
     } finally {
-      setIsLoading(false);
-      optionsRef.current?.onSettled?.();
+      if (!signal?.aborted) {
+        setIsLoading(false);
+        opts?.onSettled?.();
+      }
     }
-  }, [client, key, JSON.stringify(input)]);
+  }, [client, key, resolveOptions]);
+
+  const resolvedOpts = resolveOptions();
+  const enabled = typeof resolvedOpts?.enabled === "function"
+    ? resolvedOpts.enabled()
+    : (resolvedOpts?.enabled ?? true);
 
   useEffect(() => {
-    if (options?.enabled === false) return;
-    void fetchData();
+    if (!enabled) return;
 
-    if (options?.refetchInterval) {
-      const interval = setInterval(fetchData, options.refetchInterval);
-      return () => clearInterval(interval);
+    const controller = new AbortController();
+    void fetchData(input, controller.signal);
+
+    let interval: ReturnType<typeof setInterval> | undefined;
+    if (resolvedOpts?.refetchInterval) {
+      interval = setInterval(() => {
+        if (!controller.signal.aborted) fetchData(input, controller.signal);
+      }, resolvedOpts.refetchInterval);
     }
-  }, [fetchData, options?.enabled, options?.refetchInterval]);
+
+    return () => {
+      controller.abort();
+      if (interval) clearInterval(interval);
+    };
+  }, [fetchData, enabled, resolvedOpts?.refetchInterval, JSON.stringify(input)]);
 
   return {
     data, error, isLoading,
     isSuccess: hasFetched && error === undefined,
     isError: error !== undefined,
-    refetch: fetchData,
+    refetch: () => fetchData(input),
   };
 }"#;
 
@@ -416,7 +458,7 @@ fn generate_query_overloads(queries: &[&Procedure], out: &mut String) {
             .unwrap_or_else(|| "void".to_string());
         emit!(
             out,
-            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;",
+            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;",
             proc.name,
         );
         let _ = output_ts; // type safety ensured by generic K
@@ -431,7 +473,7 @@ fn generate_query_overloads(queries: &[&Procedure], out: &mut String) {
             .unwrap_or_else(|| "void".to_string());
         emit!(
             out,
-            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, input: QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;",
+            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, input: QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;",
             proc.name,
         );
         let _ = output_ts;

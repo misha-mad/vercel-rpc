@@ -104,56 +104,79 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
   const inputFn = typeof args[1] === "function"
     ? args[1] as () => QueryInput<K>
     : undefined;
-  const options = (typeof args[1] === "object" ? args[1] : args[2]) as
+  const optionsArg = (typeof args[1] === "object" ? args[1] : args[2]) as
     | QueryOptions<K>
+    | (() => QueryOptions<K>)
     | undefined;
 
-  const data = ref<QueryOutput<K> | undefined>(options?.placeholderData) as Ref<QueryOutput<K> | undefined>;
+  function resolveOptions(): QueryOptions<K> | undefined {
+    return typeof optionsArg === "function" ? optionsArg() : optionsArg;
+  }
+
+  const data = ref<QueryOutput<K> | undefined>(resolveOptions()?.placeholderData) as Ref<QueryOutput<K> | undefined>;
   const error = ref<RpcError | undefined>();
   const hasFetched = ref(false);
   const isLoading = ref(false);
   const isSuccess = computed(() => hasFetched.value && error.value === undefined);
   const isError = computed(() => error.value !== undefined);
 
-  async function fetchData(input?: QueryInput<K>) {
+  async function fetchData(input?: QueryInput<K>, signal?: AbortSignal) {
+    const opts = resolveOptions();
     isLoading.value = true;
     error.value = undefined;
     try {
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
-      if (options?.callOptions) callArgs.push(options.callOptions);
-      data.value = await (client.query as (...a: unknown[]) => Promise<unknown>)(
+      const mergedCallOptions = signal
+        ? { ...opts?.callOptions, signal: opts?.callOptions?.signal
+            ? AbortSignal.any([signal, opts.callOptions.signal])
+            : signal }
+        : opts?.callOptions;
+      if (mergedCallOptions) callArgs.push(mergedCallOptions);
+      const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as QueryOutput<K>;
+      if (signal?.aborted) return;
+      data.value = result;
       hasFetched.value = true;
-      options?.onSuccess?.(data.value!);
+      opts?.onSuccess?.(data.value!);
     } catch (e) {
+      if (signal?.aborted) return;
       error.value = e as RpcError;
-      options?.onError?.(error.value);
+      opts?.onError?.(error.value);
     } finally {
-      isLoading.value = false;
-      options?.onSettled?.();
+      if (!signal?.aborted) {
+        isLoading.value = false;
+        opts?.onSettled?.();
+      }
     }
   }
 
+  let controller: AbortController | undefined;
   let intervalId: ReturnType<typeof setInterval> | undefined;
 
   const stopWatch = watch(
     () => {
-      const enabled = typeof options?.enabled === "function"
-        ? options.enabled()
-        : (options?.enabled ?? true);
+      const opts = resolveOptions();
+      const enabled = typeof opts?.enabled === "function"
+        ? opts.enabled()
+        : (opts?.enabled ?? true);
       const input = inputFn?.();
       return { enabled, input, serialized: JSON.stringify(input) };
     },
     ({ enabled, input }: { enabled: boolean; input: QueryInput<K> | undefined; serialized: string }) => {
+      if (controller) { controller.abort(); controller = undefined; }
       if (intervalId) { clearInterval(intervalId); intervalId = undefined; }
       if (!enabled) return;
 
-      void fetchData(input);
+      controller = new AbortController();
+      void fetchData(input, controller.signal);
 
-      if (options?.refetchInterval) {
-        intervalId = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
+      const opts = resolveOptions();
+      if (opts?.refetchInterval) {
+        intervalId = setInterval(() => {
+          if (!controller?.signal.aborted) fetchData(inputFn?.(), controller!.signal);
+        }, opts.refetchInterval);
       }
     },
     { immediate: true },
@@ -161,6 +184,7 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
 
   onScopeDispose(() => {
     stopWatch();
+    if (controller) controller.abort();
     if (intervalId) clearInterval(intervalId);
   });
 
@@ -426,7 +450,7 @@ fn generate_query_overloads(queries: &[&Procedure], out: &mut String) {
             .unwrap_or_else(|| "void".to_string());
         emit!(
             out,
-            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;",
+            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;",
             proc.name,
         );
         let _ = output_ts; // type safety ensured by generic K
@@ -441,7 +465,7 @@ fn generate_query_overloads(queries: &[&Procedure], out: &mut String) {
             .unwrap_or_else(|| "void".to_string());
         emit!(
             out,
-            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;",
+            "export function useQuery<K extends \"{}\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;",
             proc.name,
         );
         let _ = output_ts;

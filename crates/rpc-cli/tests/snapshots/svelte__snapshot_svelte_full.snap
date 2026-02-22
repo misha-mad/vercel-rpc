@@ -125,8 +125,8 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }
 
-export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;
-export function createQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;
+export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
@@ -136,46 +136,71 @@ export function createQuery<K extends QueryKey>(
   const inputFn = typeof args[1] === "function"
     ? args[1] as () => QueryInput<K>
     : undefined;
-  const options = (typeof args[1] === "object" ? args[1] : args[2]) as
+  const optionsArg = (typeof args[1] === "object" ? args[1] : args[2]) as
     | QueryOptions<K>
+    | (() => QueryOptions<K>)
     | undefined;
 
-  let data = $state<QueryOutput<K> | undefined>(options?.placeholderData);
+  function resolveOptions(): QueryOptions<K> | undefined {
+    return typeof optionsArg === "function" ? optionsArg() : optionsArg;
+  }
+
+  let data = $state<QueryOutput<K> | undefined>(resolveOptions()?.placeholderData);
   let error = $state<RpcError | undefined>();
   let status = $state<QueryStatus>("idle");
 
-  async function fetchData(input?: QueryInput<K>) {
+  async function fetchData(input?: QueryInput<K>, signal?: AbortSignal) {
+    const opts = resolveOptions();
     status = "loading";
     error = undefined;
     try {
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
-      if (options?.callOptions) callArgs.push(options.callOptions);
-      data = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
+      const mergedCallOptions = signal
+        ? { ...opts?.callOptions, signal: opts?.callOptions?.signal
+            ? AbortSignal.any([signal, opts.callOptions.signal])
+            : signal }
+        : opts?.callOptions;
+      if (mergedCallOptions) callArgs.push(mergedCallOptions);
+      const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(...callArgs) as QueryOutput<K>;
+      if (signal?.aborted) return;
+      data = result;
       status = "success";
-      options?.onSuccess?.(data!);
+      opts?.onSuccess?.(result);
     } catch (e) {
+      if (signal?.aborted) return;
       error = e as RpcError;
       status = "error";
-      options?.onError?.(error);
+      opts?.onError?.(error);
     } finally {
-      options?.onSettled?.();
+      if (!signal?.aborted) {
+        opts?.onSettled?.();
+      }
     }
   }
 
   $effect(() => {
-    const enabled = typeof options?.enabled === "function"
-      ? options.enabled()
-      : (options?.enabled ?? true);
+    const opts = resolveOptions();
+    const enabled = typeof opts?.enabled === "function"
+      ? opts.enabled()
+      : (opts?.enabled ?? true);
     const input = inputFn?.();
     if (!enabled) return;
 
-    void fetchData(input);
+    const controller = new AbortController();
+    void fetchData(input, controller.signal);
 
-    if (options?.refetchInterval) {
-      const interval = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
-      return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | undefined;
+    if (opts?.refetchInterval) {
+      interval = setInterval(() => {
+        if (!controller.signal.aborted) fetchData(inputFn?.(), controller.signal);
+      }, opts.refetchInterval);
     }
+
+    return () => {
+      controller.abort();
+      if (interval) clearInterval(interval);
+    };
   });
 
   return {

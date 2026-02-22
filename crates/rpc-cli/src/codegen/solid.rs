@@ -104,15 +104,21 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   const inputFn = typeof args[1] === "function"
     ? args[1] as () => QueryInput<K>
     : undefined;
-  const options = (typeof args[1] === "object" ? args[1] : args[2]) as
+  const optionsArg = (typeof args[1] === "object" ? args[1] : args[2]) as
     | QueryOptions<K>
+    | (() => QueryOptions<K>)
     | undefined;
 
-  const initialEnabled = typeof options?.enabled === "function"
-    ? options.enabled()
-    : (options?.enabled ?? true);
+  function resolveOptions(): QueryOptions<K> | undefined {
+    return typeof optionsArg === "function" ? optionsArg() : optionsArg;
+  }
 
-  const [data, setData] = createSignal<QueryOutput<K> | undefined>(options?.placeholderData);
+  const initialOpts = resolveOptions();
+  const initialEnabled = typeof initialOpts?.enabled === "function"
+    ? initialOpts.enabled()
+    : (initialOpts?.enabled ?? true);
+
+  const [data, setData] = createSignal<QueryOutput<K> | undefined>(initialOpts?.placeholderData);
   const [error, setError] = createSignal<RpcError | undefined>();
   const [isLoading, setIsLoading] = createSignal(initialEnabled);
   const [hasFetched, setHasFetched] = createSignal(false);
@@ -120,42 +126,61 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
   const isSuccess = createMemo(() => hasFetched() && error() === undefined);
   const isError = createMemo(() => error() !== undefined);
 
-  async function fetchData(input?: QueryInput<K>) {
+  async function fetchData(input?: QueryInput<K>, signal?: AbortSignal) {
+    const opts = resolveOptions();
     setIsLoading(true);
     setError(undefined);
     try {
       const callArgs: unknown[] = [key];
       if (input !== undefined) callArgs.push(input);
-      if (options?.callOptions) callArgs.push(options.callOptions);
+      const mergedCallOptions = signal
+        ? { ...opts?.callOptions, signal: opts?.callOptions?.signal
+            ? AbortSignal.any([signal, opts.callOptions.signal])
+            : signal }
+        : opts?.callOptions;
+      if (mergedCallOptions) callArgs.push(mergedCallOptions);
       const result = await (client.query as (...a: unknown[]) => Promise<unknown>)(
         ...callArgs
       ) as QueryOutput<K>;
+      if (signal?.aborted) return;
       setData(result as Exclude<QueryOutput<K> | undefined, Function>);
       setHasFetched(true);
-      options?.onSuccess?.(result);
+      opts?.onSuccess?.(result);
     } catch (e) {
+      if (signal?.aborted) return;
       const err = e as RpcError;
       setError(err as Exclude<RpcError | undefined, Function>);
-      options?.onError?.(err);
+      opts?.onError?.(err);
     } finally {
-      setIsLoading(false);
-      options?.onSettled?.();
+      if (!signal?.aborted) {
+        setIsLoading(false);
+        opts?.onSettled?.();
+      }
     }
   }
 
   createEffect(() => {
-    const enabled = typeof options?.enabled === "function"
-      ? options.enabled()
-      : (options?.enabled ?? true);
+    const opts = resolveOptions();
+    const enabled = typeof opts?.enabled === "function"
+      ? opts.enabled()
+      : (opts?.enabled ?? true);
     const input = inputFn?.();
     if (!enabled) return;
 
-    void fetchData(input);
+    const controller = new AbortController();
+    void fetchData(input, controller.signal);
 
-    if (options?.refetchInterval) {
-      const interval = setInterval(() => fetchData(inputFn?.()), options.refetchInterval);
-      onCleanup(() => clearInterval(interval));
+    let interval: ReturnType<typeof setInterval> | undefined;
+    if (opts?.refetchInterval) {
+      interval = setInterval(() => {
+        if (!controller.signal.aborted) fetchData(inputFn?.(), controller.signal);
+      }, opts.refetchInterval);
     }
+
+    onCleanup(() => {
+      controller.abort();
+      if (interval) clearInterval(interval);
+    });
   });
 
   return {
@@ -422,7 +447,7 @@ fn generate_query_overloads(queries: &[&Procedure], out: &mut String) {
             .unwrap_or_else(|| "void".to_string());
         emit!(
             out,
-            "export function createQuery<K extends \"{}\">(client: RpcClient, key: K, options?: QueryOptions<K>): QueryResult<K>;",
+            "export function createQuery<K extends \"{}\">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;",
             proc.name,
         );
         let _ = output_ts; // type safety ensured by generic K
@@ -437,7 +462,7 @@ fn generate_query_overloads(queries: &[&Procedure], out: &mut String) {
             .unwrap_or_else(|| "void".to_string());
         emit!(
             out,
-            "export function createQuery<K extends \"{}\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K>): QueryResult<K>;",
+            "export function createQuery<K extends \"{}\">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;",
             proc.name,
         );
         let _ = output_ts;
