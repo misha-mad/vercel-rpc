@@ -526,7 +526,11 @@ fn test_parse_type_overrides() {
     let config: RpcConfig = toml::from_str(toml_str).unwrap();
     assert_eq!(config.codegen.type_overrides.len(), 3);
     assert_eq!(
-        config.codegen.type_overrides.get("chrono::DateTime").unwrap(),
+        config
+            .codegen
+            .type_overrides
+            .get("chrono::DateTime")
+            .unwrap(),
         "string"
     );
     assert_eq!(
@@ -534,7 +538,11 @@ fn test_parse_type_overrides() {
         "string"
     );
     assert_eq!(
-        config.codegen.type_overrides.get("serde_json::Value").unwrap(),
+        config
+            .codegen
+            .type_overrides
+            .get("serde_json::Value")
+            .unwrap(),
         "unknown"
     );
 }
@@ -567,7 +575,11 @@ fn test_cli_type_overrides_merge() {
     let config = resolve(overrides).unwrap();
     assert_eq!(config.codegen.type_overrides.len(), 2);
     assert_eq!(
-        config.codegen.type_overrides.get("chrono::DateTime").unwrap(),
+        config
+            .codegen
+            .type_overrides
+            .get("chrono::DateTime")
+            .unwrap(),
         "string"
     );
     assert_eq!(

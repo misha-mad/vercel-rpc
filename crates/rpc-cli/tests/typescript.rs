@@ -2514,10 +2514,7 @@ fn base_name_simple() {
 
 #[test]
 fn base_name_qualified() {
-    assert_eq!(
-        RustType::simple("chrono::DateTime").base_name(),
-        "DateTime"
-    );
+    assert_eq!(RustType::simple("chrono::DateTime").base_name(), "DateTime");
 }
 
 #[test]

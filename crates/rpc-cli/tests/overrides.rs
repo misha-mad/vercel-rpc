@@ -181,7 +181,10 @@ fn override_in_procedure_io() {
         enums: vec![],
     };
     apply_type_overrides(&mut manifest, &overrides, &base);
-    assert_eq!(manifest.procedures[0].input.as_ref().unwrap().name, "string");
+    assert_eq!(
+        manifest.procedures[0].input.as_ref().unwrap().name,
+        "string"
+    );
     assert_eq!(manifest.procedures[0].output.as_ref().unwrap().name, "User");
 }
 
@@ -225,10 +228,7 @@ fn override_in_enum_struct_variant() {
             generics: vec![],
             variants: vec![EnumVariant {
                 name: "Created".to_string(),
-                kind: VariantKind::Struct(vec![common::field(
-                    "at",
-                    RustType::simple("DateTime"),
-                )]),
+                kind: VariantKind::Struct(vec![common::field("at", RustType::simple("DateTime"))]),
                 rename: None,
             }],
             source_file: PathBuf::from("test.rs"),
@@ -310,10 +310,7 @@ fn empty_overrides_noop() {
 #[test]
 fn exact_full_path_takes_priority_over_base_name() {
     // Two overrides: one exact for chrono::DateTime, one for DateTime
-    let overrides = make_overrides(&[
-        ("chrono::DateTime", "string"),
-        ("DateTime", "Date"),
-    ]);
+    let overrides = make_overrides(&[("chrono::DateTime", "string"), ("DateTime", "Date")]);
     let base = build_base_index(&overrides);
     let mut manifest = Manifest {
         procedures: vec![],
