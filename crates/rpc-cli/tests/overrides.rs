@@ -177,6 +177,7 @@ fn override_in_procedure_io() {
             source_file: PathBuf::from("test.rs"),
             docs: None,
             timeout_ms: None,
+            idempotent: false,
         }],
         structs: vec![],
         enums: vec![],

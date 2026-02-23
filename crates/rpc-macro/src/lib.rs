@@ -214,6 +214,11 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// Duration shorthand: `30s`, `5m`, `1h`, `1d`. The timeout is also forwarded
 /// to the generated TypeScript client as a per-procedure default.
 ///
+/// # Idempotent
+///
+/// The `idempotent` flag is **not** accepted on queries — queries are inherently
+/// idempotent (GET requests). Using `#[rpc_query(idempotent)]` is a compile error.
+///
 /// # Limitations
 ///
 /// - `Result` and `Headers` are detected by **name only** (last path segment).
@@ -236,6 +241,14 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
         Ok(a) => a,
         Err(e) => return e.to_compile_error().into(),
     };
+    if attrs.idempotent {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "idempotent is only valid on mutations (queries are inherently idempotent)",
+        )
+        .to_compile_error()
+        .into();
+    }
     let input_fn = parse_macro_input!(item as ItemFn);
     build_handler(input_fn, HandlerKind::Query, attrs)
         .map(Into::into)
@@ -313,6 +326,24 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
+/// # Idempotent
+///
+/// Use the bare `idempotent` flag to mark a mutation as safe to retry.
+/// This is **metadata-only** — the server-side handler is unchanged.
+/// The generated TypeScript client uses this flag to gate automatic
+/// retries for the marked mutations (queries are always retryable).
+///
+/// ```rust,ignore
+/// #[rpc_mutation(idempotent)]
+/// async fn upsert_setting(input: Setting) -> Setting { /* ... */ }
+///
+/// #[rpc_mutation(idempotent, timeout = "30s")]
+/// async fn archive_order(id: u64) -> bool { /* ... */ }
+/// ```
+///
+/// **Note:** `idempotent` is rejected on `#[rpc_query]` because queries
+/// are inherently idempotent (GET requests are always safe to retry).
+///
 /// # Compile errors
 ///
 /// The macro rejects functions with more than one parameter:
@@ -360,6 +391,7 @@ struct HandlerAttrs {
     cache_config: Option<CacheConfig>,
     init_fn: Option<String>,
     timeout_secs: Option<u64>,
+    idempotent: bool,
 }
 
 /// Parses optional `init` / `cache` / `stale` key-value pairs from handler attributes.
@@ -377,11 +409,12 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
             cache_config: None,
             init_fn: None,
             timeout_secs: None,
+            idempotent: false,
         });
     }
 
     let parsed = syn::parse::Parser::parse2(
-        syn::punctuated::Punctuated::<syn::MetaNameValue, syn::token::Comma>::parse_terminated,
+        syn::punctuated::Punctuated::<syn::Meta, syn::token::Comma>::parse_terminated,
         attr,
     )?;
 
@@ -389,71 +422,112 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
     let mut stale_value = None;
     let mut init_value = None;
     let mut timeout_value = None;
+    let mut idempotent = false;
 
-    for nv in &parsed {
-        let key = nv
-            .path
-            .get_ident()
-            .ok_or_else(|| syn::Error::new_spanned(&nv.path, "expected a simple identifier"))?;
+    for meta in &parsed {
+        match meta {
+            syn::Meta::Path(path) => {
+                let ident = path
+                    .get_ident()
+                    .ok_or_else(|| syn::Error::new_spanned(path, "expected a simple identifier"))?;
 
-        let value = match &nv.value {
-            syn::Expr::Lit(expr_lit) => match &expr_lit.lit {
-                syn::Lit::Str(s) => s.value(),
-                _ => {
+                if ident == "idempotent" {
+                    if idempotent {
+                        return Err(syn::Error::new_spanned(
+                            ident,
+                            "duplicate `idempotent` attribute",
+                        ));
+                    }
+                    idempotent = true;
+                } else {
                     return Err(syn::Error::new_spanned(
-                        &nv.value,
-                        "expected a string literal",
+                        ident,
+                        format!("unknown attribute `{ident}`"),
                     ));
                 }
-            },
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    &nv.value,
-                    "expected a string literal",
-                ));
             }
-        };
+            syn::Meta::NameValue(nv) => {
+                let key = nv
+                    .path
+                    .get_ident()
+                    .ok_or_else(|| {
+                        syn::Error::new_spanned(&nv.path, "expected a simple identifier")
+                    })?;
 
-        if key == "cache" {
-            if cache_value.is_some() {
-                return Err(syn::Error::new_spanned(key, "duplicate `cache` attribute"));
+                // Reject `idempotent = ...` before parsing the value — it's a bare flag.
+                if key == "idempotent" {
+                    return Err(syn::Error::new_spanned(
+                        key,
+                        "`idempotent` is a bare flag and does not accept a value; use `idempotent` instead of `idempotent = \"...\"`",
+                    ));
+                }
+
+                let value = match &nv.value {
+                    syn::Expr::Lit(expr_lit) => match &expr_lit.lit {
+                        syn::Lit::Str(s) => s.value(),
+                        _ => {
+                            return Err(syn::Error::new_spanned(
+                                &nv.value,
+                                "expected a string literal",
+                            ));
+                        }
+                    },
+                    _ => {
+                        return Err(syn::Error::new_spanned(
+                            &nv.value,
+                            "expected a string literal",
+                        ));
+                    }
+                };
+
+                if key == "cache" {
+                    if cache_value.is_some() {
+                        return Err(syn::Error::new_spanned(key, "duplicate `cache` attribute"));
+                    }
+                    cache_value = Some(value);
+                } else if key == "stale" {
+                    if stale_value.is_some() {
+                        return Err(syn::Error::new_spanned(key, "duplicate `stale` attribute"));
+                    }
+                    stale_value = Some(value);
+                } else if key == "init" {
+                    if init_value.is_some() {
+                        return Err(syn::Error::new_spanned(key, "duplicate `init` attribute"));
+                    }
+                    if value.is_empty() {
+                        return Err(syn::Error::new_spanned(
+                            &nv.value,
+                            "init function path cannot be empty",
+                        ));
+                    }
+                    init_value = Some(value);
+                } else if key == "timeout" {
+                    if timeout_value.is_some() {
+                        return Err(syn::Error::new_spanned(
+                            key,
+                            "duplicate `timeout` attribute",
+                        ));
+                    }
+                    if value.is_empty() {
+                        return Err(syn::Error::new_spanned(
+                            &nv.value,
+                            "timeout duration cannot be empty",
+                        ));
+                    }
+                    timeout_value = Some(value);
+                } else {
+                    return Err(syn::Error::new_spanned(
+                        key,
+                        format!("unknown attribute `{key}`"),
+                    ));
+                }
             }
-            cache_value = Some(value);
-        } else if key == "stale" {
-            if stale_value.is_some() {
-                return Err(syn::Error::new_spanned(key, "duplicate `stale` attribute"));
-            }
-            stale_value = Some(value);
-        } else if key == "init" {
-            if init_value.is_some() {
-                return Err(syn::Error::new_spanned(key, "duplicate `init` attribute"));
-            }
-            if value.is_empty() {
+            syn::Meta::List(list) => {
                 return Err(syn::Error::new_spanned(
-                    &nv.value,
-                    "init function path cannot be empty",
+                    list,
+                    "expected `key = \"value\"` or bare flag",
                 ));
             }
-            init_value = Some(value);
-        } else if key == "timeout" {
-            if timeout_value.is_some() {
-                return Err(syn::Error::new_spanned(
-                    key,
-                    "duplicate `timeout` attribute",
-                ));
-            }
-            if value.is_empty() {
-                return Err(syn::Error::new_spanned(
-                    &nv.value,
-                    "timeout duration cannot be empty",
-                ));
-            }
-            timeout_value = Some(value);
-        } else {
-            return Err(syn::Error::new_spanned(
-                key,
-                format!("unknown attribute `{key}`"),
-            ));
         }
     }
 
@@ -482,6 +556,7 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
         cache_config,
         init_fn: init_value,
         timeout_secs,
+        idempotent,
     })
 }
 
@@ -566,6 +641,7 @@ fn build_handler(
         cache_config,
         init_fn,
         timeout_secs,
+        idempotent: _,
     } = attrs;
 
     if func.sig.asyncness.is_none() {

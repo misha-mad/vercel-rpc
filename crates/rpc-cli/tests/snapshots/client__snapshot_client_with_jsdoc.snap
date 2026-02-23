@@ -80,6 +80,8 @@ export interface CallOptions {
 
 const PROCEDURE_TIMEOUTS: Record<string, number> = {};
 
+const IDEMPOTENT_MUTATIONS: Set<string> = new Set();
+
 const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
 
 async function rpcFetch(
@@ -145,7 +147,7 @@ async function rpcFetch(
           `RPC error on "${procedure}": ${res.status} ${res.statusText}`,
           data,
         );
-        const canRetry = retryOn.includes(res.status) && attempt < maxAttempts;
+        const canRetry = retryOn.includes(res.status) && attempt < maxAttempts && (method === "GET" || IDEMPOTENT_MUTATIONS.has(procedure));
         await config.onError?.({ procedure, method, url, error: rpcError, attempt, willRetry: canRetry });
         if (!canRetry) throw rpcError;
       } else {
@@ -157,7 +159,7 @@ async function rpcFetch(
       }
     } catch (err) {
       if (err instanceof RpcError) throw err;
-      const willRetry = attempt < maxAttempts;
+      const willRetry = attempt < maxAttempts && (method === "GET" || IDEMPOTENT_MUTATIONS.has(procedure));
       await config.onError?.({ procedure, method, url, error: err, attempt, willRetry });
       if (!willRetry) throw err;
     } finally {

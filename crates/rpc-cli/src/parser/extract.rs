@@ -202,6 +202,7 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
     };
 
     let timeout_ms = extract_timeout_ms(&func.attrs);
+    let idempotent = extract_idempotent(&func.attrs);
 
     Some(Procedure {
         name,
@@ -211,6 +212,7 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
         source_file: path.to_path_buf(),
         docs,
         timeout_ms,
+        idempotent,
     })
 }
 
@@ -285,18 +287,20 @@ fn is_headers_type(ty: &syn::Type) -> bool {
 /// Extracts the `timeout` value from `#[rpc_query(timeout = "30s")]` or `#[rpc_mutation(timeout = "30s")]`.
 ///
 /// Returns `Some(milliseconds)` if a valid timeout is found, `None` otherwise.
+/// Uses `Punctuated<Meta>` to handle mixed bare flags (e.g. `idempotent`) alongside key-value pairs.
 fn extract_timeout_ms(attrs: &[Attribute]) -> Option<u64> {
     for attr in attrs {
         if !attr.path().is_ident(RPC_QUERY_ATTR) && !attr.path().is_ident(RPC_MUTATION_ATTR) {
             continue;
         }
         let Ok(parsed) = attr.parse_args_with(
-            syn::punctuated::Punctuated::<syn::MetaNameValue, syn::Token![,]>::parse_terminated,
+            syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
         ) else {
             continue;
         };
-        for nv in &parsed {
-            if nv.path.is_ident("timeout")
+        for meta in &parsed {
+            if let syn::Meta::NameValue(nv) = meta
+                && nv.path.is_ident("timeout")
                 && let syn::Expr::Lit(syn::ExprLit {
                     lit: syn::Lit::Str(s),
                     ..
@@ -329,6 +333,31 @@ fn parse_duration_to_ms(s: &str) -> Option<u64> {
         return None;
     }
     Some(num * multiplier)
+}
+
+/// Extracts the bare `idempotent` flag from `#[rpc_mutation(idempotent)]`.
+///
+/// Only checks `RPC_MUTATION_ATTR` attributes. Lenient: silently ignores
+/// `rpc_query(idempotent)` (the proc macro rejects it at compile time).
+fn extract_idempotent(attrs: &[Attribute]) -> bool {
+    for attr in attrs {
+        if !attr.path().is_ident(RPC_MUTATION_ATTR) {
+            continue;
+        }
+        let Ok(parsed) = attr.parse_args_with(
+            syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
+        ) else {
+            continue;
+        };
+        for meta in &parsed {
+            if let syn::Meta::Path(path) = meta
+                && path.is_ident("idempotent")
+            {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 /// Checks if a struct has `#[derive(Serialize)]` or `#[derive(serde::Serialize)]`.

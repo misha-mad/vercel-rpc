@@ -239,6 +239,9 @@ pub struct Procedure {
     /// Per-procedure timeout in milliseconds (from `timeout = "..."` attribute)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout_ms: Option<u64>,
+    /// Whether this mutation is marked as idempotent (safe to retry)
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub idempotent: bool,
 }
 
 /// All user-defined struct types found in the scanned source files.
