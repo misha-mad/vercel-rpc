@@ -136,18 +136,9 @@ async fn get_profile() -> Profile { ... }
 // → Cache-Control: private, max-age=600
 ```
 
-#### Cold-Start Initialization via `init` → [RFC-11](./RFC/RFC-11.md)
+#### ~~Cold-Start Initialization via `init`~~ ✅ → [RFC-11](./RFC/RFC-11.md)
 
-An `init` parameter on `#[rpc_query]` / `#[rpc_mutation]` that runs a function once at cold start. The init function can return shared state (DB pool, HTTP client) stored in a `OnceLock` and injected into the handler as a `&State` parameter.
-
-```rust
-#[rpc_query(init = "setup", cache = "1h")]
-async fn get_user(id: u32, state: &AppState) -> User {
-    state.pool.query("...").await
-}
-```
-
-Shared init code lives outside `api/` (e.g. `src/lib.rs`) so Vercel doesn't deploy it as a lambda. Each lambda calls `setup()` independently at its own cold start.
+> Implemented via `init` attribute on `#[rpc_query]` / `#[rpc_mutation]`. The init function runs once at cold start and can return shared state stored in a `OnceLock`, injected into the handler as a `&T` parameter. Supports side-effects only (logger, dotenv) and state injection (DB pool, HTTP client). Compatible with `cache` on queries. Mutations support `init` but not `cache`.
 
 #### Other metadata
 - `timeout` — sets per-procedure server-side and client-side timeouts.
@@ -175,4 +166,4 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                                    |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
-| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, init/state, batch requests                                                                  |
+| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, ~~init/state~~ ✅, batch requests                                                              |

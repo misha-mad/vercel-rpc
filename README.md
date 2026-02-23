@@ -671,6 +671,57 @@ async fn get_profile() -> Profile { /* ... */ }
 
 Duration shorthand: `30s`, `5m`, `1h`, `1d`. The macro parses these at compile time and emits the appropriate header values. Error responses never receive cache headers. Mutations do not support caching.
 
+### Initialization
+
+Use the `init` attribute to run a function once at cold start. This enables logger setup, dotenv loading, DB connection pools, and HTTP clients in serverless lambdas.
+
+**Side-effects only** (logger, env loading):
+
+```rust
+async fn setup() {
+    tracing_subscriber::fmt().try_init().ok();
+    dotenv::dotenv().ok();
+}
+
+#[rpc_query(init = "setup")]
+async fn get_data() -> Data { /* ... */ }
+```
+
+**With state injection** (DB pool, HTTP client):
+
+```rust
+struct AppState {
+    pool: sqlx::PgPool,
+    http: reqwest::Client,
+}
+
+async fn setup() -> AppState {
+    let pool = sqlx::PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+    AppState { pool, http: reqwest::Client::new() }
+}
+
+#[rpc_query(init = "setup")]
+async fn get_user(id: u32, state: &AppState) -> User {
+    state.pool.query("...").await
+}
+```
+
+The init function must be `async`. State is stored in a `OnceLock` and injected as `&T` — the macro distinguishes state (`&T`) from input (`T`) by reference syntax. Parameter order does not matter.
+
+**Combined with cache:**
+
+```rust
+#[rpc_query(init = "setup", cache = "1h")]
+async fn get_user(id: u32, state: &AppState) -> User { /* ... */ }
+```
+
+Mutations support `init` (but not `cache`):
+
+```rust
+#[rpc_mutation(init = "setup")]
+async fn create_order(input: OrderInput, state: &AppState) -> Order { /* ... */ }
+```
+
 ### `#[rpc_mutation]` — POST endpoint
 
 ```rust

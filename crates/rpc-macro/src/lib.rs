@@ -173,6 +173,30 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// Duration shorthand: `30s`, `5m`, `1h`, `1d`. Error responses never receive
 /// cache headers. Mutations (`#[rpc_mutation]`) do not support caching.
 ///
+/// # Initialization
+///
+/// Use the `init` attribute to run an async function once at cold start.
+/// The init function can optionally return shared state injected as `&T`:
+///
+/// ```rust,ignore
+/// // Side-effects only (logger, env loading)
+/// #[rpc_query(init = "setup")]
+/// async fn get_data() -> Data { /* ... */ }
+///
+/// // With state injection
+/// #[rpc_query(init = "setup")]
+/// async fn get_user(id: u32, state: &AppState) -> User {
+///     state.pool.query("...").await
+/// }
+///
+/// // Combined with cache
+/// #[rpc_query(init = "setup", cache = "1h")]
+/// async fn get_user(id: u32, state: &AppState) -> User { /* ... */ }
+/// ```
+///
+/// The macro distinguishes state (`&T`) from input (`T`) by reference syntax.
+/// A `&T` parameter requires `init`; `&mut T` is rejected.
+///
 /// # Limitations
 ///
 /// - `Result` and `Headers` are detected by **name only** (last path segment).
@@ -191,12 +215,12 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// ```
 #[proc_macro_attribute]
 pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let cache_config = match parse_cache_attrs(attr) {
-        Ok(config) => config,
+    let attrs = match parse_handler_attrs(attr) {
+        Ok(a) => a,
         Err(e) => return e.to_compile_error().into(),
     };
     let input_fn = parse_macro_input!(item as ItemFn);
-    build_handler(input_fn, HandlerKind::Query, cache_config)
+    build_handler(input_fn, HandlerKind::Query, attrs)
         .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
@@ -261,6 +285,17 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
+/// # Initialization
+///
+/// Mutations support the `init` attribute (but not `cache`):
+///
+/// ```rust,ignore
+/// #[rpc_mutation(init = "setup")]
+/// async fn create_order(input: OrderInput, state: &AppState) -> Order {
+///     state.pool.query("...").await
+/// }
+/// ```
+///
 /// # Compile errors
 ///
 /// The macro rejects functions with more than one parameter:
@@ -272,16 +307,20 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn rpc_mutation(attr: TokenStream, item: TokenStream) -> TokenStream {
-    if !attr.is_empty() {
-        return syn::Error::new_spanned(
-            proc_macro2::TokenStream::from(attr),
-            "rpc_mutation does not accept any arguments",
+    let attrs = match parse_handler_attrs(attr) {
+        Ok(a) => a,
+        Err(e) => return e.to_compile_error().into(),
+    };
+    if attrs.cache_config.is_some() {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "rpc_mutation does not support cache/stale attributes",
         )
         .to_compile_error()
         .into();
     }
     let input_fn = parse_macro_input!(item as ItemFn);
-    build_handler(input_fn, HandlerKind::Mutation, None)
+    build_handler(input_fn, HandlerKind::Mutation, attrs)
         .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
@@ -298,19 +337,28 @@ struct CacheConfig {
     cache_control: String,
 }
 
-/// Parses optional `cache` / `stale` key-value pairs from `#[rpc_query(...)]` attributes.
+/// Parsed attributes from `#[rpc_query(...)]` or `#[rpc_mutation(...)]`.
+#[derive(Debug)]
+struct HandlerAttrs {
+    cache_config: Option<CacheConfig>,
+    init_fn: Option<String>,
+}
+
+/// Parses optional `init` / `cache` / `stale` key-value pairs from handler attributes.
 ///
-/// Returns `None` when the attribute is empty (backward compatible bare `#[rpc_query]`).
-fn parse_cache_attrs(attr: TokenStream) -> Result<Option<CacheConfig>, syn::Error> {
-    parse_cache_attrs_inner(attr.into())
+/// Returns `HandlerAttrs` with all fields `None` when the attribute is empty
+/// (backward compatible bare `#[rpc_query]`).
+fn parse_handler_attrs(attr: TokenStream) -> Result<HandlerAttrs, syn::Error> {
+    parse_handler_attrs_inner(attr.into())
 }
 
 /// Inner implementation that accepts `proc_macro2::TokenStream` for testability.
-fn parse_cache_attrs_inner(
-    attr: proc_macro2::TokenStream,
-) -> Result<Option<CacheConfig>, syn::Error> {
+fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAttrs, syn::Error> {
     if attr.is_empty() {
-        return Ok(None);
+        return Ok(HandlerAttrs {
+            cache_config: None,
+            init_fn: None,
+        });
     }
 
     let parsed = syn::parse::Parser::parse2(
@@ -320,6 +368,7 @@ fn parse_cache_attrs_inner(
 
     let mut cache_value = None;
     let mut stale_value = None;
+    let mut init_value = None;
 
     for nv in &parsed {
         let key = nv
@@ -355,6 +404,17 @@ fn parse_cache_attrs_inner(
                 return Err(syn::Error::new_spanned(key, "duplicate `stale` attribute"));
             }
             stale_value = Some(value);
+        } else if key == "init" {
+            if init_value.is_some() {
+                return Err(syn::Error::new_spanned(key, "duplicate `init` attribute"));
+            }
+            if value.is_empty() {
+                return Err(syn::Error::new_spanned(
+                    &nv.value,
+                    "init function path cannot be empty",
+                ));
+            }
+            init_value = Some(value);
         } else {
             return Err(syn::Error::new_spanned(
                 key,
@@ -363,17 +423,26 @@ fn parse_cache_attrs_inner(
         }
     }
 
-    let cache_value = cache_value.ok_or_else(|| {
-        syn::Error::new(
-            proc_macro2::Span::call_site(),
-            "missing required `cache` attribute",
-        )
-    })?;
+    let cache_config = if cache_value.is_some() || stale_value.is_some() {
+        let cache_value = cache_value.ok_or_else(|| {
+            syn::Error::new(
+                proc_macro2::Span::call_site(),
+                "missing required `cache` attribute",
+            )
+        })?;
 
-    let cache_control = build_cache_control(&cache_value, stale_value.as_deref())
-        .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
+        let cache_control = build_cache_control(&cache_value, stale_value.as_deref())
+            .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
 
-    Ok(Some(CacheConfig { cache_control }))
+        Some(CacheConfig { cache_control })
+    } else {
+        None
+    };
+
+    Ok(HandlerAttrs {
+        cache_config,
+        init_fn: init_value,
+    })
 }
 
 /// Parses a human-readable duration shorthand into seconds.
@@ -451,8 +520,13 @@ fn build_cache_control(cache_value: &str, stale_value: Option<&str>) -> Result<S
 fn build_handler(
     func: ItemFn,
     kind: HandlerKind,
-    cache_config: Option<CacheConfig>,
+    attrs: HandlerAttrs,
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
+    let HandlerAttrs {
+        cache_config,
+        init_fn,
+    } = attrs;
+
     if func.sig.asyncness.is_none() {
         return Err(syn::Error::new_spanned(
             func.sig.fn_token,
@@ -464,7 +538,7 @@ fn build_handler(
     let fn_block = &func.block;
     let fn_output = &func.sig.output;
 
-    // Separate typed parameters into input params and an optional Headers param.
+    // Separate typed parameters into input, headers, and state params.
     let typed_params: Vec<_> = func
         .sig
         .inputs
@@ -477,6 +551,7 @@ fn build_handler(
 
     let mut input_param = None;
     let mut headers_param = None;
+    let mut state_param = None;
 
     for param in &typed_params {
         if is_headers_type(&param.ty) {
@@ -487,15 +562,35 @@ fn build_handler(
                 ));
             }
             headers_param = Some(*param);
-        } else {
-            if input_param.is_some() {
+        } else if let Type::Reference(r) = &*param.ty {
+            if r.mutability.is_some() {
                 return Err(syn::Error::new_spanned(
-                    &func.sig.inputs,
-                    "RPC handlers accept at most one input parameter",
+                    &param.ty,
+                    "state parameter must be a shared reference (&T), not &mut T",
                 ));
             }
+            if state_param.is_some() {
+                return Err(syn::Error::new_spanned(
+                    &func.sig.inputs,
+                    "RPC handlers accept at most one state parameter",
+                ));
+            }
+            state_param = Some(*param);
+        } else if input_param.is_some() {
+            return Err(syn::Error::new_spanned(
+                &func.sig.inputs,
+                "RPC handlers accept at most one input parameter",
+            ));
+        } else {
             input_param = Some(*param);
         }
+    }
+
+    if state_param.is_some() && init_fn.is_none() {
+        return Err(syn::Error::new_spanned(
+            &func.sig.inputs,
+            "state parameter requires init = \"...\" attribute",
+        ));
     }
 
     let input_type = if let Some(param) = input_param {
@@ -604,6 +699,13 @@ fn build_handler(
         quote! {}
     };
 
+    // Generate state extraction when state param is present.
+    let extract_state = if state_param.is_some() {
+        quote! { let __state = __RPC_STATE.get().expect("BUG: init not called"); }
+    } else {
+        quote! {}
+    };
+
     // Build the inner function parameters and call arguments preserving original order.
     let inner_fn_params: Vec<_> = typed_params
         .iter()
@@ -619,6 +721,8 @@ fn build_handler(
         .map(|param| {
             if is_headers_type(&param.ty) {
                 quote! { __headers }
+            } else if is_ref_type(&param.ty) {
+                quote! { __state }
             } else {
                 quote! { __input }
             }
@@ -633,7 +737,40 @@ fn build_handler(
         None => quote! {},
     };
 
+    // Generate OnceLock static when init returns state.
+    let state_static = if let Some(sp) = state_param {
+        let Type::Reference(r) = &*sp.ty else {
+            unreachable!("state_param is always a reference");
+        };
+        let inner_ty = &r.elem;
+        quote! {
+            static __RPC_STATE: std::sync::OnceLock<#inner_ty> = std::sync::OnceLock::new();
+        }
+    } else {
+        quote! {}
+    };
+
+    // Generate init call inside block_on.
+    let init_call = if let Some(ref path) = init_fn {
+        let path_ident: proc_macro2::TokenStream = path.parse().map_err(|_| {
+            syn::Error::new_spanned(&func.sig, format!("invalid init function path: `{path}`"))
+        })?;
+        if state_param.is_some() {
+            quote! {
+                __RPC_STATE.set(#path_ident().await).expect("BUG: OnceLock already set");
+            }
+        } else {
+            quote! {
+                #path_ident().await;
+            }
+        }
+    } else {
+        quote! {}
+    };
+
     let expanded = quote! {
+        #state_static
+
         fn main() -> Result<(), ::vercel_rpc::__private::vercel_runtime::Error> {
             ::vercel_rpc::__private::tokio::runtime::Builder::new_current_thread()
                 .enable_all()
@@ -642,6 +779,7 @@ fn build_handler(
                     format!("Failed to build tokio runtime: {}", e)
                 ))?
                 .block_on(async {
+                    #init_call
                     ::vercel_rpc::__private::vercel_runtime::run(
                         ::vercel_rpc::__private::vercel_runtime::service_fn(__rpc_handler),
                     ).await
@@ -727,6 +865,8 @@ fn build_handler(
 
             #extract_headers
 
+            #extract_state
+
             #parse_input
 
             async fn #fn_name(#(#inner_fn_params),*) -> #return_type
@@ -754,6 +894,11 @@ fn is_headers_type(ty: &Type) -> bool {
         return segment.ident == "Headers";
     }
     false
+}
+
+/// Returns `true` if the type is a shared (immutable) reference `&T`.
+fn is_ref_type(ty: &Type) -> bool {
+    matches!(ty, Type::Reference(r) if r.mutability.is_none())
 }
 
 /// Returns `true` if the type syntactically ends with `Result`
