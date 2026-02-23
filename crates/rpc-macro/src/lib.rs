@@ -386,7 +386,7 @@ struct CacheConfig {
 }
 
 /// Parsed attributes from `#[rpc_query(...)]` or `#[rpc_mutation(...)]`.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct HandlerAttrs {
     cache_config: Option<CacheConfig>,
     init_fn: Option<String>,
@@ -394,10 +394,11 @@ struct HandlerAttrs {
     idempotent: bool,
 }
 
-/// Parses optional `init` / `cache` / `stale` key-value pairs from handler attributes.
+/// Parses handler attributes from `#[rpc_query(...)]` or `#[rpc_mutation(...)]`.
 ///
-/// Returns `HandlerAttrs` with all fields `None` when the attribute is empty
-/// (backward compatible bare `#[rpc_query]`).
+/// Supports key-value pairs (`cache`, `stale`, `init`, `timeout`) and bare flags
+/// (`idempotent`). Returns `HandlerAttrs` with all fields at their defaults when
+/// the attribute is empty (backward compatible bare `#[rpc_query]`).
 fn parse_handler_attrs(attr: TokenStream) -> Result<HandlerAttrs, syn::Error> {
     parse_handler_attrs_inner(attr.into())
 }
@@ -405,12 +406,7 @@ fn parse_handler_attrs(attr: TokenStream) -> Result<HandlerAttrs, syn::Error> {
 /// Inner implementation that accepts `proc_macro2::TokenStream` for testability.
 fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAttrs, syn::Error> {
     if attr.is_empty() {
-        return Ok(HandlerAttrs {
-            cache_config: None,
-            init_fn: None,
-            timeout_secs: None,
-            idempotent: false,
-        });
+        return Ok(HandlerAttrs::default());
     }
 
     let parsed = syn::parse::Parser::parse2(

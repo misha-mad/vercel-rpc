@@ -153,6 +153,8 @@ async function rpcFetch(
       init.signal = signals.length === 1 ? signals[0] : AbortSignal.any(signals);
     }
 
+    const isRetryable = attempt < maxAttempts && (method === "GET" || IDEMPOTENT_MUTATIONS.has(procedure));
+
     try {
       const res = await fetchFn(url, init);
 
@@ -168,7 +170,7 @@ async function rpcFetch(
           `RPC error on "${procedure}": ${res.status} ${res.statusText}`,
           data,
         );
-        const canRetry = retryOn.includes(res.status) && attempt < maxAttempts && (method === "GET" || IDEMPOTENT_MUTATIONS.has(procedure));
+        const canRetry = retryOn.includes(res.status) && isRetryable;
         await config.onError?.({ procedure, method, url, error: rpcError, attempt, willRetry: canRetry });
         if (!canRetry) throw rpcError;
       } else {
@@ -180,9 +182,8 @@ async function rpcFetch(
       }
     } catch (err) {
       if (err instanceof RpcError) throw err;
-      const willRetry = attempt < maxAttempts && (method === "GET" || IDEMPOTENT_MUTATIONS.has(procedure));
-      await config.onError?.({ procedure, method, url, error: err, attempt, willRetry });
-      if (!willRetry) throw err;
+      await config.onError?.({ procedure, method, url, error: err, attempt, willRetry: isRetryable });
+      if (!isRetryable) throw err;
     } finally {
       if (timeoutId !== undefined) clearTimeout(timeoutId);
     }

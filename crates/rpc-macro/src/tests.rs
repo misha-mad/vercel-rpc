@@ -9,12 +9,7 @@ fn parse_type(code: &str) -> Type {
 }
 
 fn no_attrs() -> HandlerAttrs {
-    HandlerAttrs {
-        cache_config: None,
-        init_fn: None,
-        timeout_secs: None,
-        idempotent: false,
-    }
+    HandlerAttrs::default()
 }
 
 // --- is_result_type ---
@@ -269,9 +264,7 @@ fn query_with_cache_header() {
         cache_config: Some(CacheConfig {
             cache_control: "public, max-age=0, s-maxage=3600".into(),
         }),
-        init_fn: None,
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -287,9 +280,7 @@ fn query_with_stale_while_revalidate() {
         cache_config: Some(CacheConfig {
             cache_control: "public, max-age=0, s-maxage=300, stale-while-revalidate=3600".into(),
         }),
-        init_fn: None,
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -304,9 +295,7 @@ fn query_with_private_cache() {
         cache_config: Some(CacheConfig {
             cache_control: "private, max-age=600".into(),
         }),
-        init_fn: None,
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -340,9 +329,7 @@ fn error_response_never_has_cache_header() {
         cache_config: Some(CacheConfig {
             cache_control: "public, max-age=0, s-maxage=3600".into(),
         }),
-        init_fn: None,
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -461,10 +448,8 @@ fn parse_attrs_cache_and_init_both_parsed() {
 fn mutation_with_init_no_cache() {
     let func = parse_fn("async fn create(input: String) -> String { input }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -479,10 +464,8 @@ fn mutation_with_init_no_cache() {
 fn init_side_effects_only() {
     let func = parse_fn("async fn get_data() -> String { String::new() }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -496,10 +479,8 @@ fn init_side_effects_only() {
 fn init_with_state() {
     let func = parse_fn("async fn get_data(state: &AppState) -> String { String::new() }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -514,10 +495,8 @@ fn init_with_state() {
 fn init_with_state_and_input() {
     let func = parse_fn("async fn get_user(id: u32, state: &AppState) -> String { String::new() }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -533,10 +512,8 @@ fn init_with_state_and_headers() {
         "async fn get_data(state: &AppState, headers: Headers) -> String { String::new() }",
     );
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -552,10 +529,8 @@ fn init_with_all_three_params() {
         "async fn get_user(id: u32, state: &AppState, headers: Headers) -> String { String::new() }",
     );
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -573,8 +548,7 @@ fn init_compatible_with_cache() {
             cache_control: "public, max-age=0, s-maxage=3600".into(),
         }),
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -587,10 +561,8 @@ fn init_compatible_with_cache() {
 fn init_compatible_with_mutation() {
     let func = parse_fn("async fn create(input: String, state: &AppState) -> String { input }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -604,10 +576,8 @@ fn init_compatible_with_mutation() {
 fn init_call_inside_block_on() {
     let func = parse_fn("async fn get_data() -> String { String::new() }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -624,10 +594,8 @@ fn invalid_init_path_rejected() {
     let func = parse_fn("async fn get_data() -> String { String::new() }");
     // Unclosed delimiter fails proc_macro2::TokenStream parsing.
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup(".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("invalid init function path"));
@@ -644,10 +612,8 @@ fn state_without_init_rejected() {
 fn mut_state_rejected() {
     let func = parse_fn("async fn get_data(state: &mut AppState) -> String { String::new() }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("shared reference"));
@@ -658,10 +624,8 @@ fn multiple_state_params_rejected() {
     let func =
         parse_fn("async fn get_data(a: &AppState, b: &OtherState) -> String { String::new() }");
     let attrs = HandlerAttrs {
-        cache_config: None,
         init_fn: Some("setup".into()),
-        timeout_secs: None,
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("at most one state parameter"));
@@ -730,10 +694,8 @@ fn parse_attrs_timeout_empty_rejected() {
 fn query_with_timeout_wraps_call() {
     let func = parse_fn("async fn slow() -> String { String::new() }");
     let attrs = HandlerAttrs {
-        cache_config: None,
-        init_fn: None,
         timeout_secs: Some(30),
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -748,10 +710,8 @@ fn query_with_timeout_wraps_call() {
 fn mutation_with_timeout_wraps_call() {
     let func = parse_fn("async fn slow(input: String) -> String { input }");
     let attrs = HandlerAttrs {
-        cache_config: None,
-        init_fn: None,
         timeout_secs: Some(60),
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -780,7 +740,7 @@ fn timeout_with_cache_and_init() {
         }),
         init_fn: Some("setup".into()),
         timeout_secs: Some(120),
-        idempotent: false,
+        ..HandlerAttrs::default()
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -860,7 +820,7 @@ fn mutation_idempotent_no_codegen_diff() {
     let plain_attrs = no_attrs();
     let idempotent_attrs = HandlerAttrs {
         idempotent: true,
-        ..no_attrs()
+        ..HandlerAttrs::default()
     };
     let plain_code = build_handler(func.clone(), HandlerKind::Mutation, plain_attrs)
         .unwrap()
