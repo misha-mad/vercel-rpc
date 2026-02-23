@@ -243,6 +243,11 @@ branded_newtypes = false     # branded types for single-field tuple structs
 [codegen.naming]
 fields = "preserve"          # "preserve" (default) or "camelCase"
 
+[codegen.type_overrides]
+# "chrono::DateTime" = "string"
+# "uuid::Uuid" = "string"
+# "serde_json::Value" = "unknown"
+
 [watch]
 debounce_ms = 200
 ```
@@ -321,6 +326,32 @@ export interface ServiceStatus {
 ```
 
 The transform also applies to struct variant fields in enums. Enum variant *names* and procedure names are not affected.
+
+### Type overrides
+
+Map external crate types (or any Rust type) to custom TypeScript types via `[codegen.type_overrides]`:
+
+```toml
+[codegen.type_overrides]
+"chrono::DateTime" = "string"      # ISO 8601 strings
+"chrono::NaiveDate" = "string"
+"uuid::Uuid" = "string"
+"serde_json::Value" = "unknown"
+"rust_decimal::Decimal" = "string"
+"url::Url" = "string"
+```
+
+Or via the CLI (repeatable):
+
+```sh
+rpc generate --type-override "chrono::DateTime=string" --type-override "uuid::Uuid=string"
+```
+
+Overrides are applied before code generation — every occurrence of the matched type (including inside `Vec<T>`, `Option<T>`, etc.) is replaced with the specified TypeScript type, and generic parameters are stripped.
+
+**Matching:** override keys are matched against type names by their last path segment. For example, key `"chrono::DateTime"` matches both the fully-qualified `chrono::DateTime<Utc>` and the imported `DateTime<Utc>`. If you use fully-qualified paths in your Rust source, exact full-path matching takes priority.
+
+> **Note:** The parser preserves the full type path when written explicitly (e.g. `field: chrono::DateTime<Utc>`), but imported names (via `use chrono::DateTime`) only retain the short name. Override keys always fall back to matching by the last segment, so `"chrono::DateTime" = "string"` works regardless of how the type is referenced.
 
 ### Serde attribute support
 
@@ -807,6 +838,7 @@ Every macro-annotated function automatically gets:
 | Enums (tuple variants)                   | `{ A: string } \| { B: number }` (tagged union)  |
 | Enums (struct variants)                  | `{ A: { x: number; y: number } }` (tagged union) |
 | Enums (mixed)                            | Combination of all above                         |
+| Type overrides (`[codegen.type_overrides]`) | Configurable mapping (e.g. `chrono::DateTime` → `string`) |
 
 ## npm Scripts
 

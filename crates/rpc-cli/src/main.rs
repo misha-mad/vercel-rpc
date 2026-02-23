@@ -89,6 +89,17 @@ struct GenerateArgs {
     /// Field naming convention for generated TypeScript interfaces
     #[arg(long, value_enum)]
     fields: Option<FieldNaming>,
+
+    /// Map a Rust type to a TypeScript type (repeatable, e.g. "chrono::DateTime=string")
+    #[arg(long = "type-override", value_parser = parse_type_override)]
+    type_overrides: Vec<(String, String)>,
+}
+
+fn parse_type_override(s: &str) -> Result<(String, String), String> {
+    let (key, value) = s
+        .split_once('=')
+        .ok_or_else(|| format!("expected KEY=VALUE, got `{s}`"))?;
+    Ok((key.to_string(), value.to_string()))
 }
 
 #[derive(Subcommand)]
@@ -158,6 +169,7 @@ fn main() -> Result<()> {
                     None
                 },
                 fields: args.fields,
+                type_overrides: args.type_overrides,
                 ..config::CliOverrides::default()
             })?;
             commands::cmd_generate(&cfg)
@@ -188,6 +200,7 @@ fn main() -> Result<()> {
                     None
                 },
                 fields: args.fields,
+                type_overrides: args.type_overrides,
                 debounce_ms,
                 clear_screen,
             })?;

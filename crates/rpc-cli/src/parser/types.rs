@@ -10,12 +10,19 @@ use crate::model::{FieldDef, RustType};
 pub fn extract_rust_type(ty: &Type) -> RustType {
     match ty {
         Type::Path(type_path) => {
-            let Some(segment) = type_path.path.segments.last() else {
+            let segments = &type_path.path.segments;
+            if segments.is_empty() {
                 let token_str = quote::quote!(#ty).to_string();
                 return RustType::simple(token_str);
-            };
-            let name = segment.ident.to_string();
-            let generics = extract_generic_args(&segment.arguments);
+            }
+            // Preserve the full qualified path (e.g. "chrono::DateTime")
+            let name = segments
+                .iter()
+                .map(|s| s.ident.to_string())
+                .collect::<Vec<_>>()
+                .join("::");
+            let generics =
+                extract_generic_args(&segments.last().expect("non-empty segments").arguments);
 
             if generics.is_empty() {
                 RustType::simple(name)

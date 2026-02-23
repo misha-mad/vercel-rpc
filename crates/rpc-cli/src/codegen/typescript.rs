@@ -19,7 +19,7 @@ use crate::model::{
 /// - `tuple(A, B, ...)` → `[A, B, ...]`
 /// - Everything else (user-defined structs) → kept as-is
 pub fn rust_type_to_ts(ty: &RustType) -> String {
-    match ty.name.as_str() {
+    match ty.base_name() {
         // Unit type
         "()" => "void".to_string(),
 

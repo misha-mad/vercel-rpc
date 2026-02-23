@@ -105,7 +105,15 @@ pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
 ///
 /// Returns the manifest so callers can use it for logging/reporting.
 pub fn generate_all(config: &RpcConfig) -> Result<Manifest> {
-    let manifest = parser::scan_directory(&config.input)?;
+    let mut manifest = parser::scan_directory(&config.input)?;
+
+    // Apply type overrides before codegen
+    let base_index = codegen::overrides::build_base_index(&config.codegen.type_overrides);
+    codegen::overrides::apply_type_overrides(
+        &mut manifest,
+        &config.codegen.type_overrides,
+        &base_index,
+    );
 
     let types_content = codegen::typescript::generate_types_file(
         &manifest,
