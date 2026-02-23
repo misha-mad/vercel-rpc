@@ -293,6 +293,7 @@ enum HandlerKind {
 }
 
 /// Holds the computed `Cache-Control` header value for a query handler.
+#[derive(Debug)]
 struct CacheConfig {
     cache_control: String,
 }
@@ -301,7 +302,13 @@ struct CacheConfig {
 ///
 /// Returns `None` when the attribute is empty (backward compatible bare `#[rpc_query]`).
 fn parse_cache_attrs(attr: TokenStream) -> Result<Option<CacheConfig>, syn::Error> {
-    let attr: proc_macro2::TokenStream = attr.into();
+    parse_cache_attrs_inner(attr.into())
+}
+
+/// Inner implementation that accepts `proc_macro2::TokenStream` for testability.
+fn parse_cache_attrs_inner(
+    attr: proc_macro2::TokenStream,
+) -> Result<Option<CacheConfig>, syn::Error> {
     if attr.is_empty() {
         return Ok(None);
     }

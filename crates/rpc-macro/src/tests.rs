@@ -291,3 +291,78 @@ fn mutation_never_has_cache_header() {
         .to_string();
     assert!(!code.contains("Cache-Control"));
 }
+
+#[test]
+fn error_response_never_has_cache_header() {
+    let func =
+        parse_fn("async fn risky(id: u32) -> Result<String, String> { Ok(\"ok\".into()) }");
+    let config = Some(CacheConfig {
+        cache_control: "public, max-age=0, s-maxage=3600".into(),
+    });
+    let code = build_handler(func, HandlerKind::Query, config)
+        .unwrap()
+        .to_string();
+    // Cache-Control appears in __rpc_ok_response but not __rpc_error_response
+    let ok_section = code.split("__rpc_error_response").next().unwrap();
+    let err_section = code.split("__rpc_ok_response").last().unwrap();
+    assert!(ok_section.contains("Cache-Control"));
+    assert!(!err_section.contains("Cache-Control"));
+}
+
+// --- parse_cache_attrs ---
+
+#[test]
+fn parse_cache_attrs_empty_returns_none() {
+    let result = parse_cache_attrs_inner(quote! {}).unwrap();
+    assert!(result.is_none());
+}
+
+#[test]
+fn parse_cache_attrs_valid_cache() {
+    let result = parse_cache_attrs_inner(quote! { cache = "1h" }).unwrap();
+    let config = result.unwrap();
+    assert_eq!(config.cache_control, "public, max-age=0, s-maxage=3600");
+}
+
+#[test]
+fn parse_cache_attrs_cache_with_stale() {
+    let result = parse_cache_attrs_inner(quote! { cache = "5m", stale = "1h" }).unwrap();
+    let config = result.unwrap();
+    assert_eq!(
+        config.cache_control,
+        "public, max-age=0, s-maxage=300, stale-while-revalidate=3600"
+    );
+}
+
+#[test]
+fn parse_cache_attrs_rejects_unknown_key() {
+    let err = parse_cache_attrs_inner(quote! { cache = "1h", timeout = "30s" }).unwrap_err();
+    assert!(err.to_string().contains("unknown attribute"));
+}
+
+#[test]
+fn parse_cache_attrs_rejects_missing_cache() {
+    let err = parse_cache_attrs_inner(quote! { stale = "1h" }).unwrap_err();
+    assert!(err.to_string().contains("missing required `cache`"));
+}
+
+#[test]
+fn parse_cache_attrs_rejects_non_string_literal() {
+    let err = parse_cache_attrs_inner(quote! { cache = 3600 }).unwrap_err();
+    assert!(err.to_string().contains("expected a string literal"));
+}
+
+#[test]
+fn parse_cache_attrs_rejects_duplicate_cache() {
+    let err =
+        parse_cache_attrs_inner(quote! { cache = "1h", cache = "2h" }).unwrap_err();
+    assert!(err.to_string().contains("duplicate `cache`"));
+}
+
+#[test]
+fn parse_cache_attrs_rejects_duplicate_stale() {
+    let err =
+        parse_cache_attrs_inner(quote! { cache = "1h", stale = "1h", stale = "2h" })
+            .unwrap_err();
+    assert!(err.to_string().contains("duplicate `stale`"));
+}
