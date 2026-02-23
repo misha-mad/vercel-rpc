@@ -78,20 +78,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented via `codegen.branded_newtypes` config option and `--branded-newtypes` CLI flag. Single-field tuple structs (newtypes) produce type aliases; multi-field tuple structs produce TS tuples. With branded mode enabled, newtypes get nominal type safety via `& { readonly __brand: "TypeName" }`.
 
-### `#[serde(flatten)]`
+### ~~`#[serde(flatten)]`~~ ✅
 
-```rust
-#[derive(Serialize)]
-struct Full {
-    id: u64,
-    #[serde(flatten)]
-    meta: Metadata,
-}
-```
-
-```typescript
-export type Full = { id: number } & Metadata;
-```
+> Implemented: `#[serde(flatten)]` on struct fields produces TypeScript intersection types (`{ id: number } & Metadata`). Works in top-level structs and all four enum struct-variant tagging strategies.
 
 ---
 
@@ -184,5 +173,5 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 |-------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                              |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                               |
-| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, flatten |
+| **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
 | **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                                                                        |

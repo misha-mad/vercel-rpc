@@ -91,12 +91,14 @@ pub fn extract_struct_fields(fields: &Fields) -> Vec<FieldDef> {
                 let rename = serde_attr::parse_rename(&f.attrs);
                 let skip = serde_attr::is_skipped(&f.attrs);
                 let has_default = serde_attr::has_default(&f.attrs);
+                let flatten = serde_attr::is_flattened(&f.attrs);
                 Some(FieldDef {
                     name,
                     ty,
                     rename,
                     skip,
                     has_default,
+                    flatten,
                 })
             })
             .collect(),

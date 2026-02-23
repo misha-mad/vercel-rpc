@@ -755,3 +755,90 @@ fn extracts_generic_tuple_struct() {
     assert_eq!(s.tuple_fields.len(), 1);
     assert_eq!(s.tuple_fields[0], RustType::simple("T"));
 }
+
+// --- Flatten extraction tests ---
+
+#[test]
+fn extracts_flatten_on_field() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Full {
+                id: u64,
+                #[serde(flatten)]
+                meta: Metadata,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs.len(), 1);
+    let fields = &manifest.structs[0].fields;
+    assert_eq!(fields.len(), 2);
+    assert!(!fields[0].flatten);
+    assert!(fields[1].flatten);
+    assert_eq!(fields[1].name, "meta");
+    assert_eq!(fields[1].ty.name, "Metadata");
+}
+
+#[test]
+fn flatten_in_enum_struct_variant() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            enum Event {
+                Click {
+                    x: i32,
+                    #[serde(flatten)]
+                    meta: Meta,
+                },
+            }
+            "#,
+    );
+    assert_eq!(manifest.enums.len(), 1);
+    match &manifest.enums[0].variants[0].kind {
+        VariantKind::Struct(fields) => {
+            assert_eq!(fields.len(), 2);
+            assert!(!fields[0].flatten);
+            assert!(fields[1].flatten);
+        }
+        _ => panic!("expected Struct variant"),
+    }
+}
+
+#[test]
+fn multiple_flattened_fields() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Combined {
+                id: u64,
+                #[serde(flatten)]
+                a: PartA,
+                #[serde(flatten)]
+                b: PartB,
+            }
+            "#,
+    );
+    let fields = &manifest.structs[0].fields;
+    assert_eq!(fields.len(), 3);
+    assert!(!fields[0].flatten);
+    assert!(fields[1].flatten);
+    assert!(fields[2].flatten);
+}
+
+#[test]
+fn flatten_with_skip() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Data {
+                #[serde(flatten, skip)]
+                hidden: Secret,
+                value: String,
+            }
+            "#,
+    );
+    let fields = &manifest.structs[0].fields;
+    assert_eq!(fields.len(), 2);
+    assert!(fields[0].flatten);
+    assert!(fields[0].skip);
+}

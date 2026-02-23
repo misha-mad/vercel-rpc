@@ -191,9 +191,46 @@ fn render_field_str(
     }
 }
 
+/// Splits fields into regular fields and flattened type names.
+///
+/// - Skipped fields are omitted entirely.
+/// - Flattened fields contribute their type name to the intersection list.
+/// - Regular fields are rendered as `name: T` strings.
+fn render_struct_body(
+    fields: &[FieldDef],
+    rename_all: Option<RenameRule>,
+    field_naming: FieldNaming,
+) -> (Vec<String>, Vec<String>) {
+    let mut regular = Vec::new();
+    let mut flattened = Vec::new();
+    for f in fields {
+        if f.skip {
+            continue;
+        }
+        if f.flatten {
+            flattened.push(rust_type_to_ts(&f.ty));
+        } else {
+            regular.push(render_field_str(f, rename_all, field_naming));
+        }
+    }
+    (regular, flattened)
+}
+
+/// Builds an inline `{ field; field }` object string, optionally intersected with
+/// flattened types. Returns the combined expression.
+fn build_object_with_flatten(regular: &[String], flattened: &[String]) -> String {
+    let mut parts = Vec::new();
+    if !regular.is_empty() {
+        parts.push(format!("{{ {} }}", regular.join("; ")));
+    }
+    parts.extend(flattened.iter().cloned());
+    parts.join(" & ")
+}
+
 /// Generates a TypeScript interface or type alias from a struct definition.
 ///
 /// - Named structs → `export interface Name { ... }`
+/// - Named structs with flatten → `export type Name = { ... } & Flattened;`
 /// - Single-field tuple structs (newtypes) → `export type Name = inner;`
 ///   (with optional branded type when `branded_newtypes` is enabled)
 /// - Multi-field tuple structs → `export type Name = [A, B, ...];`
@@ -237,16 +274,24 @@ fn generate_interface(
         return;
     }
 
-    // Named struct → interface
-    emit!(out, "export interface {}{generic_params} {{", s.name);
-    for field in &s.fields {
-        if field.skip {
-            continue;
+    let (regular, flattened) = render_struct_body(&s.fields, s.rename_all, field_naming);
+
+    if flattened.is_empty() {
+        // No flatten → standard interface
+        emit!(out, "export interface {}{generic_params} {{", s.name);
+        for r in &regular {
+            emit!(out, "  {r};");
         }
-        let rendered = render_field_str(field, s.rename_all, field_naming);
-        emit!(out, "  {rendered};");
+        emit!(out, "}}");
+    } else {
+        // Has flatten → export type with intersection
+        let body = build_object_with_flatten(&regular, &flattened);
+        emit!(
+            out,
+            "export type {}{generic_params} = {body};",
+            s.name
+        );
     }
-    emit!(out, "}}");
 }
 
 /// Generates a TypeScript type from an enum definition.
@@ -322,15 +367,10 @@ fn generate_enum_external(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
                     variant_types.push(format!("{{ {variant_name}: {inner} }}"));
                 }
                 VariantKind::Struct(fields) => {
-                    let field_strs: Vec<String> = fields
-                        .iter()
-                        .filter(|f| !f.skip)
-                        .map(|field| render_field_str(field, e.rename_all, field_naming))
-                        .collect();
-                    variant_types.push(format!(
-                        "{{ {variant_name}: {{ {} }} }}",
-                        field_strs.join("; ")
-                    ));
+                    let (regular, flattened) =
+                        render_struct_body(fields, e.rename_all, field_naming);
+                    let inner = build_object_with_flatten(&regular, &flattened);
+                    variant_types.push(format!("{{ {variant_name}: {inner} }}"));
                 }
             }
         }
@@ -366,14 +406,16 @@ fn generate_enum_internal(e: &EnumDef, tag: &str, field_naming: FieldNaming, out
                 variant_types.push(format!("{{ {tag}: \"{variant_name}\" }}"));
             }
             VariantKind::Struct(fields) => {
-                let field_strs: Vec<String> = fields
-                    .iter()
-                    .filter(|f| !f.skip)
-                    .map(|field| render_field_str(field, e.rename_all, field_naming))
-                    .collect();
+                let (regular, flattened) = render_struct_body(fields, e.rename_all, field_naming);
                 let mut parts = vec![format!("{tag}: \"{variant_name}\"")];
-                parts.extend(field_strs);
-                variant_types.push(format!("{{ {} }}", parts.join("; ")));
+                parts.extend(regular);
+                let obj = format!("{{ {} }}", parts.join("; "));
+                if flattened.is_empty() {
+                    variant_types.push(obj);
+                } else {
+                    let all: Vec<String> = std::iter::once(obj).chain(flattened).collect();
+                    variant_types.push(all.join(" & "));
+                }
             }
             VariantKind::Tuple(types) => {
                 if types.len() == 1 {
@@ -436,14 +478,10 @@ fn generate_enum_adjacent(
                 ));
             }
             VariantKind::Struct(fields) => {
-                let field_strs: Vec<String> = fields
-                    .iter()
-                    .filter(|f| !f.skip)
-                    .map(|field| render_field_str(field, e.rename_all, field_naming))
-                    .collect();
+                let (regular, flattened) = render_struct_body(fields, e.rename_all, field_naming);
+                let inner = build_object_with_flatten(&regular, &flattened);
                 variant_types.push(format!(
-                    "{{ {tag}: \"{variant_name}\"; {content}: {{ {} }} }}",
-                    field_strs.join("; ")
+                    "{{ {tag}: \"{variant_name}\"; {content}: {inner} }}"
                 ));
             }
         }
@@ -487,12 +525,9 @@ fn generate_enum_untagged(e: &EnumDef, field_naming: FieldNaming, out: &mut Stri
                 }
             }
             VariantKind::Struct(fields) => {
-                let field_strs: Vec<String> = fields
-                    .iter()
-                    .filter(|f| !f.skip)
-                    .map(|field| render_field_str(field, e.rename_all, field_naming))
-                    .collect();
-                variant_types.push(format!("{{ {} }}", field_strs.join("; ")));
+                let (regular, flattened) = render_struct_body(fields, e.rename_all, field_naming);
+                let inner = build_object_with_flatten(&regular, &flattened);
+                variant_types.push(inner);
             }
         }
     }

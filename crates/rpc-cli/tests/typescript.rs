@@ -653,6 +653,7 @@ fn test_serde_field_rename_overrides_rename_all() {
                     rename: Some("API_KEY".to_string()),
                     skip: false,
                     has_default: false,
+                    flatten: false,
                 },
                 field("host_name", RustType::simple("String")),
             ],
@@ -683,6 +684,7 @@ fn test_serde_skip_field_omitted() {
                     rename: None,
                     skip: true,
                     has_default: false,
+                    flatten: false,
                 },
             ],
             tuple_fields: vec![],
@@ -712,6 +714,7 @@ fn test_serde_default_option_field() {
                     rename: None,
                     skip: false,
                     has_default: true,
+                    flatten: false,
                 },
             ],
             tuple_fields: vec![],
@@ -824,6 +827,7 @@ fn test_serde_default_on_non_option_field_is_not_optional() {
                 rename: None,
                 skip: false,
                 has_default: true,
+                flatten: false,
             }],
             tuple_fields: vec![],
             source_file: PathBuf::from("api/test.rs"),
@@ -1000,6 +1004,7 @@ fn snapshot_serde_skip_and_default() {
                     rename: None,
                     skip: true,
                     has_default: false,
+                    flatten: false,
                 },
                 FieldDef {
                     name: "label".to_string(),
@@ -1007,6 +1012,7 @@ fn snapshot_serde_skip_and_default() {
                     rename: None,
                     skip: false,
                     has_default: true,
+                    flatten: false,
                 },
             ],
             tuple_fields: vec![],
@@ -1484,6 +1490,7 @@ fn external_struct_variant_optional_field() {
                     rename: None,
                     skip: false,
                     has_default: true,
+                    flatten: false,
                 }]),
                 rename: None,
             }],
@@ -1513,6 +1520,7 @@ fn internal_struct_variant_optional_field() {
                     rename: None,
                     skip: false,
                     has_default: true,
+                    flatten: false,
                 }]),
                 rename: None,
             }],
@@ -1544,6 +1552,7 @@ fn adjacent_struct_variant_optional_field() {
                     rename: None,
                     skip: false,
                     has_default: true,
+                    flatten: false,
                 }]),
                 rename: None,
             }],
@@ -1576,6 +1585,7 @@ fn untagged_struct_variant_optional_field() {
                     rename: None,
                     skip: false,
                     has_default: true,
+                    flatten: false,
                 }]),
                 rename: None,
             }],
@@ -2090,5 +2100,300 @@ fn snapshot_branded_newtypes() {
         enums: vec![],
     };
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve, true);
+    insta::assert_snapshot!(output);
+}
+
+// --- Flatten codegen tests ---
+
+fn flatten_field(name: &str, ty: RustType) -> FieldDef {
+    FieldDef {
+        name: name.to_string(),
+        ty,
+        rename: None,
+        skip: false,
+        has_default: false,
+        flatten: true,
+    }
+}
+
+#[test]
+fn generates_struct_with_flatten() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Full".to_string(),
+            generics: vec![],
+            fields: vec![
+                field("id", RustType::simple("u64")),
+                flatten_field("meta", RustType::simple("Metadata")),
+            ],
+            tuple_fields: vec![],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("export type Full = { id: number } & Metadata;"));
+}
+
+#[test]
+fn generates_multiple_flatten() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Combined".to_string(),
+            generics: vec![],
+            fields: vec![
+                field("id", RustType::simple("u64")),
+                flatten_field("a", RustType::simple("A")),
+                flatten_field("b", RustType::simple("B")),
+            ],
+            tuple_fields: vec![],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("export type Combined = { id: number } & A & B;"));
+}
+
+#[test]
+fn flatten_only_no_regular_fields() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Merged".to_string(),
+            generics: vec![],
+            fields: vec![
+                flatten_field("a", RustType::simple("A")),
+                flatten_field("b", RustType::simple("B")),
+            ],
+            tuple_fields: vec![],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("export type Merged = A & B;"));
+}
+
+#[test]
+fn flatten_with_rename_all() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Data".to_string(),
+            generics: vec![],
+            fields: vec![
+                field("my_field", RustType::simple("String")),
+                flatten_field("extra", RustType::simple("Extra")),
+            ],
+            tuple_fields: vec![],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: Some(RenameRule::CamelCase),
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    // rename_all applies to regular fields only; flattened type name is unchanged
+    assert!(output.contains("export type Data = { myField: string } & Extra;"));
+}
+
+#[test]
+fn flatten_skipped_field_omitted() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![StructDef {
+            name: "Data".to_string(),
+            generics: vec![],
+            fields: vec![
+                field("id", RustType::simple("u64")),
+                FieldDef {
+                    name: "hidden".to_string(),
+                    ty: RustType::simple("Secret"),
+                    rename: None,
+                    skip: true,
+                    has_default: false,
+                    flatten: true,
+                },
+            ],
+            tuple_fields: vec![],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    // flatten + skip → omit; no flatten, so standard interface
+    assert!(output.contains("export interface Data {"));
+    assert!(output.contains("  id: number;"));
+    assert!(!output.contains("Secret"));
+}
+
+#[test]
+fn flatten_in_external_enum() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Event".to_string(),
+            generics: vec![],
+            variants: vec![EnumVariant {
+                name: "Click".to_string(),
+                kind: VariantKind::Struct(vec![
+                    field("x", RustType::simple("i32")),
+                    flatten_field("meta", RustType::simple("Meta")),
+                ]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::External,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("{ Click: { x: number } & Meta }"));
+}
+
+#[test]
+fn flatten_in_internal_enum() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Event".to_string(),
+            generics: vec![],
+            variants: vec![EnumVariant {
+                name: "Click".to_string(),
+                kind: VariantKind::Struct(vec![
+                    field("x", RustType::simple("i32")),
+                    flatten_field("meta", RustType::simple("Meta")),
+                ]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Internal {
+                tag: "type".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("{ type: \"Click\"; x: number } & Meta"));
+}
+
+#[test]
+fn flatten_in_adjacent_enum() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Event".to_string(),
+            generics: vec![],
+            variants: vec![EnumVariant {
+                name: "Click".to_string(),
+                kind: VariantKind::Struct(vec![
+                    field("x", RustType::simple("i32")),
+                    flatten_field("meta", RustType::simple("Meta")),
+                ]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Adjacent {
+                tag: "t".to_string(),
+                content: "c".to_string(),
+            },
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("{ t: \"Click\"; c: { x: number } & Meta }"));
+}
+
+#[test]
+fn flatten_in_untagged_enum() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![],
+        enums: vec![EnumDef {
+            name: "Event".to_string(),
+            generics: vec![],
+            variants: vec![EnumVariant {
+                name: "Click".to_string(),
+                kind: VariantKind::Struct(vec![
+                    field("x", RustType::simple("i32")),
+                    flatten_field("meta", RustType::simple("Meta")),
+                ]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::Untagged,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("export type Event = { x: number } & Meta;"));
+}
+
+#[test]
+fn snapshot_flatten() {
+    let manifest = Manifest {
+        procedures: vec![],
+        structs: vec![
+            StructDef {
+                name: "Full".to_string(),
+                generics: vec![],
+                fields: vec![
+                    field("id", RustType::simple("u64")),
+                    flatten_field("meta", RustType::simple("Metadata")),
+                ],
+                tuple_fields: vec![],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "Merged".to_string(),
+                generics: vec![],
+                fields: vec![
+                    flatten_field("a", RustType::simple("A")),
+                    flatten_field("b", RustType::simple("B")),
+                ],
+                tuple_fields: vec![],
+                source_file: PathBuf::from("api/test.rs"),
+                docs: None,
+                rename_all: None,
+            },
+        ],
+        enums: vec![EnumDef {
+            name: "Event".to_string(),
+            generics: vec![],
+            variants: vec![EnumVariant {
+                name: "Click".to_string(),
+                kind: VariantKind::Struct(vec![
+                    field("x", RustType::simple("i32")),
+                    flatten_field("meta", RustType::simple("Meta")),
+                ]),
+                rename: None,
+            }],
+            source_file: PathBuf::from("api/test.rs"),
+            docs: None,
+            rename_all: None,
+            tagging: EnumTagging::External,
+        }],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }

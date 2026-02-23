@@ -16,6 +16,7 @@ pub fn field(name: &str, ty: RustType) -> FieldDef {
         rename: None,
         skip: false,
         has_default: false,
+        flatten: false,
     }
 }
 
