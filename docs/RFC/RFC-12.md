@@ -105,6 +105,20 @@ This applies to both HTTP error retries and network error retries. The effect:
 
 This is a **behavioral change**: mutations that were previously retried will no longer be retried unless marked `idempotent`. However, the default retry config is `undefined` (no retries), so only users who explicitly configured retry are affected. Those users likely want this safety guardrail.
 
+**Migration:** If you have `retry` configured and rely on mutation retries, add `idempotent` to those mutations:
+
+```rust
+// Before: retried automatically (unsafe)
+#[rpc_mutation]
+async fn upsert_user(input: UserInput) -> User { /* ... */ }
+
+// After: explicitly marked safe to retry
+#[rpc_mutation(idempotent)]
+async fn upsert_user(input: UserInput) -> User { /* ... */ }
+```
+
+Mutations without the flag are never retried, even when `retry` is configured. This is the safe default — accidental duplicate side effects are worse than a missed retry.
+
 ## 4. Attribute Parsing Changes
 
 ### 4.1 Mixed Meta Types
@@ -179,7 +193,7 @@ pub struct Procedure {
 
 ### 5.2 Parser
 
-In `extract.rs`, add `extract_idempotent()` that checks for a bare `idempotent` path in the attribute args:
+In `extract.rs`, add `extract_idempotent()` that checks for a bare `idempotent` path in **mutation** attribute args only:
 
 ```rust
 fn extract_idempotent(attrs: &[Attribute]) -> bool {
@@ -202,6 +216,8 @@ fn extract_idempotent(attrs: &[Attribute]) -> bool {
 }
 ```
 
+> **Note:** The CLI only looks at `#[rpc_mutation]` attributes for `idempotent`. If someone writes `#[rpc_query(idempotent)]`, the CLI ignores it — it never reaches the parser because it filters on `RPC_MUTATION_ATTR`. This is consistent with the macro, which rejects `idempotent` on queries at compile time. In normal usage the macro runs first (at `cargo build`), so invalid combinations never reach the CLI. The CLI being lenient here is intentional: it scans raw source files and should not abort on code that hasn't been compiled yet (e.g. during `rpc watch` while the user is still editing).
+
 ### 5.3 Client Codegen
 
 #### `IDEMPOTENT_MUTATIONS` set
@@ -212,7 +228,7 @@ Emitted after `PROCEDURE_TIMEOUTS`, before `FETCH_HELPER`:
 const IDEMPOTENT_MUTATIONS: Set<string> = new Set(["delete_item", "set_status"]);
 ```
 
-When no mutations are idempotent, emit an empty set:
+When no mutations are idempotent, emit an empty set rather than omitting the declaration. This keeps `rpcFetch` unconditional — it always references `IDEMPOTENT_MUTATIONS` without checking whether the const exists:
 
 ```typescript
 const IDEMPOTENT_MUTATIONS: Set<string> = new Set([]);
@@ -244,6 +260,7 @@ const willRetry = attempt < maxAttempts
 | `parse_attrs_idempotent_with_all`          | `idempotent, init = "setup", timeout = "30s"` all parsed |
 | `parse_attrs_duplicate_idempotent`         | `idempotent, idempotent` is rejected                     |
 | `parse_attrs_idempotent_rejects_value`     | `idempotent = "true"` is rejected (must be bare flag)    |
+| `parse_attrs_idempotent_rejects_bool`      | `idempotent = true` (unquoted bool) is rejected          |
 
 ### 6.2 Macro — Query Rejection
 
