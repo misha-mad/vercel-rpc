@@ -245,11 +245,11 @@ struct HandlerAttrs {
 
 The macro classifies each parameter by its type syntax:
 
-| Type syntax | Classification | Example |
-|-------------|---------------|---------|
-| `Headers` (by name) | Headers param | `headers: Headers` |
-| `&T` (reference) | State param | `state: &AppState` |
-| `T` (owned) | Input param | `id: u32` |
+| Type syntax         | Classification | Example            |
+|---------------------|----------------|--------------------|
+| `Headers` (by name) | Headers param  | `headers: Headers` |
+| `&T` (reference)    | State param    | `state: &AppState` |
+| `T` (owned)         | Input param    | `id: u32`          |
 
 This is unambiguous — a parameter's role is determined entirely by its type, not by position or name. The `&T` convention for state is natural: the handler borrows from the `OnceLock`, it doesn't own the state.
 
@@ -293,43 +293,43 @@ A `&T` parameter without `init` is also a compile error — this prevents silent
 
 ### 5.2 Conditional Code Generation
 
-| `init_fn` | State param | Generated code |
-|-----------|-------------|----------------|
-| `None` | — | Current behavior (no change) |
-| `Some(path)` | `None` | Call `path()` in `main()` before runtime, no `OnceLock` |
-| `Some(path)` | `Some(&T)` | `OnceLock<T>` static, `path()` stored in `main()`, `state` passed to handler |
+| `init_fn`    | State param | Generated code                                                               |
+|--------------|-------------|------------------------------------------------------------------------------|
+| `None`       | —           | Current behavior (no change)                                                 |
+| `Some(path)` | `None`      | Call `path()` in `main()` before runtime, no `OnceLock`                      |
+| `Some(path)` | `Some(&T)`  | `OnceLock<T>` static, `path()` stored in `main()`, `state` passed to handler |
 
 ### 5.3 Error Cases
 
-| Condition | Error |
-|-----------|-------|
-| `&T` param without `init` | `"state parameter requires init = \"...\" attribute"` |
-| `&mut T` param | `"state parameter must be a shared reference (&T), not &mut T"` |
-| `init` path is empty | `"init function path cannot be empty"` |
-| Multiple `&T` params | `"RPC handlers accept at most one state parameter"` |
-| Multiple owned params | `"RPC handlers accept at most one input parameter"` (existing error) |
+| Condition                 | Error                                                                |
+|---------------------------|----------------------------------------------------------------------|
+| `&T` param without `init` | `"state parameter requires init = \"...\" attribute"`                |
+| `&mut T` param            | `"state parameter must be a shared reference (&T), not &mut T"`      |
+| `init` path is empty      | `"init function path cannot be empty"`                               |
+| Multiple `&T` params      | `"RPC handlers accept at most one state parameter"`                  |
+| Multiple owned params     | `"RPC handlers accept at most one input parameter"` (existing error) |
 
 ## 6. Supported Parameter Combinations
 
 The handler can have up to three parameters in any order. Each parameter is classified by type syntax, not by position or name:
 
-| Type syntax | Role | Max count |
-|-------------|------|-----------|
-| `Headers` (by name) | HTTP headers | 1 |
-| `&T` (shared ref) | State from `init` | 1 |
-| `T` (owned) | Deserialized input | 1 |
+| Type syntax         | Role               | Max count |
+|---------------------|--------------------|-----------|
+| `Headers` (by name) | HTTP headers       | 1         |
+| `&T` (shared ref)   | State from `init`  | 1         |
+| `T` (owned)         | Deserialized input | 1         |
 
 Valid combinations:
 
-| Parameters | Example |
-|------------|---------|
-| None | `async fn health() -> Status` |
-| Input only | `async fn get(id: u32) -> User` |
-| State only | `async fn list(state: &AppState) -> Vec<Item>` |
-| Headers only | `async fn auth(headers: Headers) -> Token` |
-| Input + State | `async fn get(id: u32, state: &AppState) -> User` |
-| Input + Headers | `async fn get(id: u32, headers: Headers) -> User` |
-| State + Headers | `async fn list(state: &AppState, headers: Headers) -> Vec<Item>` |
+| Parameters              | Example                                                             |
+|-------------------------|---------------------------------------------------------------------|
+| None                    | `async fn health() -> Status`                                       |
+| Input only              | `async fn get(id: u32) -> User`                                     |
+| State only              | `async fn list(state: &AppState) -> Vec<Item>`                      |
+| Headers only            | `async fn auth(headers: Headers) -> Token`                          |
+| Input + State           | `async fn get(id: u32, state: &AppState) -> User`                   |
+| Input + Headers         | `async fn get(id: u32, headers: Headers) -> User`                   |
+| State + Headers         | `async fn list(state: &AppState, headers: Headers) -> Vec<Item>`    |
 | Input + State + Headers | `async fn get(id: u32, state: &AppState, headers: Headers) -> User` |
 
 Multiple owned parameters are rejected — `async fn get(a: u32, b: String)` produces `"RPC handlers accept at most one input parameter"` (existing behavior, unchanged).
@@ -344,38 +344,38 @@ Multiple owned parameters are rejected — `async fn get(a: u32, b: String)` pro
 
 Tested via `parse_handler_attrs_inner(proc_macro2::TokenStream)`, same pattern as existing `parse_cache_attrs_inner` tests.
 
-| Test | Description |
-|------|-------------|
-| `parse_attrs_init_only` | `init = "setup"` parses correctly |
-| `parse_attrs_init_and_cache` | `init = "setup", cache = "1h"` parses both |
-| `parse_attrs_init_empty_rejected` | `init = ""` is an error |
-| `parse_attrs_init_non_string_rejected` | `init = 42` is an error |
-| `parse_attrs_duplicate_init_rejected` | `init = "a", init = "b"` is an error |
-| `mutation_rejects_cache_with_init` | `#[rpc_mutation(init = "s", cache = "1h")]` errors |
+| Test                                   | Description                                        |
+|----------------------------------------|----------------------------------------------------|
+| `parse_attrs_init_only`                | `init = "setup"` parses correctly                  |
+| `parse_attrs_init_and_cache`           | `init = "setup", cache = "1h"` parses both         |
+| `parse_attrs_init_empty_rejected`      | `init = ""` is an error                            |
+| `parse_attrs_init_non_string_rejected` | `init = 42` is an error                            |
+| `parse_attrs_duplicate_init_rejected`  | `init = "a", init = "b"` is an error               |
+| `mutation_rejects_cache_with_init`     | `#[rpc_mutation(init = "s", cache = "1h")]` errors |
 
 ### Unit Tests — Handler Generation
 
 Tested via `build_handler(func, kind, attrs)` with generated token stream assertions.
 
-| Test | Description |
-|------|-------------|
-| `init_side_effects_only` | Generates `.await` inside `block_on`, no `OnceLock` |
-| `init_with_state` | Creates `OnceLock`, passes `&state` to handler |
-| `init_with_state_and_input` | State and input both passed correctly |
-| `init_with_state_and_headers` | State and headers both passed correctly |
-| `init_with_all_three_params` | Input, state, and headers all work |
-| `init_compatible_with_cache` | `init` + `cache` both generate correctly |
-| `init_compatible_with_mutation` | `init` works on `#[rpc_mutation]` |
-| `init_call_inside_block_on` | Init call is inside `block_on` (supports async) |
+| Test                            | Description                                         |
+|---------------------------------|-----------------------------------------------------|
+| `init_side_effects_only`        | Generates `.await` inside `block_on`, no `OnceLock` |
+| `init_with_state`               | Creates `OnceLock`, passes `&state` to handler      |
+| `init_with_state_and_input`     | State and input both passed correctly               |
+| `init_with_state_and_headers`   | State and headers both passed correctly             |
+| `init_with_all_three_params`    | Input, state, and headers all work                  |
+| `init_compatible_with_cache`    | `init` + `cache` both generate correctly            |
+| `init_compatible_with_mutation` | `init` works on `#[rpc_mutation]`                   |
+| `init_call_inside_block_on`     | Init call is inside `block_on` (supports async)     |
 
 ### Unit Tests — Error Cases
 
 These test `build_handler` returning `Err(syn::Error)` — macro expansion errors, caught at compile time.
 
-| Test | Description |
-|------|-------------|
-| `state_without_init_rejected` | `&T` param without `init` attr → error |
-| `mut_state_rejected` | `&mut T` param → `"must be a shared reference"` |
+| Test                             | Description                                       |
+|----------------------------------|---------------------------------------------------|
+| `state_without_init_rejected`    | `&T` param without `init` attr → error            |
+| `mut_state_rejected`             | `&mut T` param → `"must be a shared reference"`   |
 | `multiple_state_params_rejected` | Two `&T` params → `"at most one state parameter"` |
 
 ## 9. Backward Compatibility

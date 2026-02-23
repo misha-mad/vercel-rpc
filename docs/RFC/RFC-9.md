@@ -58,12 +58,12 @@ const user = useQuery(rpc, "current_user");
 </template>
 ```
 
-| Without composables                         | With composables                    |
-|----------------------------------------------|-------------------------------------|
-| ~15 lines of manual state + lifecycle        | 1 line                              |
-| Error/loading state easy to forget           | Always tracked                      |
-| No auto-refetch, no reactive input           | Built-in                            |
-| No lifecycle callbacks                       | `onSuccess`, `onError`, `onSettled` |
+| Without composables                   | With composables                    |
+|---------------------------------------|-------------------------------------|
+| ~15 lines of manual state + lifecycle | 1 line                              |
+| Error/loading state easy to forget    | Always tracked                      |
+| No auto-refetch, no reactive input    | Built-in                            |
+| No lifecycle callbacks                | `onSuccess`, `onError`, `onSettled` |
 
 ## 3. Design Principles
 

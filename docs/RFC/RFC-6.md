@@ -25,11 +25,11 @@ const user = await rpc.query("current_user");
 
 Without deduplication, this fires three identical HTTP requests. With dedup, a single request is made and all three callers share the result.
 
-| Scenario                                                  | Without dedup               | With dedup                    |
-|-----------------------------------------------------------|-----------------------------|-------------------------------|
-| 5 components request the same user on mount               | 5 identical HTTP requests   | 1 request, 5 shared promises |
-| Dashboard with 3 widgets showing the same metrics         | 3 requests                  | 1 request                    |
-| Parent and child both fetch config                        | 2 requests                  | 1 request                    |
+| Scenario                                          | Without dedup             | With dedup                   |
+|---------------------------------------------------|---------------------------|------------------------------|
+| 5 components request the same user on mount       | 5 identical HTTP requests | 1 request, 5 shared promises |
+| Dashboard with 3 widgets showing the same metrics | 3 requests                | 1 request                    |
+| Parent and child both fetch config                | 2 requests                | 1 request                    |
 
 Every major data-fetching library supports this: SWR, TanStack Query, tRPC, Apollo Client, and URQL all dedup identical in-flight requests. The roadmap lists this as the next Phase 2 deliverable.
 
@@ -284,15 +284,15 @@ Dedup only applies to concurrent in-flight requests. Once a promise settles, it 
 
 ## 10. Codegen Changes (`client.rs`)
 
-| Area                       | Change                                                                                          |
-|----------------------------|-------------------------------------------------------------------------------------------------|
-| `RpcClientConfig`          | Add optional `dedupe?: boolean` field                                                           |
-| `CallOptions`              | Add optional `dedupe?: boolean` field                                                           |
-| New constant               | `DEDUP_KEY_FN` — the `dedupKey` helper function                                                |
-| New constant               | `WRAP_WITH_SIGNAL_FN` — the `wrapWithSignal` helper function                                   |
-| `generate_client_factory()`| Add `inflight` map; wrap `query()` body with dedup logic                                       |
-| `generate_client_factory()`| Extract input/callOptions resolution into local variables for both dedup and non-dedup paths    |
-| `mutate()` body            | No changes — mutations are never deduplicated                                                   |
+| Area                        | Change                                                                                       |
+|-----------------------------|----------------------------------------------------------------------------------------------|
+| `RpcClientConfig`           | Add optional `dedupe?: boolean` field                                                        |
+| `CallOptions`               | Add optional `dedupe?: boolean` field                                                        |
+| New constant                | `DEDUP_KEY_FN` — the `dedupKey` helper function                                              |
+| New constant                | `WRAP_WITH_SIGNAL_FN` — the `wrapWithSignal` helper function                                 |
+| `generate_client_factory()` | Add `inflight` map; wrap `query()` body with dedup logic                                     |
+| `generate_client_factory()` | Extract input/callOptions resolution into local variables for both dedup and non-dedup paths |
+| `mutate()` body             | No changes — mutations are never deduplicated                                                |
 
 ### 10.1 Conditional Emission
 
@@ -302,19 +302,19 @@ The dedup helpers (`dedupKey`, `wrapWithSignal`, `inflight` map) are **always em
 
 ### Unit tests (codegen)
 
-| Test                                          | Description                                                                     |
-|-----------------------------------------------|---------------------------------------------------------------------------------|
-| `contains_dedupe_config_field`                | `RpcClientConfig` includes `dedupe?: boolean`                                   |
-| `contains_call_options_dedupe_field`          | `CallOptions` includes `dedupe?: boolean`                                       |
-| `contains_dedup_key_function`                 | Output includes `dedupKey` helper function                                      |
-| `contains_wrap_with_signal_function`          | Output includes `wrapWithSignal` helper function                                |
-| `factory_contains_inflight_map`              | `createRpcClient` body declares `inflight` Map                                  |
-| `query_body_contains_dedup_logic`            | `query()` method checks `shouldDedupe` and uses `inflight` map                  |
-| `mutate_body_has_no_dedup`                   | `mutate()` method does not reference `inflight` or dedup                        |
-| `dedup_key_uses_config_serialize`            | `dedupKey` body references `config.serialize`                                   |
-| `wrap_with_signal_handles_aborted`           | `wrapWithSignal` checks `signal.aborted` early                                  |
-| `dedup_omitted_when_no_queries`              | When manifest has only mutations, dedup code is not emitted                     |
-| `snapshot_client_with_dedup`                 | Insta snapshot of full client with dedup enabled                                |
+| Test                                 | Description                                                    |
+|--------------------------------------|----------------------------------------------------------------|
+| `contains_dedupe_config_field`       | `RpcClientConfig` includes `dedupe?: boolean`                  |
+| `contains_call_options_dedupe_field` | `CallOptions` includes `dedupe?: boolean`                      |
+| `contains_dedup_key_function`        | Output includes `dedupKey` helper function                     |
+| `contains_wrap_with_signal_function` | Output includes `wrapWithSignal` helper function               |
+| `factory_contains_inflight_map`      | `createRpcClient` body declares `inflight` Map                 |
+| `query_body_contains_dedup_logic`    | `query()` method checks `shouldDedupe` and uses `inflight` map |
+| `mutate_body_has_no_dedup`           | `mutate()` method does not reference `inflight` or dedup       |
+| `dedup_key_uses_config_serialize`    | `dedupKey` body references `config.serialize`                  |
+| `wrap_with_signal_handles_aborted`   | `wrapWithSignal` checks `signal.aborted` early                 |
+| `dedup_omitted_when_no_queries`      | When manifest has only mutations, dedup code is not emitted    |
+| `snapshot_client_with_dedup`         | Insta snapshot of full client with dedup enabled               |
 
 ### Snapshot tests
 
