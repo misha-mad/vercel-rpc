@@ -148,6 +148,31 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// }
 /// ```
 ///
+/// # Caching
+///
+/// Use the `cache` attribute to generate `Cache-Control` headers on successful
+/// responses. On Vercel this enables edge caching without infrastructure changes.
+///
+/// ```rust,ignore
+/// // CDN caches for 1 hour, browser always revalidates
+/// #[rpc_query(cache = "1h")]
+/// async fn get_settings() -> Settings { /* ... */ }
+/// // → Cache-Control: public, max-age=0, s-maxage=3600
+///
+/// // CDN caches 5 min, serves stale up to 1 hour while revalidating
+/// #[rpc_query(cache = "5m", stale = "1h")]
+/// async fn get_feed() -> Vec<Post> { /* ... */ }
+/// // → Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=3600
+///
+/// // Browser-only cache, no CDN
+/// #[rpc_query(cache = "private, 10m")]
+/// async fn get_profile() -> Profile { /* ... */ }
+/// // → Cache-Control: private, max-age=600
+/// ```
+///
+/// Duration shorthand: `30s`, `5m`, `1h`, `1d`. Error responses never receive
+/// cache headers. Mutations (`#[rpc_mutation]`) do not support caching.
+///
 /// # Limitations
 ///
 /// - `Result` and `Headers` are detected by **name only** (last path segment).
@@ -166,16 +191,12 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// ```
 #[proc_macro_attribute]
 pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
-    if !attr.is_empty() {
-        return syn::Error::new_spanned(
-            proc_macro2::TokenStream::from(attr),
-            "rpc_query does not accept any arguments",
-        )
-        .to_compile_error()
-        .into();
-    }
+    let cache_config = match parse_cache_attrs(attr) {
+        Ok(config) => config,
+        Err(e) => return e.to_compile_error().into(),
+    };
     let input_fn = parse_macro_input!(item as ItemFn);
-    build_handler(input_fn, HandlerKind::Query)
+    build_handler(input_fn, HandlerKind::Query, cache_config)
         .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
@@ -260,7 +281,7 @@ pub fn rpc_mutation(attr: TokenStream, item: TokenStream) -> TokenStream {
         .into();
     }
     let input_fn = parse_macro_input!(item as ItemFn);
-    build_handler(input_fn, HandlerKind::Mutation)
+    build_handler(input_fn, HandlerKind::Mutation, None)
         .map(Into::into)
         .unwrap_or_else(|e| e.to_compile_error().into())
 }
@@ -271,6 +292,154 @@ enum HandlerKind {
     Mutation,
 }
 
+/// Holds the computed `Cache-Control` header value for a query handler.
+#[derive(Debug)]
+struct CacheConfig {
+    cache_control: String,
+}
+
+/// Parses optional `cache` / `stale` key-value pairs from `#[rpc_query(...)]` attributes.
+///
+/// Returns `None` when the attribute is empty (backward compatible bare `#[rpc_query]`).
+fn parse_cache_attrs(attr: TokenStream) -> Result<Option<CacheConfig>, syn::Error> {
+    parse_cache_attrs_inner(attr.into())
+}
+
+/// Inner implementation that accepts `proc_macro2::TokenStream` for testability.
+fn parse_cache_attrs_inner(
+    attr: proc_macro2::TokenStream,
+) -> Result<Option<CacheConfig>, syn::Error> {
+    if attr.is_empty() {
+        return Ok(None);
+    }
+
+    let parsed = syn::parse::Parser::parse2(
+        syn::punctuated::Punctuated::<syn::MetaNameValue, syn::token::Comma>::parse_terminated,
+        attr,
+    )?;
+
+    let mut cache_value = None;
+    let mut stale_value = None;
+
+    for nv in &parsed {
+        let key = nv
+            .path
+            .get_ident()
+            .ok_or_else(|| syn::Error::new_spanned(&nv.path, "expected a simple identifier"))?;
+
+        let value = match &nv.value {
+            syn::Expr::Lit(expr_lit) => match &expr_lit.lit {
+                syn::Lit::Str(s) => s.value(),
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        &nv.value,
+                        "expected a string literal",
+                    ));
+                }
+            },
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    &nv.value,
+                    "expected a string literal",
+                ));
+            }
+        };
+
+        if key == "cache" {
+            if cache_value.is_some() {
+                return Err(syn::Error::new_spanned(key, "duplicate `cache` attribute"));
+            }
+            cache_value = Some(value);
+        } else if key == "stale" {
+            if stale_value.is_some() {
+                return Err(syn::Error::new_spanned(key, "duplicate `stale` attribute"));
+            }
+            stale_value = Some(value);
+        } else {
+            return Err(syn::Error::new_spanned(
+                key,
+                format!("unknown attribute `{key}`"),
+            ));
+        }
+    }
+
+    let cache_value = cache_value.ok_or_else(|| {
+        syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "missing required `cache` attribute",
+        )
+    })?;
+
+    let cache_control = build_cache_control(&cache_value, stale_value.as_deref())
+        .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
+
+    Ok(Some(CacheConfig { cache_control }))
+}
+
+/// Parses a human-readable duration shorthand into seconds.
+///
+/// Supported suffixes: `s` (seconds), `m` (minutes), `h` (hours), `d` (days).
+/// Zero durations are rejected.
+fn parse_duration(s: &str) -> Result<u64, String> {
+    if s.is_empty() {
+        return Err("duration cannot be empty".into());
+    }
+
+    let (num_str, multiplier) = if let Some(n) = s.strip_suffix('s') {
+        (n, 1)
+    } else if let Some(n) = s.strip_suffix('m') {
+        (n, 60)
+    } else if let Some(n) = s.strip_suffix('h') {
+        (n, 3600)
+    } else if let Some(n) = s.strip_suffix('d') {
+        (n, 86400)
+    } else {
+        return Err(format!(
+            "invalid duration suffix in `{s}`, expected s/m/h/d"
+        ));
+    };
+
+    let num: u64 = num_str
+        .parse()
+        .map_err(|_| format!("invalid number in duration `{s}`"))?;
+
+    if num == 0 {
+        return Err(format!("duration cannot be zero: `{s}`"));
+    }
+
+    Ok(num * multiplier)
+}
+
+/// Builds the `Cache-Control` header value from parsed `cache` and optional `stale` values.
+///
+/// - `"1h"` → `"public, max-age=0, s-maxage=3600"`
+/// - `"private, 10m"` → `"private, max-age=600"`
+/// - `"5m"` + stale `"1h"` → `"public, max-age=0, s-maxage=300, stale-while-revalidate=3600"`
+fn build_cache_control(cache_value: &str, stale_value: Option<&str>) -> Result<String, String> {
+    let (is_private, duration_str) = if let Some(rest) = cache_value.strip_prefix("private,") {
+        (true, rest.trim())
+    } else {
+        (false, cache_value.trim())
+    };
+
+    let seconds = parse_duration(duration_str)?;
+    let stale_seconds = stale_value.map(parse_duration).transpose()?;
+
+    if is_private {
+        let mut header = format!("private, max-age={seconds}");
+        if let Some(stale) = stale_seconds {
+            header.push_str(&format!(", stale-while-revalidate={stale}"));
+        }
+        Ok(header)
+    } else {
+        let mut header = format!("public, max-age=0, s-maxage={seconds}");
+        if let Some(stale) = stale_seconds {
+            header.push_str(&format!(", stale-while-revalidate={stale}"));
+        }
+        Ok(header)
+    }
+}
+
 /// Transforms a user-defined async function into a complete Vercel lambda handler.
 ///
 /// Generates `main()`, CORS helpers, input parsing, and response serialization.
@@ -279,7 +448,11 @@ enum HandlerKind {
     clippy::needless_pass_by_value,
     reason = "ItemFn is owned from parse_macro_input"
 )]
-fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenStream, syn::Error> {
+fn build_handler(
+    func: ItemFn,
+    kind: HandlerKind,
+    cache_config: Option<CacheConfig>,
+) -> Result<proc_macro2::TokenStream, syn::Error> {
     if func.sig.asyncness.is_none() {
         return Err(syn::Error::new_spanned(
             func.sig.fn_token,
@@ -452,6 +625,14 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         })
         .collect();
 
+    let cache_header = match &cache_config {
+        Some(config) => {
+            let value = &config.cache_control;
+            quote! { .header("Cache-Control", #value) }
+        }
+        None => quote! {},
+    };
+
     let expanded = quote! {
         fn main() -> Result<(), ::vercel_rpc::__private::vercel_runtime::Error> {
             ::vercel_rpc::__private::tokio::runtime::Builder::new_current_thread()
@@ -483,7 +664,8 @@ fn build_handler(func: ItemFn, kind: HandlerKind) -> Result<proc_macro2::TokenSt
         ) -> Result<::vercel_rpc::__private::vercel_runtime::Response<::vercel_rpc::__private::serde_json::Value>, ::vercel_rpc::__private::vercel_runtime::Error> {
             let mut builder = ::vercel_rpc::__private::vercel_runtime::Response::builder()
                 .status(200)
-                .header("Content-Type", "application/json");
+                .header("Content-Type", "application/json")
+                #cache_header;
 
             for (k, v) in __rpc_cors_headers() {
                 builder = builder.header(k, v);

@@ -118,25 +118,23 @@ async fn create_order(input: Order) -> OrderResult { ... }
 
 These attributes flow into the generated manifest and can influence both server and client behavior.
 
-#### Server-Side Caching via `cache`
+#### ~~Server-Side Caching via `cache`~~ ✅
 
-The `cache` attribute generates `Cache-Control` HTTP headers in the macro-expanded handler. On Vercel, this automatically enables edge caching without any infrastructure setup.
+> Implemented via `cache` and `stale` attributes on `#[rpc_query]`. The macro parses duration shorthand (`30s`, `5m`, `1h`, `1d`) at compile time and emits `Cache-Control` headers on success responses. Supports public (CDN) and private (browser-only) caching, with optional `stale-while-revalidate`. Mutations never receive cache headers.
 
 ```rust
 #[rpc_query(cache = "1h")]
 async fn get_settings() -> Settings { ... }
-// → Cache-Control: public, max-age=3600, s-maxage=3600
+// → Cache-Control: public, max-age=0, s-maxage=3600
 
 #[rpc_query(cache = "5m", stale = "1h")]
 async fn get_feed() -> Vec<Post> { ... }
-// → Cache-Control: public, max-age=300, s-maxage=300, stale-while-revalidate=3600
+// → Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=3600
 
 #[rpc_query(cache = "private, 10m")]
 async fn get_profile() -> Profile { ... }
 // → Cache-Control: private, max-age=600
 ```
-
-Duration shorthand: `30s`, `5m`, `1h`, `1d`. The macro parses these at compile time and emits the appropriate header values. Mutations never set cache headers.
 
 #### Other metadata
 - `timeout` — sets per-procedure server-side and client-side timeouts.
@@ -164,4 +162,4 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                                    |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
-| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, server-side caching, batch requests                                                                                   |
+| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, batch requests                                                                              |
