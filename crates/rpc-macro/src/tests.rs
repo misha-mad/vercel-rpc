@@ -701,6 +701,12 @@ fn parse_attrs_timeout_invalid_duration() {
     assert!(err.to_string().contains("suffix"));
 }
 
+#[test]
+fn parse_attrs_timeout_empty_rejected() {
+    let err = parse_handler_attrs_inner(quote! { timeout = "" }).unwrap_err();
+    assert!(err.to_string().contains("empty"));
+}
+
 // --- generate_handler: timeout ---
 
 #[test]

@@ -442,6 +442,12 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
                     "duplicate `timeout` attribute",
                 ));
             }
+            if value.is_empty() {
+                return Err(syn::Error::new_spanned(
+                    &nv.value,
+                    "timeout duration cannot be empty",
+                ));
+            }
             timeout_value = Some(value);
         } else {
             return Err(syn::Error::new_spanned(

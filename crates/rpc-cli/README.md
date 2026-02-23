@@ -477,6 +477,25 @@ const client = createRpcClient({
 });
 ```
 
+#### Per-procedure timeout defaults
+
+When a Rust handler specifies `timeout = "30s"` in its `#[rpc_query]` or `#[rpc_mutation]` attribute, the CLI extracts the value and emits a `PROCEDURE_TIMEOUTS` map in the generated client. This provides per-procedure default timeouts without any manual configuration.
+
+The timeout resolution chain is: `callOptions?.timeout ?? PROCEDURE_TIMEOUTS[procedure] ?? config.timeout` — per-call options take highest priority, then per-procedure defaults from the Rust source, then the global client timeout.
+
+```rust
+#[rpc_query(timeout = "30s")]
+async fn slow_report(input: ReportParams) -> Report { /* ... */ }
+```
+
+Generated client includes:
+
+```typescript
+const PROCEDURE_TIMEOUTS: Record<string, number> = {
+  "slow_report": 30000,
+};
+```
+
 ### Custom serialization
 
 By default the client uses `JSON.stringify` / `res.json()` for serialization and deserialization. You can override both with the `serialize` and `deserialize` options — useful for libraries like [superjson](https://github.com/blitz-js/superjson) or [devalue](https://github.com/Rich-Harris/devalue) that support richer types (Date, Map, Set, etc.).

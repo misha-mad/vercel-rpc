@@ -722,6 +722,24 @@ Mutations support `init` (but not `cache`):
 async fn create_order(input: OrderInput, state: &AppState) -> Order { /* ... */ }
 ```
 
+### Timeout
+
+Use the `timeout` attribute to enforce a per-procedure server-side timeout. If the handler does not complete within the specified duration, the request returns a `504` error with `"Handler timed out"`.
+
+```rust
+#[rpc_query(timeout = "30s")]
+async fn slow_report(input: ReportParams) -> Report { /* ... */ }
+
+#[rpc_mutation(timeout = "5m")]
+async fn long_import(input: ImportData) -> ImportResult { /* ... */ }
+
+// Combined with cache and init
+#[rpc_query(timeout = "30s", cache = "1h", init = "setup")]
+async fn expensive(id: u32, state: &AppState) -> Report { /* ... */ }
+```
+
+Duration shorthand: `30s`, `5m`, `1h`, `1d`. The timeout is also forwarded to the generated TypeScript client as a per-procedure default, slotting into the resolution chain: `callOptions?.timeout ?? PROCEDURE_TIMEOUTS[procedure] ?? config.timeout`.
+
 ### `#[rpc_mutation]` — POST endpoint
 
 ```rust
@@ -890,6 +908,7 @@ Every macro-annotated function automatically gets:
 | **Input parsing**   | Query param (GET) or JSON body (POST)                    |
 | **Error handling**  | `Result<T, E>` → `Ok` = 200, `Err` = 400 with JSON error |
 | **Caching**         | `cache = "1h"` → `Cache-Control` header on success responses |
+| **Timeout**         | `timeout = "30s"` → `504` if handler exceeds duration     |
 | **Response format** | `{ "result": { "type": "response", "data": ... } }`      |
 
 ## Type Mapping
