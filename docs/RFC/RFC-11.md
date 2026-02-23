@@ -64,52 +64,43 @@ async fn get_data() -> Data { ... }
 
 ### 3.2 Init Function Signatures
 
+Init functions must be `async fn`. This is required because the macro always generates `.await` on the init call inside `block_on`. Sync code works fine inside async functions with zero overhead, and the primary use case (DB pools) requires async anyway.
+
 **Side-effects only** (no state):
 
 ```rust
-fn setup() {
-    tracing_subscriber::init();
+async fn setup() {
+    tracing_subscriber::init();  // sync calls work inside async fn
     dotenv::dotenv().ok();
 }
 ```
 
-**With state** (returns a value):
+**With state:**
 
 ```rust
-fn setup() -> AppState {
+async fn setup() -> AppState {
     tracing_subscriber::init();
-    AppState {
-        pool: Pool::new(&std::env::var("DATABASE_URL").unwrap()),
-        http: reqwest::Client::new(),
-    }
+    let pool = sqlx::PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+    AppState { pool, http: reqwest::Client::new() }
 }
 ```
 
 ### 3.3 State Injection
 
-When the init function returns a value, the handler receives it as a parameter typed `&State`. The macro detects the state parameter by matching its type against the init function's return type.
+When the init function returns a value, the handler receives it as a parameter typed `&State`. The macro detects the state parameter by its type syntax:
+
+> **Convention:** state is always `&T` (a reference), input is always an owned type `T`. This is how the macro distinguishes them — no ambiguity.
 
 ```rust
-struct AppState {
-    pool: Pool,
-    http: reqwest::Client,
-}
-
-fn setup() -> AppState {
-    tracing_subscriber::init();
-    AppState {
-        pool: Pool::new("postgres://..."),
-        http: reqwest::Client::new(),
-    }
-}
-
 #[rpc_query(init = "setup")]
 async fn get_user(id: u32, state: &AppState) -> User {
+//                 ^^^^^          ^^^^^^^^
+//                 owned → input  &ref → state
     state.pool.query("SELECT ...").await
 }
 ```
 
-State detection uses the same pattern as the existing `Headers` parameter — the macro checks whether a parameter's type matches the init function's return type by name. Parameter order does not matter:
+This convention is enforced: a `&T` parameter (that is not `Headers`) is only accepted when `init` is present. Without `init`, a `&T` parameter is a compile error. Parameter order does not matter:
 
 ```rust
 // All of these work:
@@ -120,38 +111,42 @@ async fn handler(state: &AppState) -> Data { ... }  // no input
 
 ### 3.4 Generated Code
 
-For `init = "setup"` where `setup() -> AppState`:
+Since init functions are always `async`, the macro always generates `.await` inside `block_on`. One consistent code path, no asyncness detection needed.
+
+**With state** — `async fn setup() -> AppState`:
 
 ```rust
 static __RPC_STATE: std::sync::OnceLock<AppState> = std::sync::OnceLock::new();
 
 fn main() -> Result<(), Error> {
-    __RPC_STATE.set(setup()).expect("init already called");
-
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?
         .block_on(async {
+            __RPC_STATE.set(setup().await).expect("BUG: OnceLock already set");
             vercel_runtime::run(service_fn(__rpc_handler)).await
         })
 }
 
 async fn __rpc_handler(req: Request) -> Result<Response<Value>, Error> {
-    let state = __RPC_STATE.get().expect("init not called");
+    let state = __RPC_STATE.get().expect("BUG: init not called");
     // ... parse input ...
     let __raw_result = get_user(__input, state).await;
     // ...
 }
 ```
 
-For side-effects only (`setup()` with no return value / returns `()`):
+**Side-effects only** — `async fn setup()`:
 
 ```rust
 fn main() -> Result<(), Error> {
-    setup();  // no OnceLock needed
-
     tokio::runtime::Builder::new_current_thread()
-        // ...
+        .enable_all()
+        .build()?
+        .block_on(async {
+            setup().await;
+            vercel_runtime::run(service_fn(__rpc_handler)).await
+        })
 }
 ```
 
@@ -172,16 +167,14 @@ src/
 ```rust
 // src/lib.rs
 pub struct AppState {
-    pub pool: Pool,
+    pub pool: sqlx::PgPool,
     pub http: reqwest::Client,
 }
 
-pub fn setup() -> AppState {
+pub async fn setup() -> AppState {
     tracing_subscriber::init();
-    AppState {
-        pool: Pool::new(&std::env::var("DATABASE_URL").unwrap()),
-        http: reqwest::Client::new(),
-    }
+    let pool = sqlx::PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+    AppState { pool, http: reqwest::Client::new() }
 }
 ```
 
@@ -246,11 +239,15 @@ struct HandlerAttrs {
 
 ### 5.1 State Type Detection
 
-When `init_fn` is `Some(path)`, the macro needs to know the return type to:
-1. Determine whether to create a `OnceLock<T>` static
-2. Match the state parameter in the handler signature
+The macro classifies each parameter by its type syntax:
 
-**Approach:** The state parameter is detected by exclusion — any `&T` parameter that is not `Headers` and not the input type is treated as the state reference. The `T` is used as the `OnceLock` type parameter.
+| Type syntax | Classification | Example |
+|-------------|---------------|---------|
+| `Headers` (by name) | Headers param | `headers: Headers` |
+| `&T` (reference) | State param | `state: &AppState` |
+| `T` (owned) | Input param | `id: u32` |
+
+This is unambiguous — a parameter's role is determined entirely by its type, not by position or name. The `&T` convention for state is natural: the handler borrows from the `OnceLock`, it doesn't own the state.
 
 ```rust
 // In build_handler, after separating typed_params:
@@ -259,7 +256,7 @@ let mut state_param = None;
 for param in &typed_params {
     if is_headers_type(&param.ty) {
         headers_param = Some(*param);
-    } else if is_ref_type(&param.ty) && init_fn.is_some() {
+    } else if is_ref_type(&param.ty) {
         state_param = Some(*param);
     } else {
         input_param = Some(*param);
@@ -274,6 +271,8 @@ fn is_ref_type(ty: &Type) -> bool {
     matches!(ty, Type::Reference(_))
 }
 ```
+
+A `&T` parameter without `init` is a compile error — this prevents silent misclassification.
 
 ### 5.2 Conditional Code Generation
 
@@ -328,14 +327,15 @@ The handler can have up to three parameters in any order:
 
 | Test | Description |
 |------|-------------|
-| `init_side_effects_only` | Calls init fn in main, no OnceLock |
-| `init_with_state` | Creates OnceLock, passes state to handler |
+| `init_side_effects_only` | Generates `.await` inside `block_on`, no `OnceLock` |
+| `init_with_state` | Creates `OnceLock`, passes `&state` to handler |
 | `init_with_state_and_input` | State and input both passed correctly |
 | `init_with_state_and_headers` | State and headers both passed correctly |
 | `init_with_all_three_params` | Input, state, and headers all work |
-| `state_without_init_rejected` | `&T` param without `init` attr is an error |
+| `state_without_init_rejected` | `&T` param without `init` attr is a compile error |
 | `init_compatible_with_cache` | `init` + `cache` both generate correctly |
 | `init_compatible_with_mutation` | `init` works on `#[rpc_mutation]` |
+| `init_call_inside_block_on` | Init call is inside `block_on` (supports async) |
 
 ## 9. Backward Compatibility
 
@@ -346,6 +346,5 @@ The handler can have up to three parameters in any order:
 
 ## 10. Future Extensions
 
-- **Async init** — `async fn setup() -> AppState` for async initialization (e.g. running migrations). Would require the init call to be inside the tokio runtime block.
 - **`timeout` attribute** — per-procedure timeout, parsed alongside `init` and `cache`.
 - **`idempotent` attribute** — marks mutations as safe to retry, flows into the generated client.
