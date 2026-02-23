@@ -236,6 +236,9 @@ pub struct Procedure {
     /// Doc comment extracted from `///` lines
     #[serde(skip_serializing_if = "Option::is_none")]
     pub docs: Option<String>,
+    /// Per-procedure timeout in milliseconds (from `timeout = "..."` attribute)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout_ms: Option<u64>,
 }
 
 /// All user-defined struct types found in the scanned source files.

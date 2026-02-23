@@ -78,6 +78,8 @@ export interface CallOptions {
   dedupe?: boolean;
 }
 
+const PROCEDURE_TIMEOUTS: Record<string, number> = {};
+
 const DEFAULT_RETRY_ON = [408, 429, 500, 502, 503, 504];
 
 async function rpcFetch(
@@ -103,7 +105,7 @@ async function rpcFetch(
   const fetchFn = config.fetch ?? globalThis.fetch;
   const maxAttempts = 1 + (config.retry?.attempts ?? 0);
   const retryOn = config.retry?.retryOn ?? DEFAULT_RETRY_ON;
-  const effectiveTimeout = callOptions?.timeout ?? config.timeout;
+  const effectiveTimeout = callOptions?.timeout ?? PROCEDURE_TIMEOUTS[procedure] ?? config.timeout;
   const start = Date.now();
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {

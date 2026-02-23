@@ -176,6 +176,7 @@ fn override_in_procedure_io() {
             output: Some(RustType::simple("User")),
             source_file: PathBuf::from("test.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![],
         enums: vec![],

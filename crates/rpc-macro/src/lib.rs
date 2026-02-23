@@ -197,6 +197,23 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// The macro distinguishes state (`&T`) from input (`T`) by reference syntax.
 /// A `&T` parameter requires `init`; `&mut T` is rejected.
 ///
+/// # Timeout
+///
+/// Use the `timeout` attribute to enforce a per-procedure server-side timeout.
+/// If the handler does not complete within the specified duration, the request
+/// returns a `504` error response with `"Handler timed out"`.
+///
+/// ```rust,ignore
+/// #[rpc_query(timeout = "30s")]
+/// async fn slow_query() -> String { /* ... */ }
+///
+/// #[rpc_query(timeout = "5m", cache = "1h")]
+/// async fn expensive(id: u32) -> Report { /* ... */ }
+/// ```
+///
+/// Duration shorthand: `30s`, `5m`, `1h`, `1d`. The timeout is also forwarded
+/// to the generated TypeScript client as a per-procedure default.
+///
 /// # Limitations
 ///
 /// - `Result` and `Headers` are detected by **name only** (last path segment).
@@ -287,7 +304,7 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// # Initialization
 ///
-/// Mutations support the `init` attribute (but not `cache`):
+/// Mutations support the `init` and `timeout` attributes (but not `cache`):
 ///
 /// ```rust,ignore
 /// #[rpc_mutation(init = "setup")]
@@ -342,6 +359,7 @@ struct CacheConfig {
 struct HandlerAttrs {
     cache_config: Option<CacheConfig>,
     init_fn: Option<String>,
+    timeout_secs: Option<u64>,
 }
 
 /// Parses optional `init` / `cache` / `stale` key-value pairs from handler attributes.
@@ -358,6 +376,7 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
         return Ok(HandlerAttrs {
             cache_config: None,
             init_fn: None,
+            timeout_secs: None,
         });
     }
 
@@ -369,6 +388,7 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
     let mut cache_value = None;
     let mut stale_value = None;
     let mut init_value = None;
+    let mut timeout_value = None;
 
     for nv in &parsed {
         let key = nv
@@ -415,6 +435,14 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
                 ));
             }
             init_value = Some(value);
+        } else if key == "timeout" {
+            if timeout_value.is_some() {
+                return Err(syn::Error::new_spanned(
+                    key,
+                    "duplicate `timeout` attribute",
+                ));
+            }
+            timeout_value = Some(value);
         } else {
             return Err(syn::Error::new_spanned(
                 key,
@@ -439,9 +467,15 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
         None
     };
 
+    let timeout_secs = timeout_value
+        .map(|v| parse_duration(&v))
+        .transpose()
+        .map_err(|e| syn::Error::new(proc_macro2::Span::call_site(), e))?;
+
     Ok(HandlerAttrs {
         cache_config,
         init_fn: init_value,
+        timeout_secs,
     })
 }
 
@@ -525,6 +559,7 @@ fn build_handler(
     let HandlerAttrs {
         cache_config,
         init_fn,
+        timeout_secs,
     } = attrs;
 
     if func.sig.asyncness.is_none() {
@@ -768,6 +803,20 @@ fn build_handler(
         quote! {}
     };
 
+    let invoke_user_fn = if let Some(secs) = timeout_secs {
+        quote! {
+            match ::vercel_rpc::__private::tokio::time::timeout(
+                ::std::time::Duration::from_secs(#secs),
+                #fn_name(#(#call_args),*),
+            ).await {
+                Ok(result) => result,
+                Err(_) => return __rpc_error_response(504, "Handler timed out"),
+            }
+        }
+    } else {
+        quote! { #fn_name(#(#call_args),*).await }
+    };
+
     let expanded = quote! {
         #state_static
 
@@ -872,7 +921,7 @@ fn build_handler(
             async fn #fn_name(#(#inner_fn_params),*) -> #return_type
             #fn_block
 
-            let __raw_result = #fn_name(#(#call_args),*).await;
+            let __raw_result = #invoke_user_fn;
 
             #result_handling
         }
