@@ -90,9 +90,11 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 > Implemented via `[codegen.type_overrides]` config section and `--type-override` CLI flag. Override keys are matched by the last path segment, with exact full-path matching taking priority. The parser preserves fully-qualified type paths for disambiguation.
 
-#### BigInt option
+#### ~~BigInt option~~ ✅
 
-Large integer types can optionally map to `bigint` instead of `number`:
+> Implemented via `codegen.bigint_types` config option and `--bigint-type` CLI flag. Entries are merged into the type override machinery as `"bigint"` mappings, with explicit `type_overrides` taking priority.
+
+~~Large integer types can optionally map to `bigint` instead of `number`:~~
 
 ```toml
 [codegen]
@@ -162,4 +164,4 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                                    |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
-| **4** | Ecosystem  | ~~External crate mappings~~ ✅, macro metadata, server-side caching, batch requests                                                                                                       |
+| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, server-side caching, batch requests                                                                                   |

@@ -253,6 +253,7 @@ client = "client.ts"
         branded_newtypes: None,
         fields: Some(FieldNaming::CamelCase),
         type_overrides: vec![],
+        bigint_types: vec![],
         debounce_ms: Some(500),
         clear_screen: true,
     };
@@ -292,6 +293,7 @@ fn test_resolve_no_config_flag() {
         branded_newtypes: None,
         fields: None,
         type_overrides: vec![],
+        bigint_types: vec![],
         debounce_ms: None,
         clear_screen: false,
     };
@@ -321,6 +323,7 @@ fn test_resolve_client_output_override() {
         branded_newtypes: None,
         fields: None,
         type_overrides: vec![],
+        bigint_types: vec![],
         debounce_ms: None,
         clear_screen: false,
     };
@@ -586,4 +589,48 @@ fn test_cli_type_overrides_merge() {
         config.codegen.type_overrides.get("uuid::Uuid").unwrap(),
         "string"
     );
+}
+
+// --- BigInt types ---
+
+#[test]
+fn test_parse_bigint_types() {
+    let toml_str = r#"
+[codegen]
+bigint_types = ["i64", "u64", "i128", "u128"]
+"#;
+    let config: RpcConfig = toml::from_str(toml_str).unwrap();
+    assert_eq!(
+        config.codegen.bigint_types,
+        vec!["i64", "u64", "i128", "u128"]
+    );
+}
+
+#[test]
+fn test_bigint_types_default_empty() {
+    let config = RpcConfig::default();
+    assert!(config.codegen.bigint_types.is_empty());
+}
+
+#[test]
+fn test_cli_bigint_types_override() {
+    let tmp = TempDir::new().unwrap();
+    let config_path = tmp.path().join(CONFIG_FILE_NAME);
+    std::fs::write(
+        &config_path,
+        r#"
+[codegen]
+bigint_types = ["i64"]
+"#,
+    )
+    .unwrap();
+
+    let overrides = CliOverrides {
+        config: Some(config_path),
+        no_config: false,
+        bigint_types: vec!["u64".to_string(), "i128".to_string()],
+        ..CliOverrides::default()
+    };
+    let config = resolve(overrides).unwrap();
+    assert_eq!(config.codegen.bigint_types, vec!["u64", "i128"]);
 }

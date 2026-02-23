@@ -2524,3 +2524,57 @@ fn base_name_deeply_qualified() {
         "Value"
     );
 }
+
+// --- BigInt types ---
+
+#[test]
+fn snapshot_bigint_types() {
+    use std::collections::HashMap;
+    use vercel_rpc_cli::codegen::overrides::{apply_type_overrides, build_base_index};
+
+    // Simulate bigint_types = ["i64", "u64"] merged into effective overrides
+    let mut effective_overrides = HashMap::new();
+    for ty in ["i64", "u64"] {
+        effective_overrides
+            .entry(ty.to_string())
+            .or_insert_with(|| "bigint".to_string());
+    }
+    let base_index = build_base_index(&effective_overrides);
+
+    let mut manifest = Manifest {
+        procedures: vec![Procedure {
+            name: "get_stats".to_string(),
+            kind: ProcedureKind::Query,
+            input: None,
+            output: Some(RustType::simple("Stats")),
+            source_file: PathBuf::from("api/stats.rs"),
+            docs: None,
+        }],
+        structs: vec![StructDef {
+            name: "Stats".to_string(),
+            generics: vec![],
+            fields: vec![
+                field("count", RustType::simple("u32")),
+                field("total_bytes", RustType::simple("u64")),
+                field("max_value", RustType::simple("i64")),
+                field(
+                    "ids",
+                    RustType::with_generics("Vec", vec![RustType::simple("u64")]),
+                ),
+                field(
+                    "optional_big",
+                    RustType::with_generics("Option", vec![RustType::simple("i64")]),
+                ),
+            ],
+            tuple_fields: vec![],
+            source_file: PathBuf::from("api/stats.rs"),
+            docs: None,
+            rename_all: None,
+        }],
+        enums: vec![],
+    };
+
+    apply_type_overrides(&mut manifest, &effective_overrides, &base_index);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    insta::assert_snapshot!(output);
+}

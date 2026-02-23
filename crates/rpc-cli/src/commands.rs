@@ -107,13 +107,17 @@ pub fn cmd_generate(config: &RpcConfig) -> Result<()> {
 pub fn generate_all(config: &RpcConfig) -> Result<Manifest> {
     let mut manifest = parser::scan_directory(&config.input)?;
 
+    // Merge bigint_types into effective overrides (explicit type_overrides take priority)
+    let mut effective_overrides = config.codegen.type_overrides.clone();
+    for ty in &config.codegen.bigint_types {
+        effective_overrides
+            .entry(ty.clone())
+            .or_insert_with(|| "bigint".to_string());
+    }
+
     // Apply type overrides before codegen
-    let base_index = codegen::overrides::build_base_index(&config.codegen.type_overrides);
-    codegen::overrides::apply_type_overrides(
-        &mut manifest,
-        &config.codegen.type_overrides,
-        &base_index,
-    );
+    let base_index = codegen::overrides::build_base_index(&effective_overrides);
+    codegen::overrides::apply_type_overrides(&mut manifest, &effective_overrides, &base_index);
 
     let types_content = codegen::typescript::generate_types_file(
         &manifest,
