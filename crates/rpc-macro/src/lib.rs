@@ -718,9 +718,9 @@ fn build_handler(
 
     // Generate init call inside block_on.
     let init_call = if let Some(ref path) = init_fn {
-        let path_ident: proc_macro2::TokenStream = path.parse().unwrap_or_else(|_| {
-            panic!("invalid init function path: {path}");
-        });
+        let path_ident: proc_macro2::TokenStream = path.parse().map_err(|_| {
+            syn::Error::new_spanned(&func.sig, format!("invalid init function path: `{path}`"))
+        })?;
         if state_param.is_some() {
             quote! {
                 __RPC_STATE.set(#path_ident().await).expect("BUG: OnceLock already set");
