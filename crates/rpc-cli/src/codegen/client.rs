@@ -128,7 +128,7 @@ async function rpcFetch(
   const fetchFn = config.fetch ?? globalThis.fetch;
   const maxAttempts = 1 + (config.retry?.attempts ?? 0);
   const retryOn = config.retry?.retryOn ?? DEFAULT_RETRY_ON;
-  const effectiveTimeout = callOptions?.timeout ?? config.timeout;
+  const effectiveTimeout = callOptions?.timeout ?? PROCEDURE_TIMEOUTS[procedure] ?? config.timeout;
   const start = Date.now();
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -255,6 +255,9 @@ pub fn generate_client_file(
     // Per-call options interface
     emit!(out, "{CALL_OPTIONS_INTERFACE}\n");
 
+    // Per-procedure timeout defaults (ms)
+    generate_procedure_timeouts(manifest, &mut out);
+
     // Internal fetch helper
     emit!(out, "{FETCH_HELPER}\n");
 
@@ -276,6 +279,28 @@ pub fn generate_client_file(
     generate_client_factory(manifest, preserve_docs, &mut out);
 
     out
+}
+
+/// Emits the `PROCEDURE_TIMEOUTS` record mapping procedure names to their default timeout in ms.
+fn generate_procedure_timeouts(manifest: &Manifest, out: &mut String) {
+    let entries: Vec<_> = manifest
+        .procedures
+        .iter()
+        .filter_map(|p| p.timeout_ms.map(|ms| format!("  \"{}\": {}", p.name, ms)))
+        .collect();
+
+    if entries.is_empty() {
+        emit!(
+            out,
+            "const PROCEDURE_TIMEOUTS: Record<string, number> = {{}};\n"
+        );
+    } else {
+        emit!(out, "const PROCEDURE_TIMEOUTS: Record<string, number> = {{");
+        for entry in &entries {
+            emit!(out, "{entry},");
+        }
+        emit!(out, "}};\n");
+    }
 }
 
 /// Emits utility types that power the typed client API.

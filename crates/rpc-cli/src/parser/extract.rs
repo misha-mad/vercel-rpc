@@ -201,6 +201,8 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
         }
     };
 
+    let timeout_ms = extract_timeout_ms(&func.attrs);
+
     Some(Procedure {
         name,
         kind,
@@ -208,6 +210,7 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
         output,
         source_file: path.to_path_buf(),
         docs,
+        timeout_ms,
     })
 }
 
@@ -277,6 +280,55 @@ fn is_headers_type(ty: &syn::Type) -> bool {
         return segment.ident == "Headers";
     }
     false
+}
+
+/// Extracts the `timeout` value from `#[rpc_query(timeout = "30s")]` or `#[rpc_mutation(timeout = "30s")]`.
+///
+/// Returns `Some(milliseconds)` if a valid timeout is found, `None` otherwise.
+fn extract_timeout_ms(attrs: &[Attribute]) -> Option<u64> {
+    for attr in attrs {
+        if !attr.path().is_ident(RPC_QUERY_ATTR) && !attr.path().is_ident(RPC_MUTATION_ATTR) {
+            continue;
+        }
+        let Ok(parsed) = attr.parse_args_with(
+            syn::punctuated::Punctuated::<syn::MetaNameValue, syn::Token![,]>::parse_terminated,
+        ) else {
+            continue;
+        };
+        for nv in &parsed {
+            if nv.path.is_ident("timeout")
+                && let syn::Expr::Lit(syn::ExprLit {
+                    lit: syn::Lit::Str(s),
+                    ..
+                }) = &nv.value
+            {
+                return parse_duration_to_ms(&s.value());
+            }
+        }
+    }
+    None
+}
+
+/// Parses a human-readable duration shorthand into milliseconds.
+///
+/// Lenient: returns `None` on any parse error instead of failing the scan.
+fn parse_duration_to_ms(s: &str) -> Option<u64> {
+    let (num_str, multiplier) = if let Some(n) = s.strip_suffix('s') {
+        (n, 1_000)
+    } else if let Some(n) = s.strip_suffix('m') {
+        (n, 60_000)
+    } else if let Some(n) = s.strip_suffix('h') {
+        (n, 3_600_000)
+    } else if let Some(n) = s.strip_suffix('d') {
+        (n, 86_400_000)
+    } else {
+        return None;
+    };
+    let num: u64 = num_str.parse().ok()?;
+    if num == 0 {
+        return None;
+    }
+    Some(num * multiplier)
 }
 
 /// Checks if a struct has `#[derive(Serialize)]` or `#[derive(serde::Serialize)]`.

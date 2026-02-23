@@ -12,6 +12,7 @@ fn no_attrs() -> HandlerAttrs {
     HandlerAttrs {
         cache_config: None,
         init_fn: None,
+        timeout_secs: None,
     }
 }
 
@@ -268,6 +269,7 @@ fn query_with_cache_header() {
             cache_control: "public, max-age=0, s-maxage=3600".into(),
         }),
         init_fn: None,
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -284,6 +286,7 @@ fn query_with_stale_while_revalidate() {
             cache_control: "public, max-age=0, s-maxage=300, stale-while-revalidate=3600".into(),
         }),
         init_fn: None,
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -299,6 +302,7 @@ fn query_with_private_cache() {
             cache_control: "private, max-age=600".into(),
         }),
         init_fn: None,
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -333,6 +337,7 @@ fn error_response_never_has_cache_header() {
             cache_control: "public, max-age=0, s-maxage=3600".into(),
         }),
         init_fn: None,
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -373,7 +378,7 @@ fn parse_handler_attrs_cache_with_stale() {
 
 #[test]
 fn parse_handler_attrs_rejects_unknown_key() {
-    let err = parse_handler_attrs_inner(quote! { cache = "1h", timeout = "30s" }).unwrap_err();
+    let err = parse_handler_attrs_inner(quote! { cache = "1h", unknown = "30s" }).unwrap_err();
     assert!(err.to_string().contains("unknown attribute"));
 }
 
@@ -453,6 +458,7 @@ fn mutation_with_init_no_cache() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -469,6 +475,7 @@ fn init_side_effects_only() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -484,6 +491,7 @@ fn init_with_state() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -500,6 +508,7 @@ fn init_with_state_and_input() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -517,6 +526,7 @@ fn init_with_state_and_headers() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -534,6 +544,7 @@ fn init_with_all_three_params() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -551,6 +562,7 @@ fn init_compatible_with_cache() {
             cache_control: "public, max-age=0, s-maxage=3600".into(),
         }),
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -565,6 +577,7 @@ fn init_compatible_with_mutation() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -580,6 +593,7 @@ fn init_call_inside_block_on() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -598,6 +612,7 @@ fn invalid_init_path_rejected() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup(".into()),
+        timeout_secs: None,
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("invalid init function path"));
@@ -616,6 +631,7 @@ fn mut_state_rejected() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("shared reference"));
@@ -628,7 +644,129 @@ fn multiple_state_params_rejected() {
     let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
+        timeout_secs: None,
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("at most one state parameter"));
+}
+
+// --- parse_handler_attrs: timeout ---
+
+#[test]
+fn parse_attrs_timeout_only() {
+    let result = parse_handler_attrs_inner(quote! { timeout = "30s" }).unwrap();
+    assert_eq!(result.timeout_secs, Some(30));
+    assert!(result.cache_config.is_none());
+    assert!(result.init_fn.is_none());
+}
+
+#[test]
+fn parse_attrs_timeout_minutes() {
+    let result = parse_handler_attrs_inner(quote! { timeout = "5m" }).unwrap();
+    assert_eq!(result.timeout_secs, Some(300));
+}
+
+#[test]
+fn parse_attrs_timeout_with_cache() {
+    let result = parse_handler_attrs_inner(quote! { timeout = "30s", cache = "1h" }).unwrap();
+    assert_eq!(result.timeout_secs, Some(30));
+    assert!(result.cache_config.is_some());
+}
+
+#[test]
+fn parse_attrs_timeout_with_init() {
+    let result = parse_handler_attrs_inner(quote! { timeout = "10s", init = "setup" }).unwrap();
+    assert_eq!(result.timeout_secs, Some(10));
+    assert_eq!(result.init_fn.as_deref(), Some("setup"));
+}
+
+#[test]
+fn parse_attrs_timeout_with_all() {
+    let result =
+        parse_handler_attrs_inner(quote! { timeout = "1h", init = "setup", cache = "5m" }).unwrap();
+    assert_eq!(result.timeout_secs, Some(3600));
+    assert_eq!(result.init_fn.as_deref(), Some("setup"));
+    assert!(result.cache_config.is_some());
+}
+
+#[test]
+fn parse_attrs_duplicate_timeout_rejected() {
+    let err = parse_handler_attrs_inner(quote! { timeout = "30s", timeout = "1m" }).unwrap_err();
+    assert!(err.to_string().contains("duplicate"));
+}
+
+#[test]
+fn parse_attrs_timeout_invalid_duration() {
+    let err = parse_handler_attrs_inner(quote! { timeout = "abc" }).unwrap_err();
+    assert!(err.to_string().contains("suffix"));
+}
+
+#[test]
+fn parse_attrs_timeout_empty_rejected() {
+    let err = parse_handler_attrs_inner(quote! { timeout = "" }).unwrap_err();
+    assert!(err.to_string().contains("empty"));
+}
+
+// --- generate_handler: timeout ---
+
+#[test]
+fn query_with_timeout_wraps_call() {
+    let func = parse_fn("async fn slow() -> String { String::new() }");
+    let attrs = HandlerAttrs {
+        cache_config: None,
+        init_fn: None,
+        timeout_secs: Some(30),
+    };
+    let code = build_handler(func, HandlerKind::Query, attrs)
+        .unwrap()
+        .to_string();
+    assert!(code.contains("timeout"));
+    assert!(code.contains("Duration :: from_secs (30u64)"));
+    assert!(code.contains("504"));
+    assert!(code.contains("Handler timed out"));
+}
+
+#[test]
+fn mutation_with_timeout_wraps_call() {
+    let func = parse_fn("async fn slow(input: String) -> String { input }");
+    let attrs = HandlerAttrs {
+        cache_config: None,
+        init_fn: None,
+        timeout_secs: Some(60),
+    };
+    let code = build_handler(func, HandlerKind::Mutation, attrs)
+        .unwrap()
+        .to_string();
+    assert!(code.contains("timeout"));
+    assert!(code.contains("Duration :: from_secs (60u64)"));
+    assert!(code.contains("504"));
+}
+
+#[test]
+fn no_timeout_no_wrapper() {
+    let func = parse_fn("async fn fast() -> String { String::new() }");
+    let code = build_handler(func, HandlerKind::Query, no_attrs())
+        .unwrap()
+        .to_string();
+    assert!(!code.contains("Duration :: from_secs"));
+    assert!(!code.contains("Handler timed out"));
+}
+
+#[test]
+fn timeout_with_cache_and_init() {
+    let func = parse_fn("async fn heavy(state: &AppState) -> String { String::new() }");
+    let attrs = HandlerAttrs {
+        cache_config: Some(CacheConfig {
+            cache_control: "public, max-age=0, s-maxage=3600".into(),
+        }),
+        init_fn: Some("setup".into()),
+        timeout_secs: Some(120),
+    };
+    let code = build_handler(func, HandlerKind::Query, attrs)
+        .unwrap()
+        .to_string();
+    assert!(code.contains("timeout"));
+    assert!(code.contains("Duration :: from_secs (120u64)"));
+    assert!(code.contains("Cache-Control"));
+    assert!(code.contains("OnceLock"));
 }

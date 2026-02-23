@@ -210,6 +210,7 @@ fn generates_queries_only() {
             output: Some(RustType::simple("String")),
             source_file: PathBuf::from("api/ping.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![],
         enums: vec![],
@@ -236,6 +237,7 @@ fn generates_complex_nested_types() {
             )),
             source_file: PathBuf::from("api/search.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![],
         enums: vec![],
@@ -492,6 +494,7 @@ fn test_jsdoc_on_procedure() {
             output: Some(RustType::simple("String")),
             source_file: PathBuf::from("api/hello.rs"),
             docs: Some("Say hello.".to_string()),
+            timeout_ms: None,
         }],
         structs: vec![],
         enums: vec![],
@@ -512,6 +515,7 @@ fn test_jsdoc_on_mutation_procedure() {
             output: Some(RustType::simple("bool")),
             source_file: PathBuf::from("api/update.rs"),
             docs: Some("Update item.".to_string()),
+            timeout_ms: None,
         }],
         structs: vec![],
         enums: vec![],
@@ -532,6 +536,7 @@ fn test_no_jsdoc_when_disabled() {
             output: Some(RustType::simple("String")),
             source_file: PathBuf::from("api/hello.rs"),
             docs: Some("Say hello.".to_string()),
+            timeout_ms: None,
         }],
         structs: vec![StructDef {
             name: "Foo".to_string(),
@@ -1820,6 +1825,7 @@ fn procedure_output_preserves_generics() {
             )),
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![],
         enums: vec![],
@@ -1871,6 +1877,7 @@ fn snapshot_generic_struct() {
             )),
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![
             StructDef {
@@ -1997,6 +2004,7 @@ fn procedure_uses_newtype() {
             output: Some(RustType::simple("User")),
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![StructDef {
             name: "UserId".to_string(),
@@ -2064,6 +2072,7 @@ fn snapshot_branded_newtypes() {
             output: Some(RustType::simple("User")),
             source_file: PathBuf::from("api/test.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![
             StructDef {
@@ -2423,6 +2432,7 @@ fn snapshot_type_overrides() {
                 output: Some(RustType::simple("User")),
                 source_file: PathBuf::from("api/user.rs"),
                 docs: None,
+                timeout_ms: None,
             },
             Procedure {
                 name: "create_event".to_string(),
@@ -2431,6 +2441,7 @@ fn snapshot_type_overrides() {
                 output: Some(RustType::simple("Event")),
                 source_file: PathBuf::from("api/event.rs"),
                 docs: None,
+                timeout_ms: None,
             },
         ],
         structs: vec![
@@ -2549,6 +2560,7 @@ fn snapshot_bigint_types() {
             output: Some(RustType::simple("Stats")),
             source_file: PathBuf::from("api/stats.rs"),
             docs: None,
+            timeout_ms: None,
         }],
         structs: vec![StructDef {
             name: "Stats".to_string(),

@@ -140,8 +140,19 @@ async fn get_profile() -> Profile { ... }
 
 > Implemented via `init` attribute on `#[rpc_query]` / `#[rpc_mutation]`. The init function runs once at cold start and can return shared state stored in a `OnceLock`, injected into the handler as a `&T` parameter. Supports side-effects only (logger, dotenv) and state injection (DB pool, HTTP client). Compatible with `cache` on queries. Mutations support `init` but not `cache`.
 
+#### ~~Per-Procedure Timeout via `timeout`~~ ✅
+
+> Implemented via `timeout` attribute on `#[rpc_query]` / `#[rpc_mutation]`. The macro wraps the handler with `tokio::time::timeout()`, returning a `504` error on expiration. The CLI extracts the timeout value and emits a `PROCEDURE_TIMEOUTS` map in the generated TypeScript client, used as a per-procedure default in the timeout resolution chain: `callOptions?.timeout ?? PROCEDURE_TIMEOUTS[procedure] ?? config.timeout`.
+
+```rust
+#[rpc_query(timeout = "30s")]
+async fn slow_report(input: ReportParams) -> Report { ... }
+
+#[rpc_mutation(timeout = "5m")]
+async fn long_import(input: ImportData) -> ImportResult { ... }
+```
+
 #### Other metadata
-- `timeout` — sets per-procedure server-side and client-side timeouts.
 - `idempotent` — enables safe client-side retries for mutations.
 
 ### Batch Requests
@@ -166,4 +177,4 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                                    |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
-| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, ~~init/state~~ ✅, batch requests                                                           |
+| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, ~~init/state~~ ✅, ~~timeout~~ ✅, batch requests                                             |

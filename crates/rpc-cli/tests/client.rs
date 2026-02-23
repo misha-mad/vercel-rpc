@@ -259,6 +259,7 @@ fn test_jsdoc_on_overload() {
             output: Some(RustType::simple("String")),
             source_file: PathBuf::from("api/hello.rs"),
             docs: Some("Say hello.".to_string()),
+            timeout_ms: None,
         },
         Procedure {
             name: "reset".to_string(),
@@ -267,6 +268,7 @@ fn test_jsdoc_on_overload() {
             output: Some(RustType::simple("bool")),
             source_file: PathBuf::from("api/reset.rs"),
             docs: Some("Reset state.".to_string()),
+            timeout_ms: None,
         },
     ]);
     let output = generate_client_file(&manifest, "./rpc-types", true);
@@ -287,6 +289,7 @@ fn test_jsdoc_on_void_query_overload() {
         output: Some(RustType::simple("String")),
         source_file: PathBuf::from("api/version.rs"),
         docs: Some("Get version.".to_string()),
+        timeout_ms: None,
     }]);
     let output = generate_client_file(&manifest, "./rpc-types", true);
     assert!(output.contains("  /** Get version. */\n  query(key: \"version\"): Promise<string>;"));
@@ -301,6 +304,7 @@ fn test_jsdoc_on_non_void_mutation_overload() {
         output: Some(RustType::simple("bool")),
         source_file: PathBuf::from("api/update.rs"),
         docs: Some("Update item.".to_string()),
+        timeout_ms: None,
     }]);
     let output = generate_client_file(&manifest, "./rpc-types", true);
     assert!(output.contains(
@@ -317,6 +321,7 @@ fn test_no_jsdoc_on_overload_when_disabled() {
         output: Some(RustType::simple("String")),
         source_file: PathBuf::from("api/hello.rs"),
         docs: Some("Say hello.".to_string()),
+        timeout_ms: None,
     }]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(!output.contains("/**"));
@@ -562,6 +567,7 @@ fn snapshot_client_with_jsdoc() {
             output: Some(RustType::simple("String")),
             source_file: PathBuf::from("api/hello.rs"),
             docs: Some("Say hello to someone.".to_string()),
+            timeout_ms: None,
         },
         Procedure {
             name: "reset".to_string(),
@@ -570,6 +576,7 @@ fn snapshot_client_with_jsdoc() {
             output: Some(RustType::simple("bool")),
             source_file: PathBuf::from("api/reset.rs"),
             docs: Some("Reset all state.".to_string()),
+            timeout_ms: None,
         },
     ]);
     let output = generate_client_file(&manifest, "./rpc-types", true);
@@ -871,4 +878,41 @@ fn snapshot_client_with_call_options() {
     ]);
     let output = generate_client_file(&manifest, "./rpc-types", false);
     insta::assert_snapshot!(output);
+}
+
+// --- Procedure timeout tests ---
+
+#[test]
+fn procedure_timeouts_emitted() {
+    let mut proc = common::make_query(
+        "slow",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    );
+    proc.timeout_ms = Some(30_000);
+    let manifest = common::make_manifest(vec![proc]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("PROCEDURE_TIMEOUTS"));
+    assert!(output.contains("\"slow\": 30000"));
+}
+
+#[test]
+fn procedure_timeouts_empty_when_no_timeouts() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "fast",
+        None,
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("PROCEDURE_TIMEOUTS: Record<string, number> = {}"));
+}
+
+#[test]
+fn effective_timeout_uses_procedure_timeout() {
+    let manifest = common::make_manifest(vec![]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("PROCEDURE_TIMEOUTS[procedure]"));
+    assert!(
+        output.contains("callOptions?.timeout ?? PROCEDURE_TIMEOUTS[procedure] ?? config.timeout")
+    );
 }

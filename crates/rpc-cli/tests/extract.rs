@@ -872,3 +872,61 @@ fn simple_type_path_unchanged() {
     );
     assert_eq!(manifest.structs[0].fields[0].ty.name, "String");
 }
+
+// --- Timeout extraction tests ---
+
+#[test]
+fn extracts_query_timeout() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_query(timeout = "30s")]
+            async fn slow_query() -> String {
+                "ok".to_string()
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert_eq!(manifest.procedures[0].timeout_ms, Some(30_000));
+}
+
+#[test]
+fn extracts_mutation_timeout() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_mutation(timeout = "5m")]
+            async fn slow_mutation(input: String) -> String {
+                input
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert_eq!(manifest.procedures[0].timeout_ms, Some(300_000));
+}
+
+#[test]
+fn no_timeout_returns_none() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_query]
+            async fn fast() -> String {
+                "ok".to_string()
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert!(manifest.procedures[0].timeout_ms.is_none());
+}
+
+#[test]
+fn timeout_with_cache_extracted() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_query(timeout = "1h", cache = "5m")]
+            async fn cached_slow() -> String {
+                "ok".to_string()
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert_eq!(manifest.procedures[0].timeout_ms, Some(3_600_000));
+}
