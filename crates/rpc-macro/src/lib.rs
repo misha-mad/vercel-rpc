@@ -447,12 +447,9 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
                 }
             }
             syn::Meta::NameValue(nv) => {
-                let key = nv
-                    .path
-                    .get_ident()
-                    .ok_or_else(|| {
-                        syn::Error::new_spanned(&nv.path, "expected a simple identifier")
-                    })?;
+                let key = nv.path.get_ident().ok_or_else(|| {
+                    syn::Error::new_spanned(&nv.path, "expected a simple identifier")
+                })?;
 
                 // Reject `idempotent = ...` before parsing the value — it's a bare flag.
                 if key == "idempotent" {
