@@ -286,11 +286,7 @@ fn generate_interface(
     } else {
         // Has flatten → export type with intersection
         let body = build_object_with_flatten(&regular, &flattened);
-        emit!(
-            out,
-            "export type {}{generic_params} = {body};",
-            s.name
-        );
+        emit!(out, "export type {}{generic_params} = {body};", s.name);
     }
 }
 
