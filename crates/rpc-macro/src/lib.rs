@@ -173,6 +173,30 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// Duration shorthand: `30s`, `5m`, `1h`, `1d`. Error responses never receive
 /// cache headers. Mutations (`#[rpc_mutation]`) do not support caching.
 ///
+/// # Initialization
+///
+/// Use the `init` attribute to run an async function once at cold start.
+/// The init function can optionally return shared state injected as `&T`:
+///
+/// ```rust,ignore
+/// // Side-effects only (logger, env loading)
+/// #[rpc_query(init = "setup")]
+/// async fn get_data() -> Data { /* ... */ }
+///
+/// // With state injection
+/// #[rpc_query(init = "setup")]
+/// async fn get_user(id: u32, state: &AppState) -> User {
+///     state.pool.query("...").await
+/// }
+///
+/// // Combined with cache
+/// #[rpc_query(init = "setup", cache = "1h")]
+/// async fn get_user(id: u32, state: &AppState) -> User { /* ... */ }
+/// ```
+///
+/// The macro distinguishes state (`&T`) from input (`T`) by reference syntax.
+/// A `&T` parameter requires `init`; `&mut T` is rejected.
+///
 /// # Limitations
 ///
 /// - `Result` and `Headers` are detected by **name only** (last path segment).
@@ -258,6 +282,17 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///     } else {
 ///         Ok(format!("deleted user {}", id))
 ///     }
+/// }
+/// ```
+///
+/// # Initialization
+///
+/// Mutations support the `init` attribute (but not `cache`):
+///
+/// ```rust,ignore
+/// #[rpc_mutation(init = "setup")]
+/// async fn create_order(input: OrderInput, state: &AppState) -> Order {
+///     state.pool.query("...").await
 /// }
 /// ```
 ///
@@ -541,13 +576,12 @@ fn build_handler(
                 ));
             }
             state_param = Some(*param);
+        } else if input_param.is_some() {
+            return Err(syn::Error::new_spanned(
+                &func.sig.inputs,
+                "RPC handlers accept at most one input parameter",
+            ));
         } else {
-            if input_param.is_some() {
-                return Err(syn::Error::new_spanned(
-                    &func.sig.inputs,
-                    "RPC handlers accept at most one input parameter",
-                ));
-            }
             input_param = Some(*param);
         }
     }

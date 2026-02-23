@@ -438,25 +438,23 @@ fn parse_attrs_duplicate_init_rejected() {
 }
 
 #[test]
-fn mutation_rejects_cache_with_init() {
-    let attrs = HandlerAttrs {
-        cache_config: Some(CacheConfig {
-            cache_control: "public, max-age=0, s-maxage=3600".into(),
-        }),
-        init_fn: Some("setup".into()),
-    };
-    // Mutation with cache_config is rejected at the rpc_mutation level.
-    // Verify attrs parse succeeds but would be caught by the entry point guard.
-    assert!(attrs.cache_config.is_some());
-    assert!(attrs.init_fn.is_some());
+fn parse_attrs_cache_and_init_both_parsed() {
+    // Verify that cache + init together parse successfully (used by queries).
+    // Mutations reject cache_config at the entry point, not at parse time.
+    let result =
+        parse_handler_attrs_inner(quote! { init = "setup", cache = "1h", stale = "5m" }).unwrap();
+    assert!(result.cache_config.is_some());
+    assert_eq!(result.init_fn.as_deref(), Some("setup"));
+}
 
-    // Verify mutation without cache works fine with init.
-    let func2 = parse_fn("async fn create2(input: String) -> String { input }");
-    let no_cache_attrs = HandlerAttrs {
+#[test]
+fn mutation_with_init_no_cache() {
+    let func = parse_fn("async fn create(input: String) -> String { input }");
+    let attrs = HandlerAttrs {
         cache_config: None,
         init_fn: Some("setup".into()),
     };
-    let code = build_handler(func2, HandlerKind::Mutation, no_cache_attrs)
+    let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
         .to_string();
     assert!(code.contains("\"POST\""));
@@ -592,6 +590,18 @@ fn init_call_inside_block_on() {
 }
 
 // --- generate_handler: init error cases ---
+
+#[test]
+fn invalid_init_path_rejected() {
+    let func = parse_fn("async fn get_data() -> String { String::new() }");
+    // Unclosed delimiter fails proc_macro2::TokenStream parsing.
+    let attrs = HandlerAttrs {
+        cache_config: None,
+        init_fn: Some("setup(".into()),
+    };
+    let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
+    assert!(err.to_string().contains("invalid init function path"));
+}
 
 #[test]
 fn state_without_init_rejected() {
