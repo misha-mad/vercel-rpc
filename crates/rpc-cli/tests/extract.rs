@@ -930,3 +930,64 @@ fn timeout_with_cache_extracted() {
     assert_eq!(manifest.procedures.len(), 1);
     assert_eq!(manifest.procedures[0].timeout_ms, Some(3_600_000));
 }
+
+// --- Idempotent extraction tests ---
+
+#[test]
+fn extracts_idempotent_mutation() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_mutation(idempotent)]
+            async fn upsert(input: String) -> String {
+                input
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert!(manifest.procedures[0].idempotent);
+}
+
+#[test]
+fn non_idempotent_mutation() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_mutation]
+            async fn create(input: String) -> String {
+                input
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert!(!manifest.procedures[0].idempotent);
+}
+
+#[test]
+fn query_idempotent_ignored() {
+    // The proc macro rejects this at compile time, but the CLI parser
+    // is lenient and only checks rpc_mutation attributes.
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_query(idempotent)]
+            async fn get_data() -> String {
+                "ok".to_string()
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert!(!manifest.procedures[0].idempotent);
+}
+
+#[test]
+fn idempotent_with_timeout() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_mutation(idempotent, timeout = "30s")]
+            async fn upsert(input: String) -> String {
+                input
+            }
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    assert!(manifest.procedures[0].idempotent);
+    assert_eq!(manifest.procedures[0].timeout_ms, Some(30_000));
+}

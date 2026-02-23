@@ -13,6 +13,7 @@ fn no_attrs() -> HandlerAttrs {
         cache_config: None,
         init_fn: None,
         timeout_secs: None,
+        idempotent: false,
     }
 }
 
@@ -270,6 +271,7 @@ fn query_with_cache_header() {
         }),
         init_fn: None,
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -287,6 +289,7 @@ fn query_with_stale_while_revalidate() {
         }),
         init_fn: None,
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -303,6 +306,7 @@ fn query_with_private_cache() {
         }),
         init_fn: None,
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -338,6 +342,7 @@ fn error_response_never_has_cache_header() {
         }),
         init_fn: None,
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -459,6 +464,7 @@ fn mutation_with_init_no_cache() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -476,6 +482,7 @@ fn init_side_effects_only() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -492,6 +499,7 @@ fn init_with_state() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -509,6 +517,7 @@ fn init_with_state_and_input() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -527,6 +536,7 @@ fn init_with_state_and_headers() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -545,6 +555,7 @@ fn init_with_all_three_params() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -563,6 +574,7 @@ fn init_compatible_with_cache() {
         }),
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -578,6 +590,7 @@ fn init_compatible_with_mutation() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -594,6 +607,7 @@ fn init_call_inside_block_on() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -613,6 +627,7 @@ fn invalid_init_path_rejected() {
         cache_config: None,
         init_fn: Some("setup(".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("invalid init function path"));
@@ -632,6 +647,7 @@ fn mut_state_rejected() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("shared reference"));
@@ -645,6 +661,7 @@ fn multiple_state_params_rejected() {
         cache_config: None,
         init_fn: Some("setup".into()),
         timeout_secs: None,
+        idempotent: false,
     };
     let err = build_handler(func, HandlerKind::Query, attrs).unwrap_err();
     assert!(err.to_string().contains("at most one state parameter"));
@@ -716,6 +733,7 @@ fn query_with_timeout_wraps_call() {
         cache_config: None,
         init_fn: None,
         timeout_secs: Some(30),
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -733,6 +751,7 @@ fn mutation_with_timeout_wraps_call() {
         cache_config: None,
         init_fn: None,
         timeout_secs: Some(60),
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Mutation, attrs)
         .unwrap()
@@ -761,6 +780,7 @@ fn timeout_with_cache_and_init() {
         }),
         init_fn: Some("setup".into()),
         timeout_secs: Some(120),
+        idempotent: false,
     };
     let code = build_handler(func, HandlerKind::Query, attrs)
         .unwrap()
@@ -769,4 +789,84 @@ fn timeout_with_cache_and_init() {
     assert!(code.contains("Duration :: from_secs (120u64)"));
     assert!(code.contains("Cache-Control"));
     assert!(code.contains("OnceLock"));
+}
+
+// --- parse_handler_attrs: idempotent ---
+
+#[test]
+fn parse_attrs_idempotent_only() {
+    let result = parse_handler_attrs_inner(quote! { idempotent }).unwrap();
+    assert!(result.idempotent);
+    assert!(result.cache_config.is_none());
+    assert!(result.init_fn.is_none());
+    assert!(result.timeout_secs.is_none());
+}
+
+#[test]
+fn parse_attrs_idempotent_with_init() {
+    let result = parse_handler_attrs_inner(quote! { idempotent, init = "setup" }).unwrap();
+    assert!(result.idempotent);
+    assert_eq!(result.init_fn.as_deref(), Some("setup"));
+}
+
+#[test]
+fn parse_attrs_idempotent_with_timeout() {
+    let result = parse_handler_attrs_inner(quote! { idempotent, timeout = "30s" }).unwrap();
+    assert!(result.idempotent);
+    assert_eq!(result.timeout_secs, Some(30));
+}
+
+#[test]
+fn parse_attrs_idempotent_with_all() {
+    let result = parse_handler_attrs_inner(
+        quote! { idempotent, init = "setup", timeout = "1h", cache = "5m" },
+    )
+    .unwrap();
+    assert!(result.idempotent);
+    assert_eq!(result.init_fn.as_deref(), Some("setup"));
+    assert_eq!(result.timeout_secs, Some(3600));
+    assert!(result.cache_config.is_some());
+}
+
+#[test]
+fn parse_attrs_duplicate_idempotent() {
+    let err = parse_handler_attrs_inner(quote! { idempotent, idempotent }).unwrap_err();
+    assert!(err.to_string().contains("duplicate"));
+}
+
+#[test]
+fn parse_attrs_idempotent_rejects_value() {
+    let err = parse_handler_attrs_inner(quote! { idempotent = "true" }).unwrap_err();
+    assert!(err.to_string().contains("bare flag"));
+}
+
+#[test]
+fn parse_attrs_idempotent_rejects_bool() {
+    let err = parse_handler_attrs_inner(quote! { idempotent = true }).unwrap_err();
+    assert!(err.to_string().contains("bare flag"));
+}
+
+#[test]
+fn parse_attrs_empty_has_idempotent_false() {
+    let result = parse_handler_attrs_inner(quote! {}).unwrap();
+    assert!(!result.idempotent);
+}
+
+// --- generate_handler: idempotent ---
+
+#[test]
+fn mutation_idempotent_no_codegen_diff() {
+    let func = parse_fn("async fn upsert(input: String) -> String { input }");
+    let plain_attrs = no_attrs();
+    let idempotent_attrs = HandlerAttrs {
+        idempotent: true,
+        ..no_attrs()
+    };
+    let plain_code = build_handler(func.clone(), HandlerKind::Mutation, plain_attrs)
+        .unwrap()
+        .to_string();
+    let idempotent_code = build_handler(func, HandlerKind::Mutation, idempotent_attrs)
+        .unwrap()
+        .to_string();
+    assert_eq!(plain_code, idempotent_code);
 }

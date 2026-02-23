@@ -50,6 +50,7 @@ pub fn make_query(name: &str, input: Option<RustType>, output: Option<RustType>)
         source_file: PathBuf::from("api/test.rs"),
         docs: None,
         timeout_ms: None,
+        idempotent: false,
     }
 }
 
@@ -62,6 +63,7 @@ pub fn make_mutation(name: &str, input: Option<RustType>, output: Option<RustTyp
         source_file: PathBuf::from("api/test.rs"),
         docs: None,
         timeout_ms: None,
+        idempotent: false,
     }
 }
 
@@ -84,6 +86,7 @@ pub fn make_test_manifest() -> Manifest {
                 source_file: PathBuf::from("api/hello.rs"),
                 docs: None,
                 timeout_ms: None,
+                idempotent: false,
             },
             Procedure {
                 name: "time".to_string(),
@@ -93,6 +96,7 @@ pub fn make_test_manifest() -> Manifest {
                 source_file: PathBuf::from("api/time.rs"),
                 docs: None,
                 timeout_ms: None,
+                idempotent: false,
             },
             Procedure {
                 name: "create_item".to_string(),
@@ -102,6 +106,7 @@ pub fn make_test_manifest() -> Manifest {
                 source_file: PathBuf::from("api/create_item.rs"),
                 docs: None,
                 timeout_ms: None,
+                idempotent: false,
             },
         ],
         structs: vec![

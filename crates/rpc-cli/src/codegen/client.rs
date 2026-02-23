@@ -168,7 +168,7 @@ async function rpcFetch(
           `RPC error on "${procedure}": ${res.status} ${res.statusText}`,
           data,
         );
-        const canRetry = retryOn.includes(res.status) && attempt < maxAttempts;
+        const canRetry = retryOn.includes(res.status) && attempt < maxAttempts && (method === "GET" || IDEMPOTENT_MUTATIONS.has(procedure));
         await config.onError?.({ procedure, method, url, error: rpcError, attempt, willRetry: canRetry });
         if (!canRetry) throw rpcError;
       } else {
@@ -180,7 +180,7 @@ async function rpcFetch(
       }
     } catch (err) {
       if (err instanceof RpcError) throw err;
-      const willRetry = attempt < maxAttempts;
+      const willRetry = attempt < maxAttempts && (method === "GET" || IDEMPOTENT_MUTATIONS.has(procedure));
       await config.onError?.({ procedure, method, url, error: err, attempt, willRetry });
       if (!willRetry) throw err;
     } finally {
@@ -258,6 +258,9 @@ pub fn generate_client_file(
     // Per-procedure timeout defaults (ms)
     generate_procedure_timeouts(manifest, &mut out);
 
+    // Idempotent mutations set (for retry gating)
+    generate_idempotent_mutations(manifest, &mut out);
+
     // Internal fetch helper
     emit!(out, "{FETCH_HELPER}\n");
 
@@ -300,6 +303,29 @@ fn generate_procedure_timeouts(manifest: &Manifest, out: &mut String) {
             emit!(out, "{entry},");
         }
         emit!(out, "}};\n");
+    }
+}
+
+/// Emits the `IDEMPOTENT_MUTATIONS` set listing mutations marked as safe to retry.
+fn generate_idempotent_mutations(manifest: &Manifest, out: &mut String) {
+    let names: Vec<_> = manifest
+        .procedures
+        .iter()
+        .filter(|p| p.idempotent)
+        .map(|p| format!("\"{}\"", p.name))
+        .collect();
+
+    if names.is_empty() {
+        emit!(
+            out,
+            "const IDEMPOTENT_MUTATIONS: Set<string> = new Set();\n"
+        );
+    } else {
+        emit!(
+            out,
+            "const IDEMPOTENT_MUTATIONS: Set<string> = new Set([{}]);\n",
+            names.join(", ")
+        );
     }
 }
 
