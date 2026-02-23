@@ -35,7 +35,7 @@ fn unit_type_not_result() {
 #[test]
 fn query_no_input() {
     let func = parse_fn("async fn version() -> String { \"1.0\".into() }");
-    let tokens = build_handler(func, HandlerKind::Query).unwrap();
+    let tokens = build_handler(func, HandlerKind::Query, None).unwrap();
     let code = tokens.to_string();
     assert!(code.contains("\"GET\""));
     assert!(code.contains("__rpc_handler"));
@@ -45,7 +45,7 @@ fn query_no_input() {
 #[test]
 fn query_with_input() {
     let func = parse_fn("async fn hello(name: String) -> String { name }");
-    let tokens = build_handler(func, HandlerKind::Query).unwrap();
+    let tokens = build_handler(func, HandlerKind::Query, None).unwrap();
     let code = tokens.to_string();
     assert!(code.contains("\"GET\""));
     assert!(code.contains("input"));
@@ -54,7 +54,7 @@ fn query_with_input() {
 #[test]
 fn query_returns_result() {
     let func = parse_fn("async fn fetch(id: u32) -> Result<String, String> { Ok(\"ok\".into()) }");
-    let tokens = build_handler(func, HandlerKind::Query).unwrap();
+    let tokens = build_handler(func, HandlerKind::Query, None).unwrap();
     let code = tokens.to_string();
     assert!(code.contains("__rpc_error_response (400"));
     assert!(code.contains("Ok (__val)"));
@@ -64,7 +64,7 @@ fn query_returns_result() {
 #[test]
 fn query_no_return_type() {
     let func = parse_fn("async fn ping() {}");
-    let tokens = build_handler(func, HandlerKind::Query).unwrap();
+    let tokens = build_handler(func, HandlerKind::Query, None).unwrap();
     let code = tokens.to_string();
     assert!(code.contains("__rpc_ok_response"));
 }
@@ -74,7 +74,7 @@ fn query_no_return_type() {
 #[test]
 fn mutation_with_input() {
     let func = parse_fn("async fn create(input: Data) -> Data { input }");
-    let tokens = build_handler(func, HandlerKind::Mutation).unwrap();
+    let tokens = build_handler(func, HandlerKind::Mutation, None).unwrap();
     let code = tokens.to_string();
     assert!(code.contains("\"POST\""));
     assert!(code.contains("into_body"));
@@ -83,7 +83,7 @@ fn mutation_with_input() {
 #[test]
 fn mutation_no_input() {
     let func = parse_fn("async fn reset() -> u32 { 0 }");
-    let tokens = build_handler(func, HandlerKind::Mutation).unwrap();
+    let tokens = build_handler(func, HandlerKind::Mutation, None).unwrap();
     let code = tokens.to_string();
     assert!(code.contains("\"POST\""));
 }
@@ -93,14 +93,14 @@ fn mutation_no_input() {
 #[test]
 fn rejects_multiple_params() {
     let func = parse_fn("async fn bad(a: String, b: u32) -> String { a }");
-    let err = build_handler(func, HandlerKind::Query).unwrap_err();
+    let err = build_handler(func, HandlerKind::Query, None).unwrap_err();
     assert!(err.to_string().contains("at most one input parameter"));
 }
 
 #[test]
 fn rejects_non_async_function() {
     let func: ItemFn = syn::parse_str("fn sync_handler() -> String { \"hi\".into() }").unwrap();
-    let err = build_handler(func, HandlerKind::Query).unwrap_err();
+    let err = build_handler(func, HandlerKind::Query, None).unwrap_err();
     assert!(err.to_string().contains("must be async"));
 }
 
@@ -108,7 +108,7 @@ fn rejects_non_async_function() {
 fn self_receiver_ignored() {
     let func: ItemFn =
         syn::parse_str("async fn method(self, name: String) -> String { name }").unwrap();
-    let tokens = build_handler(func, HandlerKind::Query).unwrap();
+    let tokens = build_handler(func, HandlerKind::Query, None).unwrap();
     let code = tokens.to_string();
     // `self` is filtered out, only `name: String` remains as input
     assert!(code.contains("input"));
@@ -119,7 +119,9 @@ fn self_receiver_ignored() {
 #[test]
 fn generates_cors_headers() {
     let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
-    let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
+    let code = build_handler(func, HandlerKind::Query, None)
+        .unwrap()
+        .to_string();
     assert!(code.contains("Access-Control-Allow-Origin"));
     assert!(code.contains("Access-Control-Allow-Methods"));
     assert!(code.contains("Access-Control-Max-Age"));
@@ -128,7 +130,9 @@ fn generates_cors_headers() {
 #[test]
 fn generates_options_handler() {
     let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
-    let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
+    let code = build_handler(func, HandlerKind::Query, None)
+        .unwrap()
+        .to_string();
     assert!(code.contains("\"OPTIONS\""));
     assert!(code.contains("204"));
 }
@@ -136,7 +140,9 @@ fn generates_options_handler() {
 #[test]
 fn generates_current_thread_runtime() {
     let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
-    let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
+    let code = build_handler(func, HandlerKind::Query, None)
+        .unwrap()
+        .to_string();
     assert!(code.contains("new_current_thread"));
     assert!(!code.contains("tokio :: main"));
 }
@@ -144,7 +150,144 @@ fn generates_current_thread_runtime() {
 #[test]
 fn generates_method_not_allowed() {
     let func = parse_fn("async fn ping() -> String { \"pong\".into() }");
-    let code = build_handler(func, HandlerKind::Query).unwrap().to_string();
+    let code = build_handler(func, HandlerKind::Query, None)
+        .unwrap()
+        .to_string();
     assert!(code.contains("405"));
     assert!(code.contains("not allowed"));
+}
+
+// --- parse_duration ---
+
+#[test]
+fn duration_seconds() {
+    assert_eq!(parse_duration("30s").unwrap(), 30);
+}
+
+#[test]
+fn duration_minutes() {
+    assert_eq!(parse_duration("5m").unwrap(), 300);
+}
+
+#[test]
+fn duration_hours() {
+    assert_eq!(parse_duration("1h").unwrap(), 3600);
+}
+
+#[test]
+fn duration_days() {
+    assert_eq!(parse_duration("1d").unwrap(), 86400);
+}
+
+#[test]
+fn duration_rejects_zero() {
+    assert!(parse_duration("0s").unwrap_err().contains("zero"));
+}
+
+#[test]
+fn duration_rejects_invalid_suffix() {
+    assert!(parse_duration("10x").unwrap_err().contains("suffix"));
+}
+
+#[test]
+fn duration_rejects_empty() {
+    assert!(parse_duration("").unwrap_err().contains("empty"));
+}
+
+#[test]
+fn duration_rejects_no_number() {
+    assert!(parse_duration("h").unwrap_err().contains("invalid number"));
+}
+
+// --- build_cache_control ---
+
+#[test]
+fn cache_control_public_default() {
+    let header = build_cache_control("1h", None).unwrap();
+    assert_eq!(header, "public, max-age=0, s-maxage=3600");
+}
+
+#[test]
+fn cache_control_public_with_stale() {
+    let header = build_cache_control("5m", Some("1h")).unwrap();
+    assert_eq!(
+        header,
+        "public, max-age=0, s-maxage=300, stale-while-revalidate=3600"
+    );
+}
+
+#[test]
+fn cache_control_private() {
+    let header = build_cache_control("private, 10m", None).unwrap();
+    assert_eq!(header, "private, max-age=600");
+}
+
+#[test]
+fn cache_control_private_no_s_maxage() {
+    let header = build_cache_control("private, 1h", None).unwrap();
+    assert!(!header.contains("s-maxage"));
+}
+
+#[test]
+fn cache_control_private_with_stale() {
+    let header = build_cache_control("private, 5m", Some("1h")).unwrap();
+    assert_eq!(header, "private, max-age=300, stale-while-revalidate=3600");
+}
+
+// --- generate_handler: caching ---
+
+#[test]
+fn query_with_cache_header() {
+    let func = parse_fn("async fn get_settings() -> String { String::new() }");
+    let config = Some(CacheConfig {
+        cache_control: "public, max-age=0, s-maxage=3600".into(),
+    });
+    let code = build_handler(func, HandlerKind::Query, config)
+        .unwrap()
+        .to_string();
+    assert!(code.contains("Cache-Control"));
+    assert!(code.contains("s-maxage=3600"));
+}
+
+#[test]
+fn query_with_stale_while_revalidate() {
+    let func = parse_fn("async fn get_feed() -> String { String::new() }");
+    let config = Some(CacheConfig {
+        cache_control: "public, max-age=0, s-maxage=300, stale-while-revalidate=3600".into(),
+    });
+    let code = build_handler(func, HandlerKind::Query, config)
+        .unwrap()
+        .to_string();
+    assert!(code.contains("stale-while-revalidate=3600"));
+}
+
+#[test]
+fn query_with_private_cache() {
+    let func = parse_fn("async fn get_profile() -> String { String::new() }");
+    let config = Some(CacheConfig {
+        cache_control: "private, max-age=600".into(),
+    });
+    let code = build_handler(func, HandlerKind::Query, config)
+        .unwrap()
+        .to_string();
+    assert!(code.contains("private, max-age=600"));
+    assert!(!code.contains("s-maxage"));
+}
+
+#[test]
+fn query_without_cache_no_header() {
+    let func = parse_fn("async fn plain() -> String { String::new() }");
+    let code = build_handler(func, HandlerKind::Query, None)
+        .unwrap()
+        .to_string();
+    assert!(!code.contains("Cache-Control"));
+}
+
+#[test]
+fn mutation_never_has_cache_header() {
+    let func = parse_fn("async fn create(input: String) -> String { input }");
+    let code = build_handler(func, HandlerKind::Mutation, None)
+        .unwrap()
+        .to_string();
+    assert!(!code.contains("Cache-Control"));
 }

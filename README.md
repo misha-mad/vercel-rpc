@@ -648,6 +648,29 @@ async fn risky(id: u32) -> Result<Item, String> {
 }
 ```
 
+### Caching
+
+Use the `cache` attribute on `#[rpc_query]` to generate `Cache-Control` HTTP headers. On Vercel this enables edge caching without infrastructure changes.
+
+```rust
+// CDN caches for 1 hour, browser always revalidates
+#[rpc_query(cache = "1h")]
+async fn get_settings() -> Settings { /* ... */ }
+// → Cache-Control: public, max-age=0, s-maxage=3600
+
+// CDN caches 5 min, serves stale up to 1 hour while revalidating
+#[rpc_query(cache = "5m", stale = "1h")]
+async fn get_feed() -> Vec<Post> { /* ... */ }
+// → Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=3600
+
+// Browser-only cache, no CDN
+#[rpc_query(cache = "private, 10m")]
+async fn get_profile() -> Profile { /* ... */ }
+// → Cache-Control: private, max-age=600
+```
+
+Duration shorthand: `30s`, `5m`, `1h`, `1d`. The macro parses these at compile time and emits the appropriate header values. Error responses never receive cache headers. Mutations do not support caching.
+
 ### `#[rpc_mutation]` — POST endpoint
 
 ```rust
@@ -815,6 +838,7 @@ Every macro-annotated function automatically gets:
 | **Method check**    | `405 Method Not Allowed` for wrong HTTP method           |
 | **Input parsing**   | Query param (GET) or JSON body (POST)                    |
 | **Error handling**  | `Result<T, E>` → `Ok` = 200, `Err` = 400 with JSON error |
+| **Caching**         | `cache = "1h"` → `Cache-Control` header on success responses |
 | **Response format** | `{ "result": { "type": "response", "data": ... } }`      |
 
 ## Type Mapping
