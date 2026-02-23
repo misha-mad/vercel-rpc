@@ -252,6 +252,7 @@ client = "client.ts"
         preserve_docs: true,
         branded_newtypes: None,
         fields: Some(FieldNaming::CamelCase),
+        type_overrides: vec![],
         debounce_ms: Some(500),
         clear_screen: true,
     };
@@ -290,6 +291,7 @@ fn test_resolve_no_config_flag() {
         preserve_docs: false,
         branded_newtypes: None,
         fields: None,
+        type_overrides: vec![],
         debounce_ms: None,
         clear_screen: false,
     };
@@ -318,6 +320,7 @@ fn test_resolve_client_output_override() {
         preserve_docs: false,
         branded_newtypes: None,
         fields: None,
+        type_overrides: vec![],
         debounce_ms: None,
         clear_screen: false,
     };
@@ -508,4 +511,67 @@ branded_newtypes = true
     };
     let config = resolve(overrides).unwrap();
     assert!(config.codegen.branded_newtypes);
+}
+
+// --- Type overrides ---
+
+#[test]
+fn test_parse_type_overrides() {
+    let toml_str = r#"
+[codegen.type_overrides]
+"chrono::DateTime" = "string"
+"uuid::Uuid" = "string"
+"serde_json::Value" = "unknown"
+"#;
+    let config: RpcConfig = toml::from_str(toml_str).unwrap();
+    assert_eq!(config.codegen.type_overrides.len(), 3);
+    assert_eq!(
+        config.codegen.type_overrides.get("chrono::DateTime").unwrap(),
+        "string"
+    );
+    assert_eq!(
+        config.codegen.type_overrides.get("uuid::Uuid").unwrap(),
+        "string"
+    );
+    assert_eq!(
+        config.codegen.type_overrides.get("serde_json::Value").unwrap(),
+        "unknown"
+    );
+}
+
+#[test]
+fn test_type_overrides_default_empty() {
+    let config = RpcConfig::default();
+    assert!(config.codegen.type_overrides.is_empty());
+}
+
+#[test]
+fn test_cli_type_overrides_merge() {
+    let tmp = TempDir::new().unwrap();
+    let config_path = tmp.path().join(CONFIG_FILE_NAME);
+    std::fs::write(
+        &config_path,
+        r#"
+[codegen.type_overrides]
+"chrono::DateTime" = "string"
+"#,
+    )
+    .unwrap();
+
+    let overrides = CliOverrides {
+        config: Some(config_path),
+        no_config: false,
+        type_overrides: vec![("uuid::Uuid".to_string(), "string".to_string())],
+        ..CliOverrides::default()
+    };
+    let config = resolve(overrides).unwrap();
+    assert_eq!(config.codegen.type_overrides.len(), 2);
+    assert_eq!(
+        config.codegen.type_overrides.get("chrono::DateTime").unwrap(),
+        "string"
+    );
+    assert_eq!(
+        config.codegen.type_overrides.get("uuid::Uuid").unwrap(),
+        "string"
+    );
 }

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -64,6 +65,7 @@ pub struct CodegenConfig {
     pub preserve_docs: bool,
     pub branded_newtypes: bool,
     pub naming: NamingConfig,
+    pub type_overrides: HashMap<String, String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -166,6 +168,7 @@ pub struct CliOverrides {
     pub preserve_docs: bool,
     pub branded_newtypes: Option<bool>,
     pub fields: Option<FieldNaming>,
+    pub type_overrides: Vec<(String, String)>,
     // watch
     pub debounce_ms: Option<u64>,
     pub clear_screen: bool,
@@ -227,6 +230,9 @@ pub fn resolve(cli: CliOverrides) -> Result<RpcConfig> {
     }
     if let Some(fields) = cli.fields {
         config.codegen.naming.fields = fields;
+    }
+    for (key, value) in cli.type_overrides {
+        config.codegen.type_overrides.insert(key, value);
     }
     if let Some(debounce_ms) = cli.debounce_ms {
         config.watch.debounce_ms = debounce_ms;

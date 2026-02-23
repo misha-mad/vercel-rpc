@@ -178,6 +178,14 @@ impl RustType {
             generics,
         }
     }
+
+    /// Returns the base name (last path segment) of this type.
+    ///
+    /// For simple names like `"String"` this returns `"String"`.
+    /// For qualified paths like `"chrono::DateTime"` this returns `"DateTime"`.
+    pub fn base_name(&self) -> &str {
+        self.name.rsplit("::").next().unwrap_or(&self.name)
+    }
 }
 
 impl fmt::Display for RustType {

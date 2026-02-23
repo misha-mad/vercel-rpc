@@ -842,3 +842,33 @@ fn flatten_with_skip() {
     assert!(fields[0].flatten);
     assert!(fields[0].skip);
 }
+
+// --- Qualified path preservation tests ---
+
+#[test]
+fn preserves_qualified_type_path() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Event {
+                created_at: chrono::DateTime<chrono::Utc>,
+            }
+            "#,
+    );
+    let field_ty = &manifest.structs[0].fields[0].ty;
+    assert_eq!(field_ty.name, "chrono::DateTime");
+    assert_eq!(field_ty.generics[0].name, "chrono::Utc");
+}
+
+#[test]
+fn simple_type_path_unchanged() {
+    let manifest = common::parse_source(
+        r#"
+            #[derive(Serialize)]
+            struct Foo {
+                name: String,
+            }
+            "#,
+    );
+    assert_eq!(manifest.structs[0].fields[0].ty.name, "String");
+}

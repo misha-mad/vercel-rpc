@@ -2397,3 +2397,133 @@ fn snapshot_flatten() {
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
+
+// --- Type overrides (end-to-end via generate_types_file) ---
+
+#[test]
+fn snapshot_type_overrides() {
+    use std::collections::HashMap;
+    use vercel_rpc_cli::codegen::overrides::{apply_type_overrides, build_base_index};
+
+    let overrides: HashMap<String, String> = [
+        ("chrono::DateTime".to_string(), "string".to_string()),
+        ("uuid::Uuid".to_string(), "string".to_string()),
+        ("serde_json::Value".to_string(), "unknown".to_string()),
+    ]
+    .into_iter()
+    .collect();
+    let base_index = build_base_index(&overrides);
+
+    let mut manifest = Manifest {
+        procedures: vec![
+            Procedure {
+                name: "get_user".to_string(),
+                kind: ProcedureKind::Query,
+                input: Some(RustType::simple("Uuid")),
+                output: Some(RustType::simple("User")),
+                source_file: PathBuf::from("api/user.rs"),
+                docs: None,
+            },
+            Procedure {
+                name: "create_event".to_string(),
+                kind: ProcedureKind::Mutation,
+                input: Some(RustType::simple("EventInput")),
+                output: Some(RustType::simple("Event")),
+                source_file: PathBuf::from("api/event.rs"),
+                docs: None,
+            },
+        ],
+        structs: vec![
+            StructDef {
+                name: "User".to_string(),
+                generics: vec![],
+                fields: vec![
+                    field("id", RustType::simple("Uuid")),
+                    field("name", RustType::simple("String")),
+                    field(
+                        "created_at",
+                        RustType::with_generics("DateTime", vec![RustType::simple("Utc")]),
+                    ),
+                    field("metadata", RustType::simple("Value")),
+                    field(
+                        "tags",
+                        RustType::with_generics("Vec", vec![RustType::simple("String")]),
+                    ),
+                ],
+                tuple_fields: vec![],
+                source_file: PathBuf::from("api/user.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "EventInput".to_string(),
+                generics: vec![],
+                fields: vec![
+                    field("title", RustType::simple("String")),
+                    field(
+                        "scheduled_at",
+                        RustType::with_generics("Option", vec![RustType::simple("DateTime")]),
+                    ),
+                ],
+                tuple_fields: vec![],
+                source_file: PathBuf::from("api/event.rs"),
+                docs: None,
+                rename_all: None,
+            },
+            StructDef {
+                name: "Event".to_string(),
+                generics: vec![],
+                fields: vec![
+                    field("id", RustType::simple("Uuid")),
+                    field("title", RustType::simple("String")),
+                ],
+                tuple_fields: vec![],
+                source_file: PathBuf::from("api/event.rs"),
+                docs: None,
+                rename_all: None,
+            },
+        ],
+        enums: vec![],
+    };
+
+    apply_type_overrides(&mut manifest, &overrides, &base_index);
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    insta::assert_snapshot!(output);
+}
+
+// --- rust_type_to_ts with qualified paths ---
+
+#[test]
+fn maps_qualified_path_to_base_name() {
+    let ty = RustType::simple("chrono::DateTime");
+    assert_eq!(rust_type_to_ts(&ty), "DateTime");
+}
+
+#[test]
+fn maps_qualified_path_with_generics() {
+    let ty = RustType::with_generics("chrono::DateTime", vec![RustType::simple("Utc")]);
+    assert_eq!(rust_type_to_ts(&ty), "DateTime<Utc>");
+}
+
+// --- RustType::base_name ---
+
+#[test]
+fn base_name_simple() {
+    assert_eq!(RustType::simple("String").base_name(), "String");
+}
+
+#[test]
+fn base_name_qualified() {
+    assert_eq!(
+        RustType::simple("chrono::DateTime").base_name(),
+        "DateTime"
+    );
+}
+
+#[test]
+fn base_name_deeply_qualified() {
+    assert_eq!(
+        RustType::simple("serde_json::value::Value").base_name(),
+        "Value"
+    );
+}

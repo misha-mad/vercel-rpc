@@ -86,21 +86,9 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ## Phase 4 — Ecosystem
 
-### External Crate Type Mappings
+### ~~External Crate Type Mappings~~ ✅
 
-Common crate types mapped to TypeScript, configurable in `rpc.config.toml`:
-
-```toml
-[codegen.type_overrides]
-"chrono::NaiveDate" = "string"
-"chrono::DateTime" = "string"      # ISO 8601
-"uuid::Uuid" = "string"
-"serde_json::Value" = "unknown"
-"rust_decimal::Decimal" = "string"
-"url::Url" = "string"
-```
-
-The parser would match these by the path segments in the type. Users can add their own overrides for any custom type.
+> Implemented via `[codegen.type_overrides]` config section and `--type-override` CLI flag. Override keys are matched by the last path segment, with exact full-path matching taking priority. The parser preserves fully-qualified type paths for disambiguation.
 
 #### BigInt option
 
@@ -174,4 +162,4 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                                    |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
-| **4** | Ecosystem  | External crate mappings, macro metadata, server-side caching, batch requests                                                                                                              |
+| **4** | Ecosystem  | ~~External crate mappings~~ ✅, macro metadata, server-side caching, batch requests                                                                                                       |
