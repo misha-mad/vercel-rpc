@@ -162,4 +162,4 @@ This requires a batch endpoint on the Rust side that dispatches to individual ha
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                                    |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
-| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, batch requests                                                                              |
+| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, batch requests                                                                             |

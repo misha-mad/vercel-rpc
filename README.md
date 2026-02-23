@@ -831,15 +831,15 @@ Also available as `--branded-newtypes` CLI flag.
 
 Every macro-annotated function automatically gets:
 
-| Feature             | Description                                              |
-|---------------------|----------------------------------------------------------|
-| **CORS**            | `Access-Control-Allow-Origin: *` on all responses        |
-| **Preflight**       | `OPTIONS` → `204 No Content` with CORS headers           |
-| **Method check**    | `405 Method Not Allowed` for wrong HTTP method           |
-| **Input parsing**   | Query param (GET) or JSON body (POST)                    |
-| **Error handling**  | `Result<T, E>` → `Ok` = 200, `Err` = 400 with JSON error |
+| Feature             | Description                                                  |
+|---------------------|--------------------------------------------------------------|
+| **CORS**            | `Access-Control-Allow-Origin: *` on all responses            |
+| **Preflight**       | `OPTIONS` → `204 No Content` with CORS headers               |
+| **Method check**    | `405 Method Not Allowed` for wrong HTTP method               |
+| **Input parsing**   | Query param (GET) or JSON body (POST)                        |
+| **Error handling**  | `Result<T, E>` → `Ok` = 200, `Err` = 400 with JSON error     |
 | **Caching**         | `cache = "1h"` → `Cache-Control` header on success responses |
-| **Response format** | `{ "result": { "type": "response", "data": ... } }`      |
+| **Response format** | `{ "result": { "type": "response", "data": ... } }`          |
 
 ## Type Mapping
 

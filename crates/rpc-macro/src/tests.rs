@@ -294,8 +294,7 @@ fn mutation_never_has_cache_header() {
 
 #[test]
 fn error_response_never_has_cache_header() {
-    let func =
-        parse_fn("async fn risky(id: u32) -> Result<String, String> { Ok(\"ok\".into()) }");
+    let func = parse_fn("async fn risky(id: u32) -> Result<String, String> { Ok(\"ok\".into()) }");
     let config = Some(CacheConfig {
         cache_control: "public, max-age=0, s-maxage=3600".into(),
     });
@@ -354,15 +353,13 @@ fn parse_cache_attrs_rejects_non_string_literal() {
 
 #[test]
 fn parse_cache_attrs_rejects_duplicate_cache() {
-    let err =
-        parse_cache_attrs_inner(quote! { cache = "1h", cache = "2h" }).unwrap_err();
+    let err = parse_cache_attrs_inner(quote! { cache = "1h", cache = "2h" }).unwrap_err();
     assert!(err.to_string().contains("duplicate `cache`"));
 }
 
 #[test]
 fn parse_cache_attrs_rejects_duplicate_stale() {
     let err =
-        parse_cache_attrs_inner(quote! { cache = "1h", stale = "1h", stale = "2h" })
-            .unwrap_err();
+        parse_cache_attrs_inner(quote! { cache = "1h", stale = "1h", stale = "2h" }).unwrap_err();
     assert!(err.to_string().contains("duplicate `stale`"));
 }
