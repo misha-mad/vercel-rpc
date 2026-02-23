@@ -190,19 +190,20 @@ cargo run -p vercel-rpc-cli -- generate \
   --types-import ./rpc-types
 ```
 
-| Flag                    | Default                 | Description                              |
-|-------------------------|-------------------------|------------------------------------------|
-| `--dir`, `-d`           | `api`                   | Rust source directory                    |
-| `--output`, `-o`        | `src/lib/rpc-types.ts`  | Types output path                        |
-| `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path                       |
-| `--svelte-output`       | *(none)*                | Svelte 5 wrapper output path (opt-in)    |
-| `--react-output`        | *(none)*                | React hooks output path (opt-in)         |
-| `--vue-output`          | *(none)*                | Vue 3 composable output path (opt-in)    |
-| `--solid-output`        | *(none)*                | SolidJS primitives output path (opt-in)  |
-| `--types-import`        | `./rpc-types`           | Import path for types in client          |
-| `--config`              | *(auto-discover)*       | Path to config file                      |
-| `--branded-newtypes`    | `false`                 | Branded types for newtypes               |
-| `--no-config`           | `false`                 | Disable config file loading              |
+| Flag                    | Default                 | Description                                  |
+|-------------------------|-------------------------|----------------------------------------------|
+| `--dir`, `-d`           | `api`                   | Rust source directory                        |
+| `--output`, `-o`        | `src/lib/rpc-types.ts`  | Types output path                            |
+| `--client-output`, `-c` | `src/lib/rpc-client.ts` | Client output path                           |
+| `--svelte-output`       | *(none)*                | Svelte 5 wrapper output path (opt-in)        |
+| `--react-output`        | *(none)*                | React hooks output path (opt-in)             |
+| `--vue-output`          | *(none)*                | Vue 3 composable output path (opt-in)        |
+| `--solid-output`        | *(none)*                | SolidJS primitives output path (opt-in)      |
+| `--types-import`        | `./rpc-types`           | Import path for types in client              |
+| `--config`              | *(auto-discover)*       | Path to config file                          |
+| `--branded-newtypes`    | `false`                 | Branded types for newtypes                   |
+| `--bigint-type`         | *(none)*                | Map an integer type to `bigint` (repeatable) |
+| `--no-config`           | `false`                 | Disable config file loading                  |
 
 ### `rpc watch`
 
@@ -239,6 +240,7 @@ extension = ""               # suffix appended to import (e.g. ".js" for ESM)
 [codegen]
 preserve_docs = false        # forward Rust `///` doc comments as JSDoc
 branded_newtypes = false     # branded types for single-field tuple structs
+# bigint_types = ["i64", "u64", "i128", "u128"]  # map large integers to bigint
 
 [codegen.naming]
 fields = "preserve"          # "preserve" (default) or "camelCase"
@@ -817,27 +819,27 @@ Every macro-annotated function automatically gets:
 
 ## Type Mapping
 
-| Rust                                     | TypeScript                                       |
-|------------------------------------------|--------------------------------------------------|
-| `String`, `&str`, `char`                 | `string`                                         |
-| `i8`..`i128`, `u8`..`u128`, `f32`, `f64` | `number`                                         |
-| `bool`                                   | `boolean`                                        |
-| `()`                                     | `void`                                           |
-| `Vec<T>`, `HashSet<T>`, `BTreeSet<T>`    | `T[]`                                            |
-| `Option<T>`                              | `T \| null`                                      |
-| `HashMap<K, V>`, `BTreeMap<K, V>`        | `Record<K, V>`                                   |
-| `Box<T>`, `Arc<T>`, `Rc<T>`, `Cow<T>`    | `T` (transparent wrappers)                       |
-| `(A, B, C)`                              | `[A, B, C]`                                      |
-| `[T; N]`                                 | `T[]`                                            |
-| `Result<T, E>`                           | `T` (error handled at runtime)                   |
-| Custom structs                           | `interface` with same fields                     |
-| Newtype structs (`UserId(String)`)       | `type UserId = string` (or branded)              |
-| Tuple structs (`Pair(A, B)`)             | `type Pair = [A, B]`                             |
-| Generic structs (`Paginated<T>`)         | `interface Paginated<T>` (generic preserved)     |
-| Enums (unit variants)                    | `"A" \| "B" \| "C"` (string union)               |
-| Enums (tuple variants)                   | `{ A: string } \| { B: number }` (tagged union)  |
-| Enums (struct variants)                  | `{ A: { x: number; y: number } }` (tagged union) |
-| Enums (mixed)                            | Combination of all above                         |
+| Rust                                        | TypeScript                                                |
+|---------------------------------------------|-----------------------------------------------------------|
+| `String`, `&str`, `char`                    | `string`                                                  |
+| `i8`..`i128`, `u8`..`u128`, `f32`, `f64`    | `number` (or `bigint` via `bigint_types`)                 |
+| `bool`                                      | `boolean`                                                 |
+| `()`                                        | `void`                                                    |
+| `Vec<T>`, `HashSet<T>`, `BTreeSet<T>`       | `T[]`                                                     |
+| `Option<T>`                                 | `T \| null`                                               |
+| `HashMap<K, V>`, `BTreeMap<K, V>`           | `Record<K, V>`                                            |
+| `Box<T>`, `Arc<T>`, `Rc<T>`, `Cow<T>`       | `T` (transparent wrappers)                                |
+| `(A, B, C)`                                 | `[A, B, C]`                                               |
+| `[T; N]`                                    | `T[]`                                                     |
+| `Result<T, E>`                              | `T` (error handled at runtime)                            |
+| Custom structs                              | `interface` with same fields                              |
+| Newtype structs (`UserId(String)`)          | `type UserId = string` (or branded)                       |
+| Tuple structs (`Pair(A, B)`)                | `type Pair = [A, B]`                                      |
+| Generic structs (`Paginated<T>`)            | `interface Paginated<T>` (generic preserved)              |
+| Enums (unit variants)                       | `"A" \| "B" \| "C"` (string union)                        |
+| Enums (tuple variants)                      | `{ A: string } \| { B: number }` (tagged union)           |
+| Enums (struct variants)                     | `{ A: { x: number; y: number } }` (tagged union)          |
+| Enums (mixed)                               | Combination of all above                                  |
 | Type overrides (`[codegen.type_overrides]`) | Configurable mapping (e.g. `chrono::DateTime` → `string`) |
 
 ## npm Scripts

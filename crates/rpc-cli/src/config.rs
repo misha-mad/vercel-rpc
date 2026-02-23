@@ -66,6 +66,7 @@ pub struct CodegenConfig {
     pub branded_newtypes: bool,
     pub naming: NamingConfig,
     pub type_overrides: HashMap<String, String>,
+    pub bigint_types: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -169,6 +170,7 @@ pub struct CliOverrides {
     pub branded_newtypes: Option<bool>,
     pub fields: Option<FieldNaming>,
     pub type_overrides: Vec<(String, String)>,
+    pub bigint_types: Vec<String>,
     // watch
     pub debounce_ms: Option<u64>,
     pub clear_screen: bool,
@@ -233,6 +235,9 @@ pub fn resolve(cli: CliOverrides) -> Result<RpcConfig> {
     }
     for (key, value) in cli.type_overrides {
         config.codegen.type_overrides.insert(key, value);
+    }
+    if !cli.bigint_types.is_empty() {
+        config.codegen.bigint_types = cli.bigint_types;
     }
     if let Some(debounce_ms) = cli.debounce_ms {
         config.watch.debounce_ms = debounce_ms;

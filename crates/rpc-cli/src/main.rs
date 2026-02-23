@@ -93,6 +93,10 @@ struct GenerateArgs {
     /// Map a Rust type to a TypeScript type (repeatable, e.g. "chrono::DateTime=string")
     #[arg(long = "type-override", value_parser = parse_type_override)]
     type_overrides: Vec<(String, String)>,
+
+    /// Map a Rust integer type to TypeScript `bigint` (repeatable, e.g. "i64", "u64")
+    #[arg(long = "bigint-type")]
+    bigint_types: Vec<String>,
 }
 
 fn parse_type_override(s: &str) -> Result<(String, String), String> {
@@ -170,6 +174,7 @@ fn main() -> Result<()> {
                 },
                 fields: args.fields,
                 type_overrides: args.type_overrides,
+                bigint_types: args.bigint_types,
                 ..config::CliOverrides::default()
             })?;
             commands::cmd_generate(&cfg)
@@ -201,6 +206,7 @@ fn main() -> Result<()> {
                 },
                 fields: args.fields,
                 type_overrides: args.type_overrides,
+                bigint_types: args.bigint_types,
                 debounce_ms,
                 clear_screen,
             })?;
