@@ -70,7 +70,7 @@ Init functions must be `async fn`. This is required because the macro always gen
 
 ```rust
 async fn setup() {
-    tracing_subscriber::init();  // sync calls work inside async fn
+    tracing_subscriber::fmt().try_init().ok();  // try_init — safe if called twice (e.g. tests)
     dotenv::dotenv().ok();
 }
 ```
@@ -79,11 +79,13 @@ async fn setup() {
 
 ```rust
 async fn setup() -> AppState {
-    tracing_subscriber::init();
+    tracing_subscriber::fmt().try_init().ok();
     let pool = sqlx::PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
     AppState { pool, http: reqwest::Client::new() }
 }
 ```
+
+> **Note on panics:** If `setup()` panics (e.g. `.unwrap()` on a failed DB connect), the process exits before `vercel_runtime::run` starts. Vercel will see a non-zero exit code with a bare backtrace and no HTTP context. For better diagnostics, prefer returning `Result` and logging before panicking, or use `.expect("descriptive message")`.
 
 ### 3.3 State Injection
 
@@ -172,8 +174,10 @@ pub struct AppState {
 }
 
 pub async fn setup() -> AppState {
-    tracing_subscriber::init();
-    let pool = sqlx::PgPool::connect(&std::env::var("DATABASE_URL").unwrap()).await.unwrap();
+    tracing_subscriber::fmt().try_init().ok();
+    let pool = sqlx::PgPool::connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL not set"))
+        .await
+        .expect("failed to connect to database");
     AppState { pool, http: reqwest::Client::new() }
 }
 ```
@@ -264,15 +268,28 @@ for param in &typed_params {
 }
 ```
 
-Where `is_ref_type` checks for `&T` syntax:
+Where `is_ref_type` checks for `&T` syntax (shared, immutable reference only):
 
 ```rust
 fn is_ref_type(ty: &Type) -> bool {
-    matches!(ty, Type::Reference(_))
+    matches!(ty, Type::Reference(r) if r.mutability.is_none())
 }
 ```
 
-A `&T` parameter without `init` is a compile error — this prevents silent misclassification.
+`&mut T` is explicitly rejected — `OnceLock` only provides shared access:
+
+```rust
+if let Type::Reference(r) = &param.ty {
+    if r.mutability.is_some() {
+        return Err(syn::Error::new_spanned(
+            &param.ty,
+            "state parameter must be a shared reference (&T), not &mut T",
+        ));
+    }
+}
+```
+
+A `&T` parameter without `init` is also a compile error — this prevents silent misclassification.
 
 ### 5.2 Conditional Code Generation
 
@@ -286,14 +303,23 @@ A `&T` parameter without `init` is a compile error — this prevents silent misc
 
 | Condition | Error |
 |-----------|-------|
-| State param without `init` | `"state parameter requires init = \"...\" attribute"` |
+| `&T` param without `init` | `"state parameter requires init = \"...\" attribute"` |
+| `&mut T` param | `"state parameter must be a shared reference (&T), not &mut T"` |
 | `init` path is empty | `"init function path cannot be empty"` |
-| Multiple state params | `"RPC handlers accept at most one state parameter"` |
-| State param is not a reference | `"state parameter must be a reference (&T)"` |
+| Multiple `&T` params | `"RPC handlers accept at most one state parameter"` |
+| Multiple owned params | `"RPC handlers accept at most one input parameter"` (existing error) |
 
 ## 6. Supported Parameter Combinations
 
-The handler can have up to three parameters in any order:
+The handler can have up to three parameters in any order. Each parameter is classified by type syntax, not by position or name:
+
+| Type syntax | Role | Max count |
+|-------------|------|-----------|
+| `Headers` (by name) | HTTP headers | 1 |
+| `&T` (shared ref) | State from `init` | 1 |
+| `T` (owned) | Deserialized input | 1 |
+
+Valid combinations:
 
 | Parameters | Example |
 |------------|---------|
@@ -306,6 +332,8 @@ The handler can have up to three parameters in any order:
 | State + Headers | `async fn list(state: &AppState, headers: Headers) -> Vec<Item>` |
 | Input + State + Headers | `async fn get(id: u32, state: &AppState, headers: Headers) -> User` |
 
+Multiple owned parameters are rejected — `async fn get(a: u32, b: String)` produces `"RPC handlers accept at most one input parameter"` (existing behavior, unchanged).
+
 ## 7. CLI Impact
 
 **None.** The `rpc-cli` scanner (`detect_rpc_kind`) already ignores attribute arguments — it only checks the attribute path. No changes needed.
@@ -313,6 +341,8 @@ The handler can have up to three parameters in any order:
 ## 8. Test Plan
 
 ### Unit Tests — Attribute Parsing
+
+Tested via `parse_handler_attrs_inner(proc_macro2::TokenStream)`, same pattern as existing `parse_cache_attrs_inner` tests.
 
 | Test | Description |
 |------|-------------|
@@ -325,6 +355,8 @@ The handler can have up to three parameters in any order:
 
 ### Unit Tests — Handler Generation
 
+Tested via `build_handler(func, kind, attrs)` with generated token stream assertions.
+
 | Test | Description |
 |------|-------------|
 | `init_side_effects_only` | Generates `.await` inside `block_on`, no `OnceLock` |
@@ -332,10 +364,19 @@ The handler can have up to three parameters in any order:
 | `init_with_state_and_input` | State and input both passed correctly |
 | `init_with_state_and_headers` | State and headers both passed correctly |
 | `init_with_all_three_params` | Input, state, and headers all work |
-| `state_without_init_rejected` | `&T` param without `init` attr is a compile error |
 | `init_compatible_with_cache` | `init` + `cache` both generate correctly |
 | `init_compatible_with_mutation` | `init` works on `#[rpc_mutation]` |
 | `init_call_inside_block_on` | Init call is inside `block_on` (supports async) |
+
+### Unit Tests — Error Cases
+
+These test `build_handler` returning `Err(syn::Error)` — macro expansion errors, caught at compile time.
+
+| Test | Description |
+|------|-------------|
+| `state_without_init_rejected` | `&T` param without `init` attr → error |
+| `mut_state_rejected` | `&mut T` param → `"must be a shared reference"` |
+| `multiple_state_params_rejected` | Two `&T` params → `"at most one state parameter"` |
 
 ## 9. Backward Compatibility
 
