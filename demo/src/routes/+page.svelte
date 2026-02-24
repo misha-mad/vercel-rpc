@@ -97,8 +97,9 @@
 			<CodeBlock html={data.highlighted['typeSafetyTs']} />
 		</div>
 	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
+	<div class="hidden sm:block bg-bg-primary overflow-hidden relative">
 		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-diag)" /></svg>
+		<div class="absolute inset-0 mix-blend-lighten" style="background: linear-gradient(135deg, var(--color-accent-rust), var(--color-accent-ts)); opacity: 0.12;"></div>
 	</div>
 
 	<!-- Row 2: right -->
