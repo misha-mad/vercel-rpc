@@ -58,6 +58,11 @@
 	background: rgba(49, 120, 198, 0.12);
 }
 
+.code-lang-badge.lang-sh {
+	color: #4ec9b0;
+	background: rgba(78, 201, 176, 0.12);
+}
+
 .code-block-lg pre.shiki {
 	font-size: 1.55rem;
 	padding: 1rem;

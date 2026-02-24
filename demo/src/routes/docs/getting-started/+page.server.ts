@@ -1,17 +1,17 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' }> = {
+const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'shellscript' }> = {
 	installCli: {
-		lang: 'typescript',
+		lang: 'shellscript',
 		code: `cargo install vercel-rpc-cli`
 	},
 	installCrate: {
-		lang: 'typescript',
+		lang: 'shellscript',
 		code: `cargo add vercel-rpc`
 	},
 	installGenerate: {
-		lang: 'typescript',
+		lang: 'shellscript',
 		code: `rpc generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts`
 	},
 	gettingStartedRust: {

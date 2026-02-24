@@ -32,7 +32,7 @@ interface User {
 
 	// 3. Watch mode
 	watchMode: {
-		lang: 'typescript',
+		lang: 'shellscript',
 		code: `my-app/
 ├── api/
 │   ├── hello.rs      # ← edit Rust
