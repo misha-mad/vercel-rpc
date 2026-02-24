@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.3.0...vercel-rpc-cli-v0.4.0) - 2026-02-24
+
+### Added
+
+- *(rpc)* implement idempotent attribute for mutations (RFC-12)
+- *(rpc-macro, rpc-cli)* add `timeout` attribute for per-procedure server-side and client-side timeouts
+- *(rpc-cli)* support bigint_types config for large integer mapping
+- *(rpc-cli)* support external crate type overrides in codegen
+- *(rpc-cli)* support #[serde(flatten)] in codegen
+- *(rpc-cli)* support tuple structs and branded newtypes in codegen
+- *(rpc-cli)* support generic structs and enums in codegen
+
+### Other
+
+- *(rpc)* address idempotent impl review feedback
+- *(rpc-macro, rpc-cli)* document timeout attribute and validate empty string
+- *(rpc-cli)* reformat test assertions for improved readability
+- *(ROADMAP)* fix spacing issues in markdown tables
+- *(docs, rpc-cli)* improve formatting for readability
+- *(rpc-cli)* improve formatting for enum generation output
+
 ## [0.3.0](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-cli-v0.2.2...vercel-rpc-cli-v0.3.0) - 2026-02-22
 
 ### Added

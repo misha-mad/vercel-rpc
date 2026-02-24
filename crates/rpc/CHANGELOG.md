@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-v0.1.2...vercel-rpc-v0.1.3) - 2026-02-24
+
+### Added
+
+- *(rpc-macro, rpc-cli)* add `timeout` attribute for per-procedure server-side and client-side timeouts
+
 ## [0.1.2](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-v0.1.1...vercel-rpc-v0.1.2) - 2026-02-20
 
 ### Added
