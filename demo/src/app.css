@@ -23,6 +23,11 @@
 }
 
 /* Shiki code block overrides */
+.code-block {
+	display: flex;
+	flex-direction: column;
+}
+
 .code-block pre.shiki {
 	font-family: var(--font-mono);
 	font-size: 0.75rem;
@@ -31,6 +36,7 @@
 	border-radius: 0.5rem;
 	overflow-x: auto;
 	margin: 0;
+	flex: 1;
 }
 
 .code-lang-badge {
