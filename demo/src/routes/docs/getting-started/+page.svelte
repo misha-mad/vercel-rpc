@@ -17,6 +17,17 @@
 		client — no manual sync required.
 	</p>
 
+	<h2 class="text-2xl font-semibold">Installation</h2>
+
+	<p class="text-text-muted text-sm mb-2">1. Install the CLI</p>
+	<CodeBlock html={data.highlighted['installCli']} />
+
+	<p class="text-text-muted text-sm mb-2">2. Add the macro crate to your Rust project</p>
+	<CodeBlock html={data.highlighted['installCrate']} />
+
+	<p class="text-text-muted text-sm mb-2">3. Generate TypeScript types and client</p>
+	<CodeBlock html={data.highlighted['installGenerate']} />
+
 	<h3 class="text-xl font-semibold mt-8">How it works</h3>
 
 	<ol class="list-decimal list-inside space-y-2 text-text-muted">
