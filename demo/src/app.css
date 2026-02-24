@@ -21,3 +21,38 @@
 
 	--color-border: rgba(255, 255, 255, 0.08);
 }
+
+/* Shiki code block overrides */
+.code-block pre.shiki {
+	position: relative;
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	line-height: 1.5;
+	padding: 0.75rem;
+	border-radius: 0.5rem;
+	overflow-x: auto;
+	margin: 0;
+}
+
+.code-block pre.shiki[data-lang]::after {
+	content: attr(data-lang);
+	position: absolute;
+	top: 0.375rem;
+	right: 0.375rem;
+	padding: 0.125rem 0.375rem;
+	border-radius: 0.25rem;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(4px);
+	color: rgba(255, 255, 255, 0.4);
+	font-size: 0.625rem;
+	font-family: var(--font-mono);
+	line-height: 1;
+	pointer-events: none;
+	user-select: none;
+}
+
+.code-block-lg pre.shiki {
+	font-size: 0.875rem;
+	padding: 1rem;
+	margin-bottom: 1rem;
+}
