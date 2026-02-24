@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.7...vercel-rpc-macro-v0.1.8) - 2026-02-24
+
+### Added
+
+- *(rpc)* implement idempotent attribute for mutations (RFC-12)
+- *(rpc-macro, rpc-cli)* add `timeout` attribute for per-procedure server-side and client-side timeouts
+- *(rpc-macro)* add `init` attribute for cold-start initialization (RFC-11)
+- *(rpc-macro)* support cache attribute for server-side caching
+
+### Fixed
+
+- *(rpc-macro)* replace panic with syn::Error for invalid init path
+
+### Other
+
+- *(rpc)* address idempotent impl review feedback
+- *(rpc-macro)* simplify error handling in metadata parsing
+- *(rpc-macro, rpc-cli)* document timeout attribute and validate empty string
+- *(rpc-macro)* address review feedback from rust best practices
+- *(rpc-macro)* add parse_cache_attrs and error response tests
+
 ## [0.1.7](https://github.com/misha-mad/vercel-rpc/compare/vercel-rpc-macro-v0.1.6...vercel-rpc-macro-v0.1.7) - 2026-02-22
 
 ### Other
