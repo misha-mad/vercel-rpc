@@ -51,6 +51,16 @@
 	user-select: none;
 }
 
+.code-block pre.shiki[data-lang='rust']::after {
+	color: var(--color-accent-rust);
+	background: rgba(247, 76, 0, 0.12);
+}
+
+.code-block pre.shiki[data-lang='ts']::after {
+	color: var(--color-accent-ts);
+	background: rgba(49, 120, 198, 0.12);
+}
+
 .code-block-lg pre.shiki {
 	font-size: 0.875rem;
 	padding: 1rem;
