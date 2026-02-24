@@ -98,15 +98,15 @@
 		</div>
 	</div>
 	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+		<svg class="h-full w-full" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice">
 			<defs>
-				<linearGradient id="grad-rust-ts" x1="0" y1="0" x2="1" y2="1">
+				<linearGradient id="grad-rust-ts" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
 					<stop offset="0%" stop-color="#f74c00" />
 					<stop offset="100%" stop-color="#3178c6" />
 				</linearGradient>
 			</defs>
-			{#each Array.from({ length: 30 }, (_, i) => i * 5 - 50) as offset}
-				<line x1={offset} y1="100" x2={offset + 100} y2="0" stroke="url(#grad-rust-ts)" stroke-opacity="0.15" stroke-width="0.4" />
+			{#each Array.from({ length: 40 }, (_, i) => i * 10 - 200) as offset}
+				<line x1={offset} y1="200" x2={offset + 200} y2="0" stroke="url(#grad-rust-ts)" stroke-opacity="0.15" stroke-width="0.7" />
 			{/each}
 		</svg>
 	</div>
