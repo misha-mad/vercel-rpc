@@ -14,7 +14,8 @@ pub struct User {
 	},
 	typeSafetyTs: {
 		lang: 'typescript',
-		code: `// Auto-generated — zero manual sync
+		code: `// Auto-generated
+// zero manual sync
 interface User {
   id: number;
   name: string;
