@@ -29,7 +29,7 @@
 
 	<!-- Sidebar -->
 	<aside
-		class="fixed top-14 left-0 z-40 h-[calc(100vh-3.5rem)] w-60 shrink-0 border-r border-border bg-bg-sidebar p-4 transition-transform lg:sticky lg:translate-x-0 {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
+		class="fixed top-14 left-0 z-40 h-[calc(100vh-3.5rem)] w-60 border-r border-border bg-bg-sidebar p-4 transition-transform lg:translate-x-0 {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
 	>
 		<nav class="flex flex-col gap-1">
 			{#each sections as section}
@@ -54,7 +54,7 @@
 	{/if}
 
 	<!-- Content -->
-	<div class="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:pl-8">
+	<div class="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:ml-60 lg:pl-8">
 		{@render children()}
 	</div>
 </div>
