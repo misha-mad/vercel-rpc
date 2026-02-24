@@ -39,6 +39,20 @@
 	overflow-x: auto;
 	margin: 0;
 	flex: 1;
+	scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.code-block pre.shiki::-webkit-scrollbar {
+	height: 6px;
+}
+
+.code-block pre.shiki::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.code-block pre.shiki::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 3px;
 }
 
 .code-lang-badge {
