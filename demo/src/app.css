@@ -32,7 +32,7 @@
 
 .code-block pre.shiki {
 	font-family: var(--font-mono);
-	font-size: 0.75rem;
+	font-size: 1.5rem;
 	line-height: 1.5;
 	padding: 0.75rem;
 	border-radius: 0.5rem;
@@ -59,7 +59,7 @@
 }
 
 .code-block-lg pre.shiki {
-	font-size: 0.875rem;
+	font-size: 1.75rem;
 	padding: 1rem;
 	margin-bottom: 1rem;
 }
