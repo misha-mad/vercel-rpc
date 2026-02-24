@@ -13,7 +13,7 @@
 	</h1>
 
 	<p class="text-lg sm:text-xl text-text-muted max-w-2xl mb-2">
-		End-to-end typesafe RPC between <strong class="text-accent-rust">Rust lambdas</strong> on Vercel and your frontend.
+		End-to-end typesafe RPC between <strong class="text-accent-rust">Rust lambdas</strong> on Vercel and your <strong class="text-accent-ts">TypeScript frontend</strong>.
 	</p>
 
 	<p class="text-text-muted max-w-xl mb-8">
