@@ -80,7 +80,7 @@
 <div class="mx-auto flex max-w-7xl">
 	<!-- Mobile toggle -->
 	<button
-		class="fixed bottom-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-accent-rust text-white shadow-lg lg:hidden"
+		class="fixed bottom-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-accent-rust text-white shadow-lg lg:hidden"
 		onclick={() => (sidebarOpen = !sidebarOpen)}
 	>
 		{sidebarOpen ? '✕' : '☰'}
