@@ -30,6 +30,26 @@ interface User {
 // greeting: string — fully typed, with autocomplete`
 	},
 
+	// 3. Watch mode
+	watchMode: {
+		lang: 'typescript',
+		code: `my-app/
+├── api/
+│   ├── hello.rs      # ← edit Rust
+│   ├── users.rs      # ← add new file
+│   └── math.rs
+├── src/lib/
+│   ├── rpc-types.ts  # ← auto-regenerated
+│   └── rpc-client.ts # ← auto-regenerated
+└── rpc.config.toml
+
+$ rpc watch
+  ▸ Watching api/ for changes...
+  ✓ Generated rpc-types.ts (3 queries, 1 mutation)
+  ▸ api/users.rs changed
+  ✓ Re-generated (4 queries, 1 mutation)`
+	},
+
 	// 4. Macro-driven
 	macroDriven: {
 		lang: 'rust',

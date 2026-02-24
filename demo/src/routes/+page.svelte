@@ -59,6 +59,9 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Watch mode</h3>
 		<p class="text-sm text-text-muted">Types regenerate on every <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> save — your frontend stays in sync automatically.</p>
+		<div class="mt-2 flex-1 flex flex-col">
+			<CodeBlock html={data.highlighted['watchMode']} />
+		</div>
 	</div>
 	<div class="hidden sm:block bg-bg-primary"></div>
 
