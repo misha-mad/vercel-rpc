@@ -122,7 +122,11 @@
 		</div>
 	</div>
 	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-circles)" /></svg>
+		<svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+			{#each Array.from({ length: 20 }, (_, i) => (i + 1) * 5) as r}
+				<circle cx="50" cy="50" {r} fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			{/each}
+		</svg>
 	</div>
 
 	<!-- Row 4: right -->
