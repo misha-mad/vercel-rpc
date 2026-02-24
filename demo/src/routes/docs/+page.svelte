@@ -44,6 +44,34 @@
 	let echoUppercase = $state(false);
 	const echo = createMutation(rpc, 'echo');
 
+	// --- Secret (protected endpoint with RpcClientConfig.headers) ---
+	let secretResult = $state('');
+	let secretError = $state('');
+	let secretLoading = $state(false);
+
+	async function callSecret(withToken: boolean) {
+		secretLoading = true;
+		secretResult = '';
+		secretError = '';
+		try {
+			const client = createRpcClient(
+				withToken
+					? { baseUrl: '/api', headers: { Authorization: 'Bearer secret-token-123' } }
+					: { baseUrl: '/api' }
+			);
+			secretResult = await client.query('secret');
+		} catch (e) {
+			if (e instanceof RpcError) {
+				const data = e.data as { error?: { message?: string } } | undefined;
+				secretError = data?.error?.message ?? e.message;
+			} else {
+				secretError = `${e}`;
+			}
+		} finally {
+			secretLoading = false;
+		}
+	}
+
 	// --- Code toggle ---
 	let openCode: Record<string, boolean> = $state({});
 	function toggleCode(id: string) {
@@ -487,7 +515,80 @@ echo.error      // RpcError | undefined`}</pre>
 
 	<section id="error-handling">
 		<h2 class="text-2xl font-bold mb-4">Error Handling</h2>
-		<p class="text-text-muted">Documentation coming in next tasks...</p>
+		<p class="text-text-muted leading-relaxed mb-4">
+			When a Rust function returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Result&lt;T, E&gt;</code>, errors are propagated as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> on the client side. You can also return custom HTTP status codes for authorization or validation errors.
+		</p>
+		<p class="text-text-muted leading-relaxed mb-6">
+			The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> class provides <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.status</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.message</code>, and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.data</code> for structured error handling.
+		</p>
+
+		<!-- Secret: Protected endpoint -->
+		<div class="rounded-lg border border-border bg-bg-soft p-6 mb-6">
+			<h3 class="text-lg font-semibold mb-2">Secret — Protected Endpoint</h3>
+			<p class="text-text-muted text-sm mb-4">
+				This endpoint requires an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Authorization</code> header. Try calling it with and without a token to see error handling in action.
+			</p>
+			<div class="flex flex-wrap gap-3 mb-3">
+				<button
+					onclick={() => callSecret(true)}
+					disabled={secretLoading}
+					class="rounded-md bg-accent-ts px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50">
+					Call with token
+				</button>
+				<button
+					onclick={() => callSecret(false)}
+					disabled={secretLoading}
+					class="rounded-md border border-red-500 px-4 py-1.5 text-sm font-medium text-red-400 transition-opacity hover:opacity-85 disabled:opacity-50">
+					Call without token
+				</button>
+			</div>
+			{#if secretLoading}
+				<div class="rounded-md bg-bg-code p-3 text-sm text-text-muted">Loading...</div>
+			{/if}
+			{#if secretResult}
+				<div class="rounded-md bg-bg-code p-3 text-sm text-green-400">{secretResult}</div>
+			{/if}
+			{#if secretError}
+				<div class="rounded-md bg-bg-code p-3 text-sm text-red-400">{secretError}</div>
+			{/if}
+			<button class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors" onclick={() => toggleCode('secret')}>
+				{openCode['secret'] ? '▾ Hide' : '▸ Show'} Rust &amp; TypeScript
+			</button>
+			{#if openCode['secret']}
+				<div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+					<div>
+						<span class="text-xs text-accent-rust mb-1 block">Rust — api/secret.rs</span>
+						<pre class="bg-bg-code rounded-lg p-3 font-mono text-xs overflow-x-auto text-text-primary">{`#[rpc_query]
+async fn secret(req: Request) -> impl IntoResponse {
+    let auth = req.headers()
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok());
+
+    match auth {
+        Some("Bearer secret-token-123") =>
+            (StatusCode::OK, "Access granted!"),
+        _ =>
+            (StatusCode::UNAUTHORIZED, "Unauthorized"),
+    }
+}`}</pre>
+					</div>
+					<div>
+						<span class="text-xs text-accent-ts mb-1 block">Error Handling</span>
+						<pre class="bg-bg-code rounded-lg p-3 font-mono text-xs overflow-x-auto text-text-primary">{`import { RpcError } from './rpc.svelte';
+
+try {
+  const result = await client.query('secret');
+} catch (e) {
+  if (e instanceof RpcError) {
+    e.status   // HTTP status code
+    e.message  // error message
+    e.data     // parsed error body
+  }
+}`}</pre>
+					</div>
+				</div>
+			{/if}
+		</div>
 	</section>
 
 	<section id="streaming">
