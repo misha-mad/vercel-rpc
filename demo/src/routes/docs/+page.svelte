@@ -593,6 +593,46 @@ try {
 
 	<section id="streaming">
 		<h2 class="text-2xl font-bold mb-4">Streaming</h2>
-		<p class="text-text-muted">Documentation coming in next tasks...</p>
+		<p class="text-text-muted leading-relaxed mb-4">
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_stream]</code> is a new procedure type alongside queries and mutations that enables HTTP streaming responses. It's built on top of Axum's streaming primitives and Vercel's streaming support.
+		</p>
+
+		<div class="rounded-lg border border-border bg-bg-soft p-6 mb-6">
+			<span class="inline-block rounded-full bg-accent-rust/20 text-accent-rust text-xs font-medium px-3 py-1 mb-4">Coming Soon</span>
+
+			<h3 class="text-lg font-semibold mb-3">How it works</h3>
+			<p class="text-text-muted text-sm mb-4">
+				The handler receives typed input (deserialized as usual) plus a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">StreamSender</code> for emitting chunks. The generated TypeScript client gets a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">stream()</code> method returning an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AsyncIterable</code>.
+			</p>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+				<div>
+					<span class="text-xs text-accent-rust mb-1 block">Rust</span>
+					<pre class="bg-bg-code rounded-lg p-3 font-mono text-xs overflow-x-auto text-text-primary">{`#[rpc_stream]
+async fn chat(input: ChatInput, tx: StreamSender) {
+    for token in generate_tokens(&input.prompt) {
+        tx.send(token).await;
+    }
+}`}</pre>
+				</div>
+				<div>
+					<span class="text-xs text-accent-ts mb-1 block">TypeScript</span>
+					<pre class="bg-bg-code rounded-lg p-3 font-mono text-xs overflow-x-auto text-text-primary">{`const stream = rpc.stream('chat', {
+  prompt: 'Explain Rust ownership'
+});
+
+for await (const token of stream) {
+  console.log(token); // each chunk
+}`}</pre>
+				</div>
+			</div>
+
+			<h3 class="text-lg font-semibold mb-3">Supported formats</h3>
+			<ul class="list-disc list-inside space-y-1 text-text-muted text-sm">
+				<li><strong class="text-text-primary">Raw chunked</strong> (<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">text/plain</code>) — general purpose</li>
+				<li><strong class="text-text-primary">SSE</strong> (<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">text/event-stream</code>) — real-time events, LLM token streaming</li>
+				<li><strong class="text-text-primary">JSON Lines</strong> (<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">application/x-ndjson</code>) — structured streaming data</li>
+			</ul>
+		</div>
 	</section>
 </div>
