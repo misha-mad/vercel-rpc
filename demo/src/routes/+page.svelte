@@ -97,9 +97,18 @@
 			<CodeBlock html={data.highlighted['typeSafetyTs']} />
 		</div>
 	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden relative">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-diag)" /></svg>
-		<div class="absolute inset-0 mix-blend-lighten" style="background: linear-gradient(135deg, var(--color-accent-rust), var(--color-accent-ts)); opacity: 0.12;"></div>
+	<div class="hidden sm:block bg-bg-primary overflow-hidden">
+		<svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+			<defs>
+				<linearGradient id="grad-rust-ts" x1="0" y1="0" x2="1" y2="1">
+					<stop offset="0%" stop-color="#f74c00" />
+					<stop offset="100%" stop-color="#3178c6" />
+				</linearGradient>
+			</defs>
+			{#each Array.from({ length: 30 }, (_, i) => i * 5 - 50) as offset}
+				<line x1={offset} y1="100" x2={offset + 100} y2="0" stroke="url(#grad-rust-ts)" stroke-opacity="0.15" stroke-width="0.4" />
+			{/each}
+		</svg>
 	</div>
 
 	<!-- Row 2: right -->
