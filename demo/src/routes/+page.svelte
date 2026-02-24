@@ -37,51 +37,51 @@
 	<defs>
 		<!-- 1: Diagonal lines -->
 		<pattern id="pat-diag" width="20" height="20" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="20" x2="20" y2="0" stroke="white" stroke-opacity="0.08" stroke-width="1" />
+			<line x1="0" y1="20" x2="20" y2="0" stroke="#f74c00" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 		<!-- 2: Horizontal waves -->
 		<pattern id="pat-wave" width="40" height="20" patternUnits="userSpaceOnUse">
-			<path d="M0 10 Q10 0 20 10 Q30 20 40 10" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="1" />
+			<path d="M0 10 Q10 0 20 10 Q30 20 40 10" fill="none" stroke="#3178c6" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 		<!-- 3: Concentric circles -->
 		<pattern id="pat-circles" width="60" height="60" patternUnits="userSpaceOnUse">
-			<circle cx="30" cy="30" r="5" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
-			<circle cx="30" cy="30" r="12" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
-			<circle cx="30" cy="30" r="19" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
-			<circle cx="30" cy="30" r="26" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<circle cx="30" cy="30" r="5" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="0.25" />
+			<circle cx="30" cy="30" r="12" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="0.25" />
+			<circle cx="30" cy="30" r="19" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="0.25" />
+			<circle cx="30" cy="30" r="26" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="0.25" />
 		</pattern>
 		<!-- 4: Zigzag -->
 		<pattern id="pat-zigzag" width="20" height="20" patternUnits="userSpaceOnUse">
-			<polyline points="0,10 5,0 10,10 15,0 20,10" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="1" />
+			<polyline points="0,10 5,0 10,10 15,0 20,10" fill="none" stroke="#f74c00" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 		<!-- 5: Horizontal lines varying thickness -->
 		<pattern id="pat-hlines" width="10" height="24" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="4" x2="10" y2="4" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
-			<line x1="0" y1="12" x2="10" y2="12" stroke="white" stroke-opacity="0.08" stroke-width="1.5" />
-			<line x1="0" y1="20" x2="10" y2="20" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<line x1="0" y1="4" x2="10" y2="4" stroke="#f74c00" stroke-opacity="0.5" stroke-width="1" />
+			<line x1="0" y1="12" x2="10" y2="12" stroke="#f74c00" stroke-opacity="0.5" stroke-width="1" />
+			<line x1="0" y1="20" x2="10" y2="20" stroke="#f74c00" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 		<!-- 6: Dots grid -->
 		<pattern id="pat-dots" width="16" height="16" patternUnits="userSpaceOnUse">
-			<circle cx="8" cy="8" r="1.5" fill="white" fill-opacity="0.08" />
+			<circle cx="8" cy="8" r="1.5" fill="#3178c6" fill-opacity="0.5" />
 		</pattern>
 		<!-- 7: Cross-hatch -->
 		<pattern id="pat-cross" width="16" height="16" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="16" x2="16" y2="0" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
-			<line x1="0" y1="0" x2="16" y2="16" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<line x1="0" y1="16" x2="16" y2="0" stroke="#3178c6" stroke-opacity="0.5" stroke-width="1" />
+			<line x1="0" y1="0" x2="16" y2="16" stroke="#3178c6" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 		<!-- 8: Vertical lines -->
 		<pattern id="pat-vlines" width="12" height="10" patternUnits="userSpaceOnUse">
-			<line x1="4" y1="0" x2="4" y2="10" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
-			<line x1="8" y1="0" x2="8" y2="10" stroke="white" stroke-opacity="0.08" stroke-width="1.5" />
+			<line x1="4" y1="0" x2="4" y2="10" stroke="#f74c00" stroke-opacity="0.5" stroke-width="1" />
+			<line x1="8" y1="0" x2="8" y2="10" stroke="#f74c00" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 		<!-- 9: Arcs -->
 		<pattern id="pat-arcs" width="30" height="30" patternUnits="userSpaceOnUse">
-			<path d="M0 30 A30 30 0 0 1 30 0" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.8" />
-			<path d="M0 15 A15 15 0 0 1 15 0" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.8" />
+			<path d="M0 30 A30 30 0 0 1 30 0" fill="none" stroke="#3178c6" stroke-opacity="0.5" stroke-width="1" />
+			<path d="M0 15 A15 15 0 0 1 15 0" fill="none" stroke="#3178c6" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 		<!-- 10: Diamond grid -->
 		<pattern id="pat-diamond" width="24" height="24" patternUnits="userSpaceOnUse">
-			<polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.7" />
+			<polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="white" stroke-opacity="0.5" stroke-width="1" />
 		</pattern>
 	</defs>
 </svg>
@@ -98,17 +98,7 @@
 		</div>
 	</div>
 	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice">
-			<defs>
-				<linearGradient id="grad-rust-ts" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
-					<stop offset="0%" stop-color="#f74c00" />
-					<stop offset="100%" stop-color="#3178c6" />
-				</linearGradient>
-			</defs>
-			{#each Array.from({ length: 40 }, (_, i) => i * 10 - 200) as offset}
-				<line x1={offset} y1="200" x2={offset + 200} y2="0" stroke="url(#grad-rust-ts)" stroke-opacity="0.15" stroke-width="0.7" />
-			{/each}
-		</svg>
+		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-diag)" /></svg>
 	</div>
 
 	<!-- Row 2: right -->
@@ -134,7 +124,7 @@
 	<div class="hidden sm:block bg-bg-primary overflow-hidden">
 		<svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
 			{#each Array.from({ length: 20 }, (_, i) => (i + 1) * 5) as r}
-				<circle cx="50" cy="50" {r} fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+				<circle cx="50" cy="50" {r} fill="none" stroke="white" stroke-opacity="0.5" stroke-width="0.25" />
 			{/each}
 		</svg>
 	</div>
@@ -153,25 +143,25 @@
 
 	<!-- Row 5: left -->
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
-		<h3 class="text-lg font-semibold">Serde support</h3>
-		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rename_all</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">skip</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">flatten</code> & all enum tagging strategies.</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['serde']} />
-		</div>
-	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-hlines)" /></svg>
-	</div>
-
-	<!-- Row 6: right -->
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-dots)" /></svg>
-	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Init &amp; state injection</h3>
 		<p class="text-sm text-text-muted">Cold-start setup for DB pools, HTTP clients via <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">init = "setup"</code>.</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['initState']} />
+		</div>
+	</div>
+	<div class="hidden sm:block bg-bg-primary overflow-hidden">
+		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-dots)" /></svg>
+	</div>
+
+	<!-- Row 6: right -->
+	<div class="hidden sm:block bg-bg-primary overflow-hidden">
+		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-hlines)" /></svg>
+	</div>
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+		<h3 class="text-lg font-semibold">Serde support</h3>
+		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rename_all</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">skip</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">flatten</code> & all enum tagging strategies.</p>
+		<div class="mt-2 flex-1 flex flex-col">
+			<CodeBlock html={data.highlighted['serde']} />
 		</div>
 	</div>
 
@@ -189,30 +179,6 @@
 
 	<!-- Row 8: right -->
 	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-vlines)" /></svg>
-	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
-		<h3 class="text-lg font-semibold">4 framework wrappers</h3>
-		<p class="text-sm text-text-muted">Svelte 5, React, Vue 3, SolidJS — reactive hooks, opt-in.</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['frameworks']} />
-		</div>
-	</div>
-
-	<!-- Row 9: left -->
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
-		<h3 class="text-lg font-semibold">Rich client</h3>
-		<p class="text-sm text-text-muted">Retry, timeout, dedup, lifecycle hooks, custom headers, AbortSignal.</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['richClient']} />
-		</div>
-	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-arcs)" /></svg>
-	</div>
-
-	<!-- Row 10: right -->
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
 		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-diamond)" /></svg>
 	</div>
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
@@ -220,6 +186,30 @@
 		<p class="text-sm text-text-muted">Each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file deploys as a serverless lambda — no infra config needed.</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['vercelNative']} />
+		</div>
+	</div>
+
+	<!-- Row 9: left -->
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+		<h3 class="text-lg font-semibold">4 framework wrappers</h3>
+		<p class="text-sm text-text-muted">Svelte 5, React, Vue 3, SolidJS — reactive hooks, opt-in.</p>
+		<div class="mt-2 flex-1 flex flex-col">
+			<CodeBlock html={data.highlighted['frameworks']} />
+		</div>
+	</div>
+	<div class="hidden sm:block bg-bg-primary overflow-hidden">
+		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-vlines)" /></svg>
+	</div>
+
+	<!-- Row 10: right -->
+	<div class="hidden sm:block bg-bg-primary overflow-hidden">
+		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-arcs)" /></svg>
+	</div>
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+		<h3 class="text-lg font-semibold">Rich client</h3>
+		<p class="text-sm text-text-muted">Retry, timeout, dedup, lifecycle hooks, custom headers, AbortSignal.</p>
+		<div class="mt-2 flex-1 flex flex-col">
+			<CodeBlock html={data.highlighted['richClient']} />
 		</div>
 	</div>
 
