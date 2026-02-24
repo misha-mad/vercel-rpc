@@ -39,12 +39,10 @@
 
 	<h3 class="text-xl font-semibold mt-8">Quick example</h3>
 
-	<p class="text-text-muted text-sm mb-2">Rust — <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">api/hello.rs</code></p>
+	<a href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/hello.rs" target="_blank" class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block">api/hello.rs</a>
 	<CodeBlock html={data.highlighted['gettingStartedRust']} large />
 
-	<p class="text-text-muted text-sm mb-2">Generated TypeScript client</p>
 	<CodeBlock html={data.highlighted['gettingStartedTs']} large />
 
-	<p class="text-text-muted text-sm mb-2">Or with Svelte 5 reactive wrapper</p>
 	<CodeBlock html={data.highlighted['gettingStartedSvelte']} large />
 </div>

@@ -23,14 +23,8 @@
 		</p>
 
 		<div class="space-y-3 mb-4">
-			<div>
-				<span class="text-xs text-accent-rust mb-1 block">Rust</span>
-				<CodeBlock html={data.highlighted['streamRust']} />
-			</div>
-			<div>
-				<span class="text-xs text-accent-ts mb-1 block">TypeScript</span>
-				<CodeBlock html={data.highlighted['streamTs']} />
-			</div>
+			<CodeBlock html={data.highlighted['streamRust']} />
+			<CodeBlock html={data.highlighted['streamTs']} />
 		</div>
 
 		<h3 class="text-lg font-semibold mb-3">Supported formats</h3>

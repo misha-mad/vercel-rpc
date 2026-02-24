@@ -116,14 +116,9 @@
 		</button>
 		{#if openCode['secret']}
 			<div class="mt-3 space-y-3">
-				<div>
-					<span class="text-xs text-accent-rust mb-1 block">Rust — api/secret.rs</span>
-					<CodeBlock html={data.highlighted['secretRust']} />
-				</div>
-				<div>
-					<span class="text-xs text-accent-ts mb-1 block">Error Handling</span>
-					<CodeBlock html={data.highlighted['secretTs']} />
-				</div>
+				<a href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/secret.rs" target="_blank" class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block">api/secret.rs</a>
+				<CodeBlock html={data.highlighted['secretRust']} />
+				<CodeBlock html={data.highlighted['secretTs']} />
 			</div>
 		{/if}
 	</div>

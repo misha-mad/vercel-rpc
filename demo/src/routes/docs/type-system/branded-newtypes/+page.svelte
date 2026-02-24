@@ -14,24 +14,12 @@
 		Single-field tuple structs (newtypes) become type aliases by default. Enable <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">branded_newtypes</code> for nominal type safety — preventing accidental mixing of structurally identical types like <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">UserId</code> and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">OrderId</code>.
 	</p>
 
-	<div>
-		<span class="text-xs text-accent-rust mb-1 block">Rust</span>
-		<CodeBlock html={data.highlighted['newtypeRust']} />
-	</div>
+	<CodeBlock html={data.highlighted['newtypeRust']} />
 
 	<div class="space-y-3">
-		<div>
-			<span class="text-xs text-text-muted mb-1 block">Default output</span>
-			<CodeBlock html={data.highlighted['newtypeDefaultTs']} />
-		</div>
-		<div>
-			<span class="text-xs text-accent-ts mb-1 block">Branded output</span>
-			<CodeBlock html={data.highlighted['newtypeBrandedTs']} />
-		</div>
+		<CodeBlock html={data.highlighted['newtypeDefaultTs']} />
+		<CodeBlock html={data.highlighted['newtypeBrandedTs']} />
 	</div>
 
-	<div>
-		<span class="text-xs text-text-muted mb-1 block">Enable via config or CLI</span>
-		<CodeBlock html={data.highlighted['configToml']} />
-	</div>
+	<CodeBlock html={data.highlighted['configToml']} />
 </div>

@@ -80,14 +80,9 @@
 		</button>
 		{#if openCode['hello']}
 			<div class="mt-3 space-y-3">
-				<div>
-					<span class="text-xs text-accent-rust mb-1 block">Rust — api/hello.rs</span>
-					<CodeBlock html={data.highlighted['helloRust']} />
-				</div>
-				<div>
-					<span class="text-xs text-accent-ts mb-1 block">Svelte 5 Reactive Wrapper</span>
-					<CodeBlock html={data.highlighted['helloTs']} />
-				</div>
+				<a href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/hello.rs" target="_blank" class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block">api/hello.rs</a>
+				<CodeBlock html={data.highlighted['helloRust']} />
+				<CodeBlock html={data.highlighted['helloTs']} />
 			</div>
 		{/if}
 	</div>
@@ -110,14 +105,9 @@
 		</button>
 		{#if openCode['time']}
 			<div class="mt-3 space-y-3">
-				<div>
-					<span class="text-xs text-accent-rust mb-1 block">Rust — api/time.rs</span>
-					<CodeBlock html={data.highlighted['timeRust']} />
-				</div>
-				<div>
-					<span class="text-xs text-accent-ts mb-1 block">Generated TypeScript</span>
-					<CodeBlock html={data.highlighted['timeTs']} />
-				</div>
+				<a href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/time.rs" target="_blank" class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block">api/time.rs</a>
+				<CodeBlock html={data.highlighted['timeRust']} />
+				<CodeBlock html={data.highlighted['timeTs']} />
 			</div>
 		{/if}
 	</div>
@@ -143,14 +133,9 @@
 		</button>
 		{#if openCode['status']}
 			<div class="mt-3 space-y-3">
-				<div>
-					<span class="text-xs text-accent-rust mb-1 block">Rust — api/status.rs</span>
-					<CodeBlock html={data.highlighted['statusRust']} />
-				</div>
-				<div>
-					<span class="text-xs text-accent-ts mb-1 block">Generated TypeScript</span>
-					<CodeBlock html={data.highlighted['statusTs']} />
-				</div>
+				<a href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/status.rs" target="_blank" class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block">api/status.rs</a>
+				<CodeBlock html={data.highlighted['statusRust']} />
+				<CodeBlock html={data.highlighted['statusTs']} />
 			</div>
 		{/if}
 	</div>

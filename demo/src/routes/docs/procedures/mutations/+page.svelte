@@ -63,14 +63,9 @@
 		</button>
 		{#if openCode['echo']}
 			<div class="mt-3 space-y-3">
-				<div>
-					<span class="text-xs text-accent-rust mb-1 block">Rust — api/echo.rs</span>
-					<CodeBlock html={data.highlighted['echoRust']} />
-				</div>
-				<div>
-					<span class="text-xs text-accent-ts mb-1 block">Svelte 5 Usage</span>
-					<CodeBlock html={data.highlighted['echoTs']} />
-				</div>
+				<a href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/echo.rs" target="_blank" class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block">api/echo.rs</a>
+				<CodeBlock html={data.highlighted['echoRust']} />
+				<CodeBlock html={data.highlighted['echoTs']} />
 			</div>
 		{/if}
 	</div>

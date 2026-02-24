@@ -15,13 +15,7 @@
 	</p>
 
 	<div class="space-y-3">
-		<div>
-			<span class="text-xs text-accent-rust mb-1 block">Rust</span>
-			<CodeBlock html={data.highlighted['genericsRust']} />
-		</div>
-		<div>
-			<span class="text-xs text-accent-ts mb-1 block">TypeScript</span>
-			<CodeBlock html={data.highlighted['genericsTs']} />
-		</div>
+		<CodeBlock html={data.highlighted['genericsRust']} />
+		<CodeBlock html={data.highlighted['genericsTs']} />
 	</div>
 </div>
