@@ -391,7 +391,98 @@ echo.error      // RpcError | undefined`}</pre>
 
 	<section id="type-mappings">
 		<h2 class="text-2xl font-bold mb-4">Type Mappings</h2>
-		<p class="text-text-muted">Documentation coming in next tasks...</p>
+		<p class="text-text-muted leading-relaxed mb-6">
+			Every Rust type is automatically mapped to its TypeScript equivalent during code generation. Here's the complete reference.
+		</p>
+
+		<div class="overflow-x-auto rounded-lg border border-border">
+			<table class="w-full text-sm text-left">
+				<thead class="bg-bg-code text-text-muted text-xs uppercase">
+					<tr>
+						<th class="px-4 py-3">Rust</th>
+						<th class="px-4 py-3">TypeScript</th>
+						<th class="px-4 py-3">Example</th>
+					</tr>
+				</thead>
+				<tbody class="text-text-primary">
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">String</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&amp;str</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">string</code></td>
+						<td class="px-4 py-2 text-text-muted">hello endpoint</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i32</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">f64</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code></td>
+						<td class="px-4 py-2 text-text-muted">math, time</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bool</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">boolean</code></td>
+						<td class="px-4 py-2 text-text-muted">echo (uppercase)</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">()</code> (no input)</td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">void</code></td>
+						<td class="px-4 py-2 text-text-muted">time, status</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Vec&lt;T&gt;</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">HashSet&lt;T&gt;</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T[]</code></td>
+						<td class="px-4 py-2 text-text-muted">stats, types</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Option&lt;T&gt;</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T | null</code></td>
+						<td class="px-4 py-2 text-text-muted">profile (avatarUrl)</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">HashMap&lt;K, V&gt;</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Record&lt;K, V&gt;</code></td>
+						<td class="px-4 py-2 text-text-muted">stats (frequencies)</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Box&lt;T&gt;</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cow&lt;T&gt;</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T</code> (transparent)</td>
+						<td class="px-4 py-2 text-text-muted">types (boxed_label)</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Result&lt;T, E&gt;</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T</code> (error at runtime)</td>
+						<td class="px-4 py-2 text-text-muted">math, stats</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">struct</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">interface</code></td>
+						<td class="px-4 py-2 text-text-muted">TimeResponse, Stats</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">enum</code> (unit)</td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">"A" | "B"</code></td>
+						<td class="px-4 py-2 text-text-muted">HealthStatus, Operation</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">serde(rename_all)</code></td>
+						<td class="px-4 py-2">field/variant names transformed</td>
+						<td class="px-4 py-2 text-text-muted">profile (camelCase)</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">serde(rename)</code></td>
+						<td class="px-4 py-2">exact name override</td>
+						<td class="px-4 py-2 text-text-muted">profile (profile_url)</td>
+					</tr>
+					<tr class="border-b border-border">
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">serde(skip)</code></td>
+						<td class="px-4 py-2">field omitted</td>
+						<td class="px-4 py-2 text-text-muted">profile (internal_score)</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">serde(default)</code> + <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Option&lt;T&gt;</code></td>
+						<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">field?: T | null</code></td>
+						<td class="px-4 py-2 text-text-muted">profile (avatarUrl)</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</section>
 
 	<section id="error-handling">
