@@ -37,51 +37,51 @@
 	<defs>
 		<!-- 1: Diagonal lines -->
 		<pattern id="pat-diag" width="20" height="20" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="20" x2="20" y2="0" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+			<line x1="0" y1="20" x2="20" y2="0" stroke="white" stroke-opacity="0.08" stroke-width="1" />
 		</pattern>
 		<!-- 2: Horizontal waves -->
 		<pattern id="pat-wave" width="40" height="20" patternUnits="userSpaceOnUse">
-			<path d="M0 10 Q10 0 20 10 Q30 20 40 10" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+			<path d="M0 10 Q10 0 20 10 Q30 20 40 10" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="1" />
 		</pattern>
 		<!-- 3: Concentric circles -->
 		<pattern id="pat-circles" width="60" height="60" patternUnits="userSpaceOnUse">
-			<circle cx="30" cy="30" r="5" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
-			<circle cx="30" cy="30" r="12" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
-			<circle cx="30" cy="30" r="19" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
-			<circle cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
+			<circle cx="30" cy="30" r="5" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<circle cx="30" cy="30" r="12" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<circle cx="30" cy="30" r="19" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<circle cx="30" cy="30" r="26" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
 		</pattern>
 		<!-- 4: Zigzag -->
 		<pattern id="pat-zigzag" width="20" height="20" patternUnits="userSpaceOnUse">
-			<polyline points="0,10 5,0 10,10 15,0 20,10" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+			<polyline points="0,10 5,0 10,10 15,0 20,10" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="1" />
 		</pattern>
 		<!-- 5: Horizontal lines varying thickness -->
 		<pattern id="pat-hlines" width="10" height="24" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="4" x2="10" y2="4" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
-			<line x1="0" y1="12" x2="10" y2="12" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" />
-			<line x1="0" y1="20" x2="10" y2="20" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
+			<line x1="0" y1="4" x2="10" y2="4" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<line x1="0" y1="12" x2="10" y2="12" stroke="white" stroke-opacity="0.08" stroke-width="1.5" />
+			<line x1="0" y1="20" x2="10" y2="20" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
 		</pattern>
 		<!-- 6: Dots grid -->
 		<pattern id="pat-dots" width="16" height="16" patternUnits="userSpaceOnUse">
-			<circle cx="8" cy="8" r="1.5" fill="rgba(255,255,255,0.08)" />
+			<circle cx="8" cy="8" r="1.5" fill="white" fill-opacity="0.08" />
 		</pattern>
 		<!-- 7: Cross-hatch -->
 		<pattern id="pat-cross" width="16" height="16" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="16" x2="16" y2="0" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
-			<line x1="0" y1="0" x2="16" y2="16" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
+			<line x1="0" y1="16" x2="16" y2="0" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<line x1="0" y1="0" x2="16" y2="16" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
 		</pattern>
 		<!-- 8: Vertical lines -->
 		<pattern id="pat-vlines" width="12" height="10" patternUnits="userSpaceOnUse">
-			<line x1="4" y1="0" x2="4" y2="10" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
-			<line x1="8" y1="0" x2="8" y2="10" stroke="rgba(255,255,255,0.08)" stroke-width="1.5" />
+			<line x1="4" y1="0" x2="4" y2="10" stroke="white" stroke-opacity="0.08" stroke-width="0.5" />
+			<line x1="8" y1="0" x2="8" y2="10" stroke="white" stroke-opacity="0.08" stroke-width="1.5" />
 		</pattern>
 		<!-- 9: Arcs -->
 		<pattern id="pat-arcs" width="30" height="30" patternUnits="userSpaceOnUse">
-			<path d="M0 30 A30 30 0 0 1 30 0" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.8" />
-			<path d="M0 15 A15 15 0 0 1 15 0" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.8" />
+			<path d="M0 30 A30 30 0 0 1 30 0" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.8" />
+			<path d="M0 15 A15 15 0 0 1 15 0" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.8" />
 		</pattern>
 		<!-- 10: Diamond grid -->
 		<pattern id="pat-diamond" width="24" height="24" patternUnits="userSpaceOnUse">
-			<polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.7" />
+			<polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="white" stroke-opacity="0.08" stroke-width="0.7" />
 		</pattern>
 	</defs>
 </svg>
