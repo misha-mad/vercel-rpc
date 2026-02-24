@@ -88,7 +88,7 @@
 
 	<!-- Sidebar -->
 	<aside
-		class="fixed top-14 left-0 z-40 h-[calc(100vh-3.5rem)] w-60 overflow-y-auto border-r border-border bg-bg-sidebar p-4 transition-transform lg:translate-x-0 {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
+		class="fixed top-0 bottom-0 left-0 z-40 w-60 overflow-y-auto border-r border-border bg-bg-sidebar pt-[4.5rem] pb-16 px-4 transition-transform lg:translate-x-0 {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
 	>
 		<nav class="flex flex-col gap-0.5">
 			{#each nav as entry}

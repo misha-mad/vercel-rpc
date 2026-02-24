@@ -7,7 +7,6 @@
 <header class="sticky top-0 z-50 border-b border-border bg-bg-header/80 backdrop-blur-md">
 	<div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
 		<a href={resolve('/')} class="flex items-center gap-2 text-lg font-bold text-text-primary hover:text-accent-rust transition-colors">
-			<span class="text-2xl">⚡</span>
 			<span>vercel-rpc</span>
 		</a>
 

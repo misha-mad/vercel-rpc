@@ -86,7 +86,7 @@
 	</defs>
 </svg>
 
-<section class="border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-px bg-border">
+<section class="border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-px bg-border mb-16">
 
 	<!-- Row 1: left -->
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">

@@ -10,6 +10,16 @@ const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | '
 		lang: 'shellscript',
 		code: `cargo add vercel-rpc`
 	},
+	writeLambda: {
+		lang: 'rust',
+		code: `// api/hello.rs
+use vercel_rpc::rpc_query;
+
+#[rpc_query]
+async fn hello(name: String) -> String {
+    format!("Hello, {}!", name)
+}`
+	},
 	installGenerate: {
 		lang: 'shellscript',
 		code: `rpc generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts`
