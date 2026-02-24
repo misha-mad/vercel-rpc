@@ -1,57 +1,18 @@
 <script lang="ts">
 	import Header from './Header.svelte';
-	import './layout.css';
+	import '../app.css';
 
 	let { children } = $props();
 </script>
 
-<div class="app">
+<div class="min-h-screen bg-bg-primary text-text-primary font-body">
 	<Header />
-
 	<main>
 		{@render children()}
 	</main>
-
-	<footer>
+	<footer class="text-center py-4 text-text-muted text-sm border-t border-border">
 		<p>
-			visit <a href="https://github.com/misha-mad/vercel-rpc">GitHub</a> to learn more about vercel-rpc
+			visit <a href="https://github.com/misha-mad/vercel-rpc" class="text-accent-ts hover:underline font-bold">GitHub</a> to learn more about vercel-rpc
 		</p>
 	</footer>
 </div>
-
-<style>
-	.app {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-	}
-
-	main {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 1rem;
-		width: 100%;
-		max-width: 64rem;
-		margin: 0 auto;
-		box-sizing: border-box;
-	}
-
-	footer {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		padding: 12px;
-	}
-
-	footer a {
-		font-weight: bold;
-	}
-
-	@media (min-width: 480px) {
-		footer {
-			padding: 12px 0;
-		}
-	}
-</style>
