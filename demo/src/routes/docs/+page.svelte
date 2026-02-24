@@ -230,7 +230,7 @@ const time = createQuery(rpc, "time");
 				<div class="rounded-md bg-bg-code p-3 text-sm space-y-1">
 					<div><span class="text-text-muted">Service:</span> <span class="text-text-primary">{status.data.name}</span></div>
 					<div><span class="text-text-muted">Status:</span> <span class="text-green-400">{status.data.status}</span></div>
-					<div><span class="text-text-muted">Uptime:</span> <span class="text-text-primary">{status.data.uptime_seconds}s</span></div>
+					<div><span class="text-text-muted">Uptime:</span> <span class="text-text-primary">{status.data.uptime_secs}s</span></div>
 				</div>
 			{:else if status.isLoading}
 				<div class="rounded-md bg-bg-code p-3 text-sm text-text-muted">Loading...</div>
@@ -251,7 +251,7 @@ pub enum HealthStatus {
 pub struct StatusResponse {
     pub name: String,
     pub status: HealthStatus,
-    pub uptime_seconds: u64,
+    pub uptime_secs: u64,
 }`}</pre>
 					</div>
 					<div>
@@ -261,7 +261,7 @@ pub struct StatusResponse {
 interface StatusResponse {
   name: string;
   status: HealthStatus;
-  uptime_seconds: number;
+  uptime_secs: number;
 }`}</pre>
 					</div>
 				</div>
@@ -353,14 +353,15 @@ interface StatusResponse {
 				</label>
 				<button
 					onclick={() => echo.mutate({ message: echoMessage, uppercase: echoUppercase })}
-					disabled={echo.isPending}
+					disabled={echo.isLoading}
 					class="rounded-md bg-accent-rust px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50">
-					{echo.isPending ? 'Sending...' : 'Send'}
+					{echo.isLoading ? 'Sending...' : 'Send'}
 				</button>
 			</div>
 			{#if echo.data}
 				<div class="rounded-md bg-bg-code p-3 text-sm space-y-1">
-					<div><span class="text-text-muted">Response:</span> <span class="text-green-400">{echo.data.message}</span></div>
+					<div><span class="text-text-muted">Original:</span> <span class="text-text-primary">{echo.data.original}</span></div>
+					<div><span class="text-text-muted">Transformed:</span> <span class="text-green-400">{echo.data.transformed}</span></div>
 					<div><span class="text-text-muted">Length:</span> <span class="text-text-primary">{echo.data.length}</span></div>
 				</div>
 			{/if}
@@ -404,7 +405,7 @@ async fn echo(input: EchoInput) -> EchoOutput {
 echo.mutate({ message: "Hello", uppercase: true });
 
 echo.data       // EchoOutput | undefined
-echo.isPending  // boolean (loading)
+echo.isLoading  // boolean (loading)
 echo.isError    // boolean
 echo.error      // RpcError | undefined`}</pre>
 					</div>
