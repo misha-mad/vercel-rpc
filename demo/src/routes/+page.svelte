@@ -33,7 +33,7 @@
 </section>
 
 <!-- SVG pattern definitions -->
-<svg class="hidden">
+<svg class="absolute w-0 h-0">
 	<defs>
 		<!-- 1: Diagonal lines -->
 		<pattern id="pat-diag" width="20" height="20" patternUnits="userSpaceOnUse">
