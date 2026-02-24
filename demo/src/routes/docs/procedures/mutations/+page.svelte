@@ -62,7 +62,7 @@
 			{openCode['echo'] ? '▾ Hide' : '▸ Show'} Rust &amp; TypeScript
 		</button>
 		{#if openCode['echo']}
-			<div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="mt-3 space-y-3">
 				<div>
 					<span class="text-xs text-accent-rust mb-1 block">Rust — api/echo.rs</span>
 					<CodeBlock html={data.highlighted['echoRust']} />

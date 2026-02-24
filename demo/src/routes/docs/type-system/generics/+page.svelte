@@ -14,7 +14,7 @@
 		Generic structs and enums produce generic TypeScript interfaces. Type parameters are preserved in procedure signatures, so <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Paginated&lt;User&gt;</code> in Rust becomes <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Paginated&lt;User&gt;</code> in TypeScript.
 	</p>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+	<div class="space-y-3">
 		<div>
 			<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 			<CodeBlock html={data.highlighted['genericsRust']} />

@@ -20,7 +20,7 @@
 		<p class="text-text-muted text-sm">
 			Apply a naming convention to all fields or variants. Supported: <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">camelCase</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">snake_case</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">PascalCase</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">SCREAMING_SNAKE_CASE</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">kebab-case</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">lowercase</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">UPPERCASE</code>.
 		</p>
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+		<div class="space-y-3">
 			<div>
 				<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 				<CodeBlock html={data.highlighted['renameAllRust']} />
@@ -38,7 +38,7 @@
 		<p class="text-text-muted text-sm">
 			Override individual field or variant names. Takes priority over <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">rename_all</code>.
 		</p>
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+		<div class="space-y-3">
 			<div>
 				<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 				<CodeBlock html={data.highlighted['renameFieldRust']} />
@@ -56,7 +56,7 @@
 		<p class="text-text-muted text-sm">
 			Merge a nested struct's fields into the parent. Produces a TypeScript intersection type.
 		</p>
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+		<div class="space-y-3">
 			<div>
 				<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 				<CodeBlock html={data.highlighted['flattenRust']} />
@@ -77,7 +77,7 @@
 
 		<div class="space-y-4">
 			<h3 class="text-lg font-semibold">External (default)</h3>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="space-y-3">
 				<div>
 					<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 					<CodeBlock html={data.highlighted['enumExternalRust']} />
@@ -91,7 +91,7 @@
 
 		<div class="space-y-4">
 			<h3 class="text-lg font-semibold">Internal <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">tag = "..."</code></h3>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="space-y-3">
 				<div>
 					<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 					<CodeBlock html={data.highlighted['enumInternalRust']} />
@@ -105,7 +105,7 @@
 
 		<div class="space-y-4">
 			<h3 class="text-lg font-semibold">Adjacent <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">tag + content</code></h3>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="space-y-3">
 				<div>
 					<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 					<CodeBlock html={data.highlighted['enumAdjacentRust']} />
@@ -119,7 +119,7 @@
 
 		<div class="space-y-4">
 			<h3 class="text-lg font-semibold">Untagged</h3>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+			<div class="space-y-3">
 				<div>
 					<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 					<CodeBlock html={data.highlighted['enumUntaggedRust']} />

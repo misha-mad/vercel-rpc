@@ -19,7 +19,7 @@
 		<CodeBlock html={data.highlighted['newtypeRust']} />
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+	<div class="space-y-3">
 		<div>
 			<span class="text-xs text-text-muted mb-1 block">Default output</span>
 			<CodeBlock html={data.highlighted['newtypeDefaultTs']} />

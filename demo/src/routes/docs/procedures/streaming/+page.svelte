@@ -22,7 +22,7 @@
 			The handler receives typed input (deserialized as usual) plus a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">StreamSender</code> for emitting chunks. The generated TypeScript client gets a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">stream()</code> method returning an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AsyncIterable</code>.
 		</p>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+		<div class="space-y-3 mb-4">
 			<div>
 				<span class="text-xs text-accent-rust mb-1 block">Rust</span>
 				<CodeBlock html={data.highlighted['streamRust']} />
