@@ -16,10 +16,6 @@
 		End-to-end typesafe RPC between <strong class="text-accent-rust">Rust lambdas</strong> on Vercel and your <strong class="text-accent-ts">TypeScript frontend</strong>.
 	</p>
 
-	<p class="text-text-muted max-w-xl mb-8">
-		Write plain Rust functions, get a fully typed TypeScript client. Zero config, zero boilerplate.
-	</p>
-
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10 max-w-xl text-left text-sm">
 		<div class="flex items-start gap-2 rounded-lg bg-bg-soft border border-border p-3">
 			<span class="text-accent-rust">🦀</span>
