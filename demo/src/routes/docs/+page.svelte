@@ -35,10 +35,6 @@
 	let profileId = $state(1);
 	const profile = createQuery(rpc, 'profile', () => profileId);
 
-	// --- Types (reactive query, expanded type mappings demo) ---
-	let typesCategory = $state('demo');
-	const types = createQuery(rpc, 'types', () => typesCategory);
-
 	// --- Echo (mutation with struct input/output) ---
 	let echoMessage = $state('Hello from vercel-rpc!');
 	let echoUppercase = $state(false);

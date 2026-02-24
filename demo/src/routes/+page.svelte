@@ -1,3 +1,7 @@
+<script lang="ts">
+	import { resolve } from '$app/paths';
+</script>
+
 <svelte:head>
 	<title>vercel-rpc</title>
 	<meta name="description" content="End-to-end typesafe RPC between Rust lambdas on Vercel and any frontend" />
@@ -40,7 +44,7 @@
 	</div>
 
 	<div class="flex gap-4">
-		<a href="/docs" class="rounded-lg bg-accent-rust px-6 py-2.5 font-semibold text-white text-sm transition-opacity hover:opacity-85">
+		<a href={resolve('/docs')} class="rounded-lg bg-accent-rust px-6 py-2.5 font-semibold text-white text-sm transition-opacity hover:opacity-85">
 			Get Started →
 		</a>
 		<a href="https://github.com/misha-mad/vercel-rpc" class="rounded-lg border border-accent-ts px-6 py-2.5 font-semibold text-accent-ts text-sm transition-opacity hover:opacity-85">
