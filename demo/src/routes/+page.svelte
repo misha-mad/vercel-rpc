@@ -50,7 +50,7 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Auto-generated client</h3>
 		<p class="text-sm text-text-muted">Typed <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.query()</code> / <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.mutate()</code> with autocomplete.</p>
-		<div class="mt-2 flex-1">
+		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['autoClient']} />
 		</div>
 	</div>
@@ -67,7 +67,7 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Macro-driven</h3>
 		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_query]</code> / <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_mutation]</code> — CORS, parsing & errors built in.</p>
-		<div class="mt-2 flex-1">
+		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['macroDriven']} />
 		</div>
 	</div>
@@ -76,7 +76,7 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Serde support</h3>
 		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rename_all</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">skip</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">flatten</code> & all enum tagging strategies.</p>
-		<div class="mt-2 flex-1">
+		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['serde']} />
 		</div>
 	</div>
@@ -87,7 +87,7 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Init &amp; state injection</h3>
 		<p class="text-sm text-text-muted">Cold-start setup for DB pools, HTTP clients via <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">init = "setup"</code>.</p>
-		<div class="mt-2 flex-1">
+		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['initState']} />
 		</div>
 	</div>
@@ -96,7 +96,7 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Edge caching</h3>
 		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">cache = "1h"</code> generates Cache-Control headers for Vercel CDN.</p>
-		<div class="mt-2 flex-1">
+		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['edgeCache']} />
 		</div>
 	</div>
@@ -107,7 +107,7 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">4 framework wrappers</h3>
 		<p class="text-sm text-text-muted">Svelte 5, React, Vue 3, SolidJS — reactive hooks, opt-in.</p>
-		<div class="mt-2 flex-1">
+		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['frameworks']} />
 		</div>
 	</div>
@@ -116,7 +116,7 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Rich client</h3>
 		<p class="text-sm text-text-muted">Retry, timeout, dedup, lifecycle hooks, custom headers, AbortSignal.</p>
-		<div class="mt-2 flex-1">
+		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['richClient']} />
 		</div>
 	</div>
