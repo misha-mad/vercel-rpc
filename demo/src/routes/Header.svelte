@@ -4,131 +4,34 @@
 	import github from '$lib/images/github.svg';
 </script>
 
-<header>
-	<div class="corner">
-		<a href={resolve('/')}>
-			<span class="logo">⚡</span>
+<header class="sticky top-0 z-50 border-b border-border bg-bg-header/80 backdrop-blur-md">
+	<div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+		<a href={resolve('/')} class="flex items-center gap-2 text-lg font-bold text-text-primary hover:text-accent-rust transition-colors">
+			<span class="text-2xl">⚡</span>
+			<span>vercel-rpc</span>
 		</a>
-	</div>
 
-	<nav>
-		<svg viewBox="0 0 2 3" aria-hidden="true">
-			<path d="M0,0 L1,2 C1.5,3 1.5,3 2,3 L2,0 Z" />
-		</svg>
-		<ul>
-			<li aria-current={page.url.pathname === '/' ? 'page' : undefined}>
-				<a href={resolve('/')}>Home</a>
-			</li>
-			<li aria-current={page.url.pathname === '/about' ? 'page' : undefined}>
-				<a href={resolve('/about')}>About</a>
-			</li>
-			<li aria-current={page.url.pathname.startsWith('/examples') ? 'page' : undefined}>
-				<a href={resolve('/examples')}>Examples</a>
-			</li>
-		</ul>
-		<svg viewBox="0 0 2 3" aria-hidden="true">
-			<path d="M0,0 L0,3 C0.5,3 0.5,3 1,2 L2,0 Z" />
-		</svg>
-	</nav>
-
-	<div class="corner">
-		<a href="https://github.com/misha-mad/vercel-rpc">
-			<img src={github} alt="GitHub" />
-		</a>
+		<nav class="flex items-center gap-6">
+			<a
+				href={resolve('/')}
+				class="text-sm font-medium transition-colors {page.url.pathname === '/' ? 'text-accent-rust' : 'text-text-muted hover:text-text-primary'}"
+			>
+				Home
+			</a>
+			<a
+				href={resolve('/docs')}
+				class="text-sm font-medium transition-colors {page.url.pathname.startsWith('/docs') ? 'text-accent-rust' : 'text-text-muted hover:text-text-primary'}"
+			>
+				Docs
+			</a>
+			<a
+				href="https://github.com/misha-mad/vercel-rpc"
+				class="flex items-center text-text-muted hover:text-text-primary transition-colors"
+				target="_blank"
+				rel="noopener"
+			>
+				<img src={github} alt="GitHub" class="h-5 w-5 invert opacity-70 hover:opacity-100" />
+			</a>
+		</nav>
 	</div>
 </header>
-
-<style>
-	header {
-		display: flex;
-		justify-content: space-between;
-	}
-
-	.corner {
-		width: 3em;
-		height: 3em;
-	}
-
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.corner img {
-		width: 2em;
-		height: 2em;
-		object-fit: contain;
-	}
-
-	.logo {
-		font-size: 1.5em;
-		line-height: 1;
-	}
-
-	nav {
-		display: flex;
-		justify-content: center;
-		--background: rgba(255, 255, 255, 0.7);
-	}
-
-	svg {
-		width: 2em;
-		height: 3em;
-		display: block;
-	}
-
-	path {
-		fill: var(--background);
-	}
-
-	ul {
-		position: relative;
-		padding: 0;
-		margin: 0;
-		height: 3em;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		list-style: none;
-		background: var(--background);
-		background-size: contain;
-	}
-
-	li {
-		position: relative;
-		height: 100%;
-	}
-
-	li[aria-current='page']::before {
-		--size: 6px;
-		content: '';
-		width: 0;
-		height: 0;
-		position: absolute;
-		top: 0;
-		left: calc(50% - var(--size));
-		border: var(--size) solid transparent;
-		border-top: var(--size) solid var(--color-theme-1);
-	}
-
-	nav a {
-		display: flex;
-		height: 100%;
-		align-items: center;
-		padding: 0 0.5rem;
-		color: var(--color-text);
-		font-weight: 700;
-		font-size: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		text-decoration: none;
-		transition: color 0.2s linear;
-	}
-
-	a:hover {
-		color: var(--color-theme-1);
-	}
-</style>
