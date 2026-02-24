@@ -152,9 +152,9 @@ async fn slow_report(input: ReportParams) -> Report { ... }
 async fn long_import(input: ImportData) -> ImportResult { ... }
 ```
 
-#### Idempotent Mutations → [RFC-12](./RFC/RFC-12.md)
+#### ~~Idempotent Mutations~~ ✅ → [RFC-12](./RFC/RFC-12.md)
 
-`idempotent` — a flag attribute on `#[rpc_mutation]` that marks the mutation as safe to retry. The generated client only retries mutations that are explicitly marked idempotent, while queries (GET) are always retryable. This prevents accidental duplicate side effects when retry is configured.
+> Implemented via `idempotent` bare flag on `#[rpc_mutation]`. The generated client emits an `IDEMPOTENT_MUTATIONS` set and only retries mutations explicitly marked idempotent, while queries (GET) are always retryable. Prevents accidental duplicate side effects when retry is configured.
 
 ```rust
 #[rpc_mutation(idempotent)]
@@ -166,6 +166,36 @@ async fn upsert_user(input: UserInput) -> User { ... }
 
 ---
 
+## Phase 5 — Streaming & Request Access
+
+### Streaming Procedures via `#[rpc_stream]`
+
+A new procedure type alongside `#[rpc_query]` and `#[rpc_mutation]` that enables HTTP streaming responses. Built on top of `vercel_runtime::axum::stream_response` and Axum's streaming primitives.
+
+```rust
+#[rpc_stream]
+async fn chat(input: ChatInput, tx: StreamSender) {
+    for token in generate_tokens(&input.prompt) {
+        tx.send(token).await;
+    }
+}
+```
+
+**Key design points:**
+- New `StreamSender` type (re-exported from `vercel_rpc`) wraps the Axum/hyper `Bytes` channel
+- Handler receives typed input (deserialized as usual) plus a `StreamSender` for emitting chunks
+- Generated TypeScript client gets a `stream()` method returning an `AsyncIterable` or `ReadableStream`
+- Framework wrappers get `createStream` / `useStream` primitives with reactive state
+- Requires `vercel_runtime` with `axum` feature and `VercelLayer` for the streaming entry point
+- Streaming routes live in a separate Axum-based binary, coexisting with existing per-file lambdas
+
+**Streaming formats to support:**
+- Raw chunked (`text/plain`) — general purpose
+- SSE (`text/event-stream`) — real-time events, LLM token streaming
+- JSON Lines (`application/x-ndjson`) — structured streaming data
+
+---
+
 ## Summary
 
 | Phase | Focus      | Key Deliverables                                                                                                                                                                          |
@@ -173,4 +203,5 @@ async fn upsert_user(input: UserInput) -> User { ... }
 | **1** | Foundation | ~~Config file~~ ✅, ~~serde attributes~~ ✅, ~~expanded type support~~ ✅                                                                                                                    |
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
-| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, macro metadata, ~~server-side caching~~ ✅, ~~init/state~~ ✅, ~~timeout~~ ✅, idempotent mutations                                      |
+| **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, ~~macro metadata~~ ✅, ~~server-side caching~~ ✅, ~~init/state~~ ✅, ~~timeout~~ ✅, ~~idempotent mutations~~ ✅                          |
+| **5** | Streaming  | `#[rpc_stream]` procedure type, SSE/chunked/NDJSON formats, framework stream primitives                                                                                                   |
