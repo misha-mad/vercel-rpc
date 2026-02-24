@@ -108,6 +108,21 @@ const user = useRpcQuery(rpc, 'get_user', id);
 const user = createRpcQuery(rpc, 'get_user', () => id);`
 	},
 
+	// 10. Vercel-native
+	vercelNative: {
+		lang: 'shellscript',
+		code: `my-app/
+├── api/
+│   ├── hello.rs     → /api/hello
+│   ├── users.rs     → /api/users
+│   ├── math.rs      → /api/math
+│   └── echo.rs      → /api/echo
+├── src/              # frontend (any framework)
+├── rpc.config.toml
+├── Cargo.toml
+└── vercel.json       # zero config needed`
+	},
+
 	// 9. Rich client
 	richClient: {
 		lang: 'typescript',

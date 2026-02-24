@@ -130,6 +130,9 @@
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Vercel-native</h3>
 		<p class="text-sm text-text-muted">Each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file deploys as a serverless lambda — no infra config needed.</p>
+		<div class="mt-2 flex-1 flex flex-col">
+			<CodeBlock html={data.highlighted['vercelNative']} />
+		</div>
 	</div>
 
 </section>
