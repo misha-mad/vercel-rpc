@@ -6,20 +6,27 @@
 
 <header class="sticky top-0 z-50 border-b border-border bg-bg-header/80 backdrop-blur-md">
 	<div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
-		<a href={resolve('/')} class="flex items-center gap-2 text-lg font-bold text-text-primary hover:text-accent-rust transition-colors">
+		<a
+			href={resolve('/')}
+			class="flex items-center gap-2 text-lg font-bold text-text-primary hover:text-accent-rust transition-colors"
+		>
 			<span>vercel-rpc</span>
 		</a>
 
 		<nav class="flex items-center gap-6">
 			<a
 				href={resolve('/')}
-				class="text-sm font-medium transition-colors {page.url.pathname === '/' ? 'text-accent-rust' : 'text-text-muted hover:text-text-primary'}"
+				class="text-sm font-medium transition-colors {page.url.pathname === '/'
+					? 'text-accent-rust'
+					: 'text-text-muted hover:text-text-primary'}"
 			>
 				Home
 			</a>
 			<a
 				href={resolve('/docs')}
-				class="text-sm font-medium transition-colors {page.url.pathname.startsWith('/docs') ? 'text-accent-rust' : 'text-text-muted hover:text-text-primary'}"
+				class="text-sm font-medium transition-colors {page.url.pathname.startsWith('/docs')
+					? 'text-accent-rust'
+					: 'text-text-muted hover:text-text-primary'}"
 			>
 				Docs
 			</a>

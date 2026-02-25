@@ -25,9 +25,7 @@ for await (const token of stream) {
 
 export const load: PageServerLoad = async () => {
 	const entries = Object.entries(codeBlocks);
-	const results = await Promise.all(
-		entries.map(([, { code, lang }]) => highlightCode(code, lang))
-	);
+	const results = await Promise.all(entries.map(([, { code, lang }]) => highlightCode(code, lang)));
 	const highlighted: Record<string, string> = {};
 	entries.forEach(([key], i) => {
 		highlighted[key] = results[i];

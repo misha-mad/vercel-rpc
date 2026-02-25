@@ -11,14 +11,22 @@
 <div class="max-w-3xl space-y-10">
 	<h1 class="text-3xl font-bold">Macro Attributes</h1>
 	<p class="text-text-muted leading-relaxed">
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_query]</code> and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code> accept optional attributes that control caching, initialization, timeouts, and retry behavior.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_query]</code> and
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code> accept optional
+		attributes that control caching, initialization, timeouts, and retry behavior.
 	</p>
 
 	<!-- cache -->
 	<section class="space-y-4">
 		<h2 class="text-2xl font-semibold">cache</h2>
 		<p class="text-text-muted text-sm">
-			Add <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cache-Control</code> headers to successful responses. Duration shorthand: <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">30s</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">5m</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">1h</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">1d</code>. Queries only — mutations cannot be cached.
+			Add <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cache-Control</code>
+			headers to successful responses. Duration shorthand:
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">30s</code>,
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">5m</code>,
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">1h</code>,
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">1d</code>. Queries only —
+			mutations cannot be cached.
 		</p>
 		<CodeBlock html={data.highlighted['cacheRust']} />
 	</section>
@@ -27,7 +35,10 @@
 	<section class="space-y-4">
 		<h2 class="text-2xl font-semibold">init</h2>
 		<p class="text-text-muted text-sm">
-			Run a function once at cold start. Can be side-effects only (logger, dotenv) or return shared state (DB pool, HTTP client) injected as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&amp;T</code> parameter.
+			Run a function once at cold start. Can be side-effects only (logger, dotenv) or return shared
+			state (DB pool, HTTP client) injected as <code
+				class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&amp;T</code
+			> parameter.
 		</p>
 		<CodeBlock html={data.highlighted['initRust']} />
 	</section>
@@ -36,7 +47,10 @@
 	<section class="space-y-4">
 		<h2 class="text-2xl font-semibold">timeout</h2>
 		<p class="text-text-muted text-sm">
-			Server-side timeout via <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">tokio::time::timeout</code>. Returns 504 if exceeded. Also forwarded to the TypeScript client as the default timeout for that procedure.
+			Server-side timeout via <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+				>tokio::time::timeout</code
+			>. Returns 504 if exceeded. Also forwarded to the TypeScript client as the default timeout for
+			that procedure.
 		</p>
 		<CodeBlock html={data.highlighted['timeoutRust']} />
 	</section>
@@ -45,7 +59,8 @@
 	<section class="space-y-4">
 		<h2 class="text-2xl font-semibold">idempotent</h2>
 		<p class="text-text-muted text-sm">
-			Mutations only. Marks the mutation as safe to retry on network errors. By default, mutations are <strong class="text-text-primary">never</strong> retried. Queries (GET) are always retryable.
+			Mutations only. Marks the mutation as safe to retry on network errors. By default, mutations
+			are <strong class="text-text-primary">never</strong> retried. Queries (GET) are always retryable.
 		</p>
 		<CodeBlock html={data.highlighted['idempotentRust']} />
 	</section>

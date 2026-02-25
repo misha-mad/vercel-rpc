@@ -1,7 +1,10 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'toml' | 'shellscript' }> = {
+const codeBlocks: Record<
+	string,
+	{ code: string; lang: 'rust' | 'typescript' | 'toml' | 'shellscript' }
+> = {
 	newtypeRust: {
 		lang: 'rust',
 		code: `pub struct UserId(pub String);
@@ -44,9 +47,7 @@ branded_newtypes = true`
 
 export const load: PageServerLoad = async () => {
 	const entries = Object.entries(codeBlocks);
-	const results = await Promise.all(
-		entries.map(([, { code, lang }]) => highlightCode(code, lang))
-	);
+	const results = await Promise.all(entries.map(([, { code, lang }]) => highlightCode(code, lang)));
 	const highlighted: Record<string, string> = {};
 	entries.forEach(([key], i) => {
 		highlighted[key] = results[i];

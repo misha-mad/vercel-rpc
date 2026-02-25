@@ -11,30 +11,42 @@
 
 	const nav: NavEntry[] = [
 		{ label: 'Getting Started', href: '/docs/getting-started' },
-		{ label: 'Procedures', children: [
-			{ label: 'Queries', href: '/docs/procedures/queries' },
-			{ label: 'Mutations', href: '/docs/procedures/mutations' },
-			{ label: 'Streaming', href: '/docs/procedures/streaming', badge: 'soon' },
-		]},
-		{ label: 'Configuration', children: [
-			{ label: 'Config File', href: '/docs/configuration/config-file' },
-			{ label: 'CLI', href: '/docs/configuration/cli' },
-			{ label: 'Macro Attributes', href: '/docs/configuration/macro-attributes' },
-			{ label: 'RpcClientConfig', href: '/docs/configuration/client-config' },
-		]},
-		{ label: 'Type System', children: [
-			{ label: 'Type Mappings', href: '/docs/type-system/type-mappings' },
-			{ label: 'Serde Support', href: '/docs/type-system/serde' },
-			{ label: 'Generics', href: '/docs/type-system/generics' },
-			{ label: 'Branded Newtypes', href: '/docs/type-system/branded-newtypes' },
-		]},
-		{ label: 'Frameworks', children: [
-			{ label: 'Svelte 5', href: '/docs/frameworks/svelte' },
-			{ label: 'React', href: '/docs/frameworks/react' },
-			{ label: 'Vue 3', href: '/docs/frameworks/vue' },
-			{ label: 'SolidJS', href: '/docs/frameworks/solid' },
-		]},
-		{ label: 'Error Handling', href: '/docs/error-handling' },
+		{
+			label: 'Procedures',
+			children: [
+				{ label: 'Queries', href: '/docs/procedures/queries' },
+				{ label: 'Mutations', href: '/docs/procedures/mutations' },
+				{ label: 'Streaming', href: '/docs/procedures/streaming', badge: 'soon' }
+			]
+		},
+		{
+			label: 'Configuration',
+			children: [
+				{ label: 'Config File', href: '/docs/configuration/config-file' },
+				{ label: 'CLI', href: '/docs/configuration/cli' },
+				{ label: 'Macro Attributes', href: '/docs/configuration/macro-attributes' },
+				{ label: 'RpcClientConfig', href: '/docs/configuration/client-config' }
+			]
+		},
+		{
+			label: 'Type System',
+			children: [
+				{ label: 'Type Mappings', href: '/docs/type-system/type-mappings' },
+				{ label: 'Serde Support', href: '/docs/type-system/serde' },
+				{ label: 'Generics', href: '/docs/type-system/generics' },
+				{ label: 'Branded Newtypes', href: '/docs/type-system/branded-newtypes' }
+			]
+		},
+		{
+			label: 'Frameworks',
+			children: [
+				{ label: 'Svelte 5', href: '/docs/frameworks/svelte' },
+				{ label: 'React', href: '/docs/frameworks/react' },
+				{ label: 'Vue 3', href: '/docs/frameworks/vue' },
+				{ label: 'SolidJS', href: '/docs/frameworks/solid' }
+			]
+		},
+		{ label: 'Error Handling', href: '/docs/error-handling' }
 	];
 
 	function isGroup(entry: NavEntry): entry is NavGroup {
@@ -70,7 +82,9 @@
 
 	$effect(() => {
 		document.body.style.overflow = sidebarOpen ? 'hidden' : '';
-		return () => { document.body.style.overflow = ''; };
+		return () => {
+			document.body.style.overflow = '';
+		};
 	});
 
 	// Reset manual overrides on navigation (so auto-expand takes over)
@@ -91,7 +105,9 @@
 
 	<!-- Sidebar -->
 	<aside
-		class="fixed top-0 bottom-0 left-0 z-40 w-60 overflow-y-auto border-r border-border bg-bg-sidebar pt-[4.5rem] pb-16 px-4 transition-transform lg:translate-x-0 {sidebarOpen ? 'translate-x-0' : '-translate-x-full'}"
+		class="fixed top-0 bottom-0 left-0 z-40 w-60 overflow-y-auto border-r border-border bg-bg-sidebar pt-[4.5rem] pb-16 px-4 transition-transform lg:translate-x-0 {sidebarOpen
+			? 'translate-x-0'
+			: '-translate-x-full'}"
 	>
 		<nav class="flex flex-col gap-0.5">
 			{#each nav as entry}
@@ -101,19 +117,29 @@
 						onclick={() => toggleGroup(entry)}
 					>
 						{entry.label}
-						<span class="text-[10px] text-text-faint transition-transform {isGroupOpen(entry) ? 'rotate-90' : ''}"
-							>▶</span
+						<span
+							class="text-[10px] text-text-faint transition-transform {isGroupOpen(entry)
+								? 'rotate-90'
+								: ''}">▶</span
 						>
 					</button>
 					{#if isGroupOpen(entry)}
-						<div transition:slide={{ duration: 150 }} class="ml-2 flex flex-col gap-0.5 border-l border-border pl-2">
+						<div
+							transition:slide={{ duration: 150 }}
+							class="ml-2 flex flex-col gap-0.5 border-l border-border pl-2"
+						>
 							{#each entry.children as child}
 								<a
 									href={resolve(child.href as any)}
-									class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors {isActive(child.href)
+									class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors {isActive(
+										child.href
+									)
 										? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 										: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
-									onclick={() => { clickCount++; sidebarOpen = false; }}
+									onclick={() => {
+										clickCount++;
+										sidebarOpen = false;
+									}}
 								>
 									{child.label}
 									{#if child.badge}
@@ -131,7 +157,10 @@
 						class="rounded-md px-3 py-1.5 text-sm transition-colors {isActive(entry.href)
 							? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] font-medium ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 							: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
-						onclick={() => { clickCount++; sidebarOpen = false; }}
+						onclick={() => {
+							clickCount++;
+							sidebarOpen = false;
+						}}
 					>
 						{entry.label}
 					</a>

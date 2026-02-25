@@ -7,13 +7,14 @@
 
 <svelte:head>
 	<title>vercel-rpc</title>
-	<meta name="description" content="End-to-end typesafe RPC between Rust lambdas on Vercel and any frontend" />
+	<meta
+		name="description"
+		content="End-to-end typesafe RPC between Rust lambdas on Vercel and any frontend"
+	/>
 </svelte:head>
 
 <section class="flex flex-col items-center justify-center px-4 py-20 text-center">
-	<h1 class="text-4xl sm:text-5xl font-bold mb-4">
-		vercel-rpc
-	</h1>
+	<h1 class="text-4xl sm:text-5xl font-bold mb-4">vercel-rpc</h1>
 
 	<p class="text-lg sm:text-xl text-text-muted max-w-2xl mb-10 leading-relaxed">
 		End-to-end typesafe RPC between<br />
@@ -23,10 +24,16 @@
 	</p>
 
 	<div class="flex gap-4 mb-16">
-		<a href={resolve('/docs')} class="rounded-lg bg-accent-rust px-6 py-2.5 font-semibold text-white text-sm transition-opacity hover:opacity-85">
+		<a
+			href={resolve('/docs')}
+			class="rounded-lg bg-accent-rust px-6 py-2.5 font-semibold text-white text-sm transition-opacity hover:opacity-85"
+		>
 			Get Started →
 		</a>
-		<a href="https://github.com/misha-mad/vercel-rpc" class="rounded-lg border border-accent-ts px-6 py-2.5 font-semibold text-accent-ts text-sm transition-opacity hover:opacity-85">
+		<a
+			href="https://github.com/misha-mad/vercel-rpc"
+			class="rounded-lg border border-accent-ts px-6 py-2.5 font-semibold text-accent-ts text-sm transition-opacity hover:opacity-85"
+		>
 			GitHub
 		</a>
 	</div>
@@ -41,18 +48,62 @@
 		</pattern>
 		<!-- 2: Horizontal waves -->
 		<pattern id="pat-wave" width="40" height="20" patternUnits="userSpaceOnUse">
-			<path d="M0 10 Q10 0 20 10 Q30 20 40 10" fill="none" stroke="#3178c6" stroke-opacity="0.7" stroke-width="1" />
+			<path
+				d="M0 10 Q10 0 20 10 Q30 20 40 10"
+				fill="none"
+				stroke="#3178c6"
+				stroke-opacity="0.7"
+				stroke-width="1"
+			/>
 		</pattern>
 		<!-- 3: Concentric circles -->
 		<pattern id="pat-circles" width="60" height="60" patternUnits="userSpaceOnUse">
-			<circle cx="30" cy="30" r="5" fill="none" stroke="white" stroke-opacity="0.7" stroke-width="0.25" />
-			<circle cx="30" cy="30" r="12" fill="none" stroke="white" stroke-opacity="0.7" stroke-width="0.25" />
-			<circle cx="30" cy="30" r="19" fill="none" stroke="white" stroke-opacity="0.7" stroke-width="0.25" />
-			<circle cx="30" cy="30" r="26" fill="none" stroke="white" stroke-opacity="0.7" stroke-width="0.25" />
+			<circle
+				cx="30"
+				cy="30"
+				r="5"
+				fill="none"
+				stroke="white"
+				stroke-opacity="0.7"
+				stroke-width="0.25"
+			/>
+			<circle
+				cx="30"
+				cy="30"
+				r="12"
+				fill="none"
+				stroke="white"
+				stroke-opacity="0.7"
+				stroke-width="0.25"
+			/>
+			<circle
+				cx="30"
+				cy="30"
+				r="19"
+				fill="none"
+				stroke="white"
+				stroke-opacity="0.7"
+				stroke-width="0.25"
+			/>
+			<circle
+				cx="30"
+				cy="30"
+				r="26"
+				fill="none"
+				stroke="white"
+				stroke-opacity="0.7"
+				stroke-width="0.25"
+			/>
 		</pattern>
 		<!-- 4: Zigzag -->
 		<pattern id="pat-zigzag" width="20" height="20" patternUnits="userSpaceOnUse">
-			<polyline points="0,10 5,0 10,10 15,0 20,10" fill="none" stroke="#f74c00" stroke-opacity="0.7" stroke-width="1" />
+			<polyline
+				points="0,10 5,0 10,10 15,0 20,10"
+				fill="none"
+				stroke="#f74c00"
+				stroke-opacity="0.7"
+				stroke-width="1"
+			/>
 		</pattern>
 		<!-- 5: Horizontal lines varying thickness -->
 		<pattern id="pat-hlines" width="10" height="24" patternUnits="userSpaceOnUse">
@@ -76,22 +127,41 @@
 		</pattern>
 		<!-- 9: Arcs -->
 		<pattern id="pat-arcs" width="30" height="30" patternUnits="userSpaceOnUse">
-			<path d="M0 30 A30 30 0 0 1 30 0" fill="none" stroke="#3178c6" stroke-opacity="0.7" stroke-width="1" />
-			<path d="M0 15 A15 15 0 0 1 15 0" fill="none" stroke="#3178c6" stroke-opacity="0.7" stroke-width="1" />
+			<path
+				d="M0 30 A30 30 0 0 1 30 0"
+				fill="none"
+				stroke="#3178c6"
+				stroke-opacity="0.7"
+				stroke-width="1"
+			/>
+			<path
+				d="M0 15 A15 15 0 0 1 15 0"
+				fill="none"
+				stroke="#3178c6"
+				stroke-opacity="0.7"
+				stroke-width="1"
+			/>
 		</pattern>
 		<!-- 10: Diamond grid -->
 		<pattern id="pat-diamond" width="24" height="24" patternUnits="userSpaceOnUse">
-			<polygon points="12,2 22,12 12,22 2,12" fill="none" stroke="white" stroke-opacity="0.7" stroke-width="1" />
+			<polygon
+				points="12,2 22,12 12,22 2,12"
+				fill="none"
+				stroke="white"
+				stroke-opacity="0.7"
+				stroke-width="1"
+			/>
 		</pattern>
 	</defs>
 </svg>
 
 <section class="border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-px bg-border mb-16">
-
 	<!-- Row 1: left -->
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">End-to-end type safety</h3>
-		<p class="text-sm text-text-muted">Rust types become TypeScript interfaces — zero manual sync.</p>
+		<p class="text-sm text-text-muted">
+			Rust types become TypeScript interfaces — zero manual sync.
+		</p>
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 flex-1">
 			<CodeBlock html={data.highlighted['typeSafetyRust']} />
 			<CodeBlock html={data.highlighted['typeSafetyTs']} />
@@ -107,7 +177,10 @@
 	</div>
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Auto-generated client</h3>
-		<p class="text-sm text-text-muted">Typed <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.query()</code> / <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.mutate()</code> with autocomplete.</p>
+		<p class="text-sm text-text-muted">
+			Typed <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.query()</code> /
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.mutate()</code> with autocomplete.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['autoClient']} />
 		</div>
@@ -116,7 +189,10 @@
 	<!-- Row 3: left -->
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Watch mode</h3>
-		<p class="text-sm text-text-muted">Types regenerate on every <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> save — your frontend stays in sync automatically.</p>
+		<p class="text-sm text-text-muted">
+			Types regenerate on every <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> save
+			— your frontend stays in sync automatically.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['watchMode']} />
 		</div>
@@ -124,7 +200,15 @@
 	<div class="hidden sm:block bg-bg-primary overflow-hidden">
 		<svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
 			{#each Array.from({ length: 20 }, (_, i) => (i + 1) * 5) as r}
-				<circle cx="50" cy="50" {r} fill="none" stroke="white" stroke-opacity="0.7" stroke-width="0.25" />
+				<circle
+					cx="50"
+					cy="50"
+					{r}
+					fill="none"
+					stroke="white"
+					stroke-opacity="0.7"
+					stroke-width="0.25"
+				/>
 			{/each}
 		</svg>
 	</div>
@@ -135,7 +219,11 @@
 	</div>
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Macro-driven</h3>
-		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_query]</code> / <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_mutation]</code> — CORS, parsing & errors built in.</p>
+		<p class="text-sm text-text-muted">
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_query]</code> /
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_mutation]</code> — CORS, parsing &
+			errors built in.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['macroDriven']} />
 		</div>
@@ -144,7 +232,11 @@
 	<!-- Row 5: left -->
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Init &amp; state injection</h3>
-		<p class="text-sm text-text-muted">Cold-start setup for DB pools, HTTP clients via <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">init = "setup"</code>.</p>
+		<p class="text-sm text-text-muted">
+			Cold-start setup for DB pools, HTTP clients via <code
+				class="bg-bg-code px-1.5 py-0.5 rounded text-xs">init = "setup"</code
+			>.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['initState']} />
 		</div>
@@ -159,7 +251,11 @@
 	</div>
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Serde support</h3>
-		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rename_all</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">skip</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">flatten</code> & all enum tagging strategies.</p>
+		<p class="text-sm text-text-muted">
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rename_all</code>,
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">skip</code>,
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">flatten</code> & all enum tagging strategies.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['serde']} />
 		</div>
@@ -168,7 +264,10 @@
 	<!-- Row 7: left -->
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Edge caching</h3>
-		<p class="text-sm text-text-muted"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">cache = "1h"</code> generates Cache-Control headers for Vercel CDN.</p>
+		<p class="text-sm text-text-muted">
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">cache = "1h"</code> generates Cache-Control
+			headers for Vercel CDN.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['edgeCache']} />
 		</div>
@@ -183,7 +282,10 @@
 	</div>
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Vercel-native</h3>
-		<p class="text-sm text-text-muted">Each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file deploys as a serverless lambda — no infra config needed.</p>
+		<p class="text-sm text-text-muted">
+			Each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file deploys as a serverless
+			lambda — no infra config needed.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['vercelNative']} />
 		</div>
@@ -207,10 +309,11 @@
 	</div>
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">Rich client</h3>
-		<p class="text-sm text-text-muted">Retry, timeout, dedup, lifecycle hooks, custom headers, AbortSignal.</p>
+		<p class="text-sm text-text-muted">
+			Retry, timeout, dedup, lifecycle hooks, custom headers, AbortSignal.
+		</p>
 		<div class="mt-2 flex-1 flex flex-col">
 			<CodeBlock html={data.highlighted['richClient']} />
 		</div>
 	</div>
-
 </section>

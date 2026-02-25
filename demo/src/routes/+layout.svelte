@@ -12,9 +12,14 @@
 			{@render children()}
 		</main>
 	</div>
-	<footer class="relative z-50 bg-bg-primary text-center py-4 text-text-muted text-sm border-t border-border">
+	<footer
+		class="relative z-50 bg-bg-primary text-center py-4 text-text-muted text-sm border-t border-border"
+	>
 		<p>
-			visit <a href="https://github.com/misha-mad/vercel-rpc" class="text-accent-ts hover:underline font-bold">GitHub</a> to learn more about vercel-rpc
+			visit <a
+				href="https://github.com/misha-mad/vercel-rpc"
+				class="text-accent-ts hover:underline font-bold">GitHub</a
+			> to learn more about vercel-rpc
 		</p>
 	</footer>
 </div>

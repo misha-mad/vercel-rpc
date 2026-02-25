@@ -11,7 +11,14 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold">Svelte 5</h1>
 	<p class="text-text-muted leading-relaxed">
-		Rune-based reactive wrappers using <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">$state</code> and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">$effect</code>. Input is a getter <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">() => Input</code> for reactive dependency tracking. Generated as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.svelte.ts</code> (required for rune syntax).
+		Rune-based reactive wrappers using <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">$state</code
+		>
+		and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">$effect</code>. Input is a
+		getter <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">() => Input</code> for
+		reactive dependency tracking. Generated as
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.svelte.ts</code> (required for rune
+		syntax).
 	</p>
 
 	<h2 class="text-2xl font-semibold">Setup</h2>

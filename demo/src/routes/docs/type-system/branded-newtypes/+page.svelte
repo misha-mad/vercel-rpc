@@ -11,7 +11,12 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold">Branded Newtypes</h1>
 	<p class="text-text-muted leading-relaxed">
-		Single-field tuple structs (newtypes) become type aliases by default. Enable <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">branded_newtypes</code> for nominal type safety — preventing accidental mixing of structurally identical types like <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">UserId</code> and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">OrderId</code>.
+		Single-field tuple structs (newtypes) become type aliases by default. Enable <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">branded_newtypes</code
+		>
+		for nominal type safety — preventing accidental mixing of structurally identical types like
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">UserId</code>
+		and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">OrderId</code>.
 	</p>
 
 	<CodeBlock html={data.highlighted['newtypeRust']} />

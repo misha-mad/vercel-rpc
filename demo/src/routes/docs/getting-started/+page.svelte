@@ -54,13 +54,23 @@
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
 		<p class="text-text-muted text-sm mb-4">
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createQuery(rpc, "hello", () => name)</code> — auto-refetches as you type.
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+				>createQuery(rpc, "hello", () => name)</code
+			> — auto-refetches as you type.
 		</p>
 		<div class="flex items-center gap-3 mb-3">
-			<input type="text" bind:value={name} placeholder="Enter your name"
-				class="rounded-md border border-border bg-bg-code px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent-ts" />
-			<button onclick={() => hello.refetch()} disabled={hello.isLoading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50">Refetch</button>
+			<input
+				type="text"
+				bind:value={name}
+				placeholder="Enter your name"
+				class="rounded-md border border-border bg-bg-code px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent-ts"
+			/>
+			<button
+				onclick={() => hello.refetch()}
+				disabled={hello.isLoading}
+				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+				>Refetch</button
+			>
 		</div>
 		{#if hello.isLoading && !hello.data}
 			<div class="rounded-md bg-bg-code p-3 text-sm text-text-muted">Loading...</div>
@@ -75,8 +85,18 @@
 	<h3 class="text-xl font-semibold mt-8">How it works</h3>
 
 	<ol class="list-decimal list-inside space-y-2 text-text-muted">
-		<li>Annotate Rust functions with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_query]</code> or <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code></li>
-		<li>The CLI scans your <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">api/</code> directory and parses Rust types via <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">syn</code></li>
+		<li>
+			Annotate Rust functions with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+				>#[rpc_query]</code
+			>
+			or <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code>
+		</li>
+		<li>
+			The CLI scans your <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">api/</code
+			>
+			directory and parses Rust types via
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">syn</code>
+		</li>
 		<li>TypeScript types and a typed client are generated automatically</li>
 		<li>Each Rust file deploys as a serverless lambda on Vercel</li>
 	</ol>

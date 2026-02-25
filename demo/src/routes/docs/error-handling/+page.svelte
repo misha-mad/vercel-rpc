@@ -47,10 +47,18 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold">Error Handling</h1>
 	<p class="text-text-muted leading-relaxed">
-		When a Rust function returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Result&lt;T, E&gt;</code>, errors are propagated as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> on the client side. You can also return custom HTTP status codes for authorization or validation errors.
+		When a Rust function returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>Result&lt;T, E&gt;</code
+		>, errors are propagated as
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> on the client side.
+		You can also return custom HTTP status codes for authorization or validation errors.
 	</p>
 	<p class="text-text-muted leading-relaxed">
-		The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> class provides <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.status</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.message</code>, and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.data</code> for structured error handling.
+		The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> class
+		provides <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.status</code>,
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.message</code>, and
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.data</code> for structured error
+		handling.
 	</p>
 
 	<h2 class="text-2xl font-semibold">RpcError API</h2>
@@ -65,18 +73,30 @@
 			</thead>
 			<tbody class="text-text-primary">
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.status</code></td>
-					<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code></td>
+					<td class="px-4 py-2"
+						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.status</code></td
+					>
+					<td class="px-4 py-2"
+						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code></td
+					>
 					<td class="px-4 py-2 text-text-muted">HTTP status code (e.g. 401, 500)</td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.message</code></td>
-					<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">string</code></td>
+					<td class="px-4 py-2"
+						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.message</code></td
+					>
+					<td class="px-4 py-2"
+						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">string</code></td
+					>
 					<td class="px-4 py-2 text-text-muted">Human-readable error message</td>
 				</tr>
 				<tr>
-					<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.data</code></td>
-					<td class="px-4 py-2"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">unknown</code></td>
+					<td class="px-4 py-2"
+						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.data</code></td
+					>
+					<td class="px-4 py-2"
+						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">unknown</code></td
+					>
 					<td class="px-4 py-2 text-text-muted">Parsed JSON error body from server</td>
 				</tr>
 			</tbody>
@@ -85,20 +105,24 @@
 
 	<h2 class="text-2xl font-semibold">Secret — Protected Endpoint</h2>
 	<p class="text-text-muted text-sm mb-4">
-		This endpoint requires an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Authorization</code> header. Try calling it with and without a token to see error handling in action.
+		This endpoint requires an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>Authorization</code
+		> header. Try calling it with and without a token to see error handling in action.
 	</p>
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
 		<div class="flex flex-wrap gap-3 mb-3">
 			<button
 				onclick={() => callSecret(true)}
 				disabled={secretLoading}
-				class="rounded-md bg-accent-ts px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50">
+				class="rounded-md bg-accent-ts px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+			>
 				Call with token
 			</button>
 			<button
 				onclick={() => callSecret(false)}
 				disabled={secretLoading}
-				class="rounded-md border border-red-500 px-4 py-1.5 text-sm font-medium text-red-400 transition-opacity hover:opacity-85 disabled:opacity-50">
+				class="rounded-md border border-red-500 px-4 py-1.5 text-sm font-medium text-red-400 transition-opacity hover:opacity-85 disabled:opacity-50"
+			>
 				Call without token
 			</button>
 		</div>
@@ -111,12 +135,20 @@
 		{#if secretError}
 			<div class="rounded-md bg-bg-code p-3 text-sm text-red-400">{secretError}</div>
 		{/if}
-		<button class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors" onclick={() => toggleCode('secret')}>
+		<button
+			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
+			onclick={() => toggleCode('secret')}
+		>
 			{openCode['secret'] ? '▾ Hide' : '▸ Show'} Rust &amp; TypeScript
 		</button>
 		{#if openCode['secret']}
 			<div class="mt-3 space-y-3">
-				<a href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/secret.rs" target="_blank" class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block">api/secret.rs</a>
+				<a
+					href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/secret.rs"
+					target="_blank"
+					class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block"
+					>api/secret.rs</a
+				>
 				<CodeBlock html={data.highlighted['secretRust']} />
 				<CodeBlock html={data.highlighted['secretTs']} />
 			</div>

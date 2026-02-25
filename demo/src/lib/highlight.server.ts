@@ -8,7 +8,12 @@ async function getHighlighter(): Promise<HighlighterCore> {
 	if (!highlighter) {
 		highlighter = await createHighlighterCore({
 			themes: [import('@shikijs/themes/github-dark-high-contrast')],
-			langs: [import('@shikijs/langs/rust'), import('@shikijs/langs/typescript'), import('@shikijs/langs/shellscript'), import('@shikijs/langs/toml')],
+			langs: [
+				import('@shikijs/langs/rust'),
+				import('@shikijs/langs/typescript'),
+				import('@shikijs/langs/shellscript'),
+				import('@shikijs/langs/toml')
+			],
 			engine: createJavaScriptRegexEngine()
 		});
 	}
@@ -22,7 +27,10 @@ const langLabels: Record<string, string> = {
 	toml: 'toml'
 };
 
-export async function highlightCode(code: string, lang: 'rust' | 'typescript' | 'shellscript' | 'toml'): Promise<string> {
+export async function highlightCode(
+	code: string,
+	lang: 'rust' | 'typescript' | 'shellscript' | 'toml'
+): Promise<string> {
 	const hl = await getHighlighter();
 	const html = hl.codeToHtml(code, { lang, theme: 'github-dark-high-contrast' });
 	const label = langLabels[lang] ?? lang;

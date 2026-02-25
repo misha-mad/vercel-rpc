@@ -11,7 +11,13 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold">SolidJS</h1>
 	<p class="text-text-muted leading-relaxed">
-		Fine-grained reactive primitives using <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createSignal</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createEffect</code>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createMemo</code>. Input is a getter <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">() => value</code>. Returns signal accessors — call them to read: <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">data()</code>.
+		Fine-grained reactive primitives using <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createSignal</code
+		>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createEffect</code>,
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createMemo</code>. Input is a
+		getter <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">() => value</code>.
+		Returns signal accessors — call them to read:
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">data()</code>.
 	</p>
 
 	<h2 class="text-2xl font-semibold">Setup</h2>
