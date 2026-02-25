@@ -1,7 +1,7 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' }> = {
+const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'shellscript' }> = {
 	// 1. End-to-end type safety — side-by-side Rust struct → TS interface
 	typeSafetyRust: {
 		lang: 'rust',

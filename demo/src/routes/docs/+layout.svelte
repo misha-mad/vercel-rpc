@@ -109,7 +109,7 @@
 						<div transition:slide={{ duration: 150 }} class="ml-2 flex flex-col gap-0.5 border-l border-border pl-2">
 							{#each entry.children as child}
 								<a
-									href={resolve(child.href)}
+									href={resolve(child.href as any)}
 									class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors {isActive(child.href)
 										? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 										: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
@@ -127,7 +127,7 @@
 					{/if}
 				{:else}
 					<a
-						href={resolve(entry.href)}
+						href={resolve(entry.href as any)}
 						class="rounded-md px-3 py-1.5 text-sm transition-colors {isActive(entry.href)
 							? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] font-medium ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 							: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
