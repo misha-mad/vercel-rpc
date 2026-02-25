@@ -17,11 +17,10 @@
 			{ label: 'Streaming', href: '/docs/procedures/streaming', badge: 'soon' },
 		]},
 		{ label: 'Configuration', children: [
-			{ label: 'rpc.config.toml', href: '/docs/configuration/config-file' },
+			{ label: 'Config File', href: '/docs/configuration/config-file' },
 			{ label: 'CLI', href: '/docs/configuration/cli' },
 			{ label: 'Macro Attributes', href: '/docs/configuration/macro-attributes' },
 			{ label: 'RpcClientConfig', href: '/docs/configuration/client-config' },
-			{ label: 'Per-Call Options', href: '/docs/configuration/per-call-options' },
 		]},
 		{ label: 'Type System', children: [
 			{ label: 'Type Mappings', href: '/docs/type-system/type-mappings' },
@@ -45,6 +44,10 @@
 	function isActive(href: string): boolean {
 		return page.url.pathname === href;
 	}
+
+	// Alternating color on each navigation click
+	let clickCount = $state(0);
+	const activeColor = $derived(clickCount % 2 === 0 ? 'rust' : 'ts');
 
 	function hasActiveChild(group: NavGroup): boolean {
 		return group.children.some((child) => isActive(child.href));
@@ -80,7 +83,7 @@
 <div class="mx-auto flex max-w-7xl">
 	<!-- Mobile toggle -->
 	<button
-		class="fixed bottom-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg bg-accent-rust text-white shadow-lg lg:hidden"
+		class="fixed bottom-4 left-4 z-[60] flex h-10 w-10 items-center justify-center rounded-lg bg-accent-rust text-white shadow-lg lg:hidden"
 		onclick={() => (sidebarOpen = !sidebarOpen)}
 	>
 		{sidebarOpen ? '✕' : '☰'}
@@ -108,9 +111,9 @@
 								<a
 									href={resolve(child.href)}
 									class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors {isActive(child.href)
-										? 'bg-bg-soft text-text-primary border-l-2 border-accent-rust -ml-[2px] pl-[10px]'
+										? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 										: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
-									onclick={() => (sidebarOpen = false)}
+									onclick={() => { clickCount++; sidebarOpen = false; }}
 								>
 									{child.label}
 									{#if child.badge}
@@ -126,9 +129,9 @@
 					<a
 						href={resolve(entry.href)}
 						class="rounded-md px-3 py-1.5 text-sm transition-colors {isActive(entry.href)
-							? 'bg-bg-soft text-text-primary border-l-2 border-accent-rust -ml-[2px] pl-[10px] font-medium'
+							? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] font-medium ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 							: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
-						onclick={() => (sidebarOpen = false)}
+						onclick={() => { clickCount++; sidebarOpen = false; }}
 					>
 						{entry.label}
 					</a>

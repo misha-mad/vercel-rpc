@@ -9,114 +9,99 @@
 	</p>
 
 	<!-- Commands -->
-	<section class="space-y-4">
+	<section class="space-y-6">
 		<h2 class="text-2xl font-semibold">Commands</h2>
 
-		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-2">
+		<!-- rpc scan -->
+		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
 			<h3 class="text-lg font-semibold font-mono">rpc scan</h3>
 			<p class="text-text-muted text-sm">Parse Rust files and print discovered procedures, structs, and enums. Useful for debugging.</p>
+			<table class="w-full text-sm">
+				<thead><tr class="text-left text-text-faint border-b border-border">
+					<th class="pb-2 pr-4 font-medium">Flag</th><th class="pb-2 pr-4 font-medium">Default</th><th class="pb-2 font-medium">Description</th>
+				</tr></thead>
+				<tbody class="text-text-muted">
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>-d, --dir</code></td><td class="py-1.5 pr-4">api</td><td class="py-1.5">Rust source directory</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--include</code></td><td class="py-1.5 pr-4">**/*.rs</td><td class="py-1.5">Glob patterns to include (repeatable)</td></tr>
+					<tr><td class="py-1.5 pr-4 font-mono text-xs"><code>--exclude</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Glob patterns to exclude (repeatable)</td></tr>
+				</tbody>
+			</table>
 		</div>
 
-		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-2">
+		<!-- rpc generate -->
+		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
 			<h3 class="text-lg font-semibold font-mono">rpc generate</h3>
 			<p class="text-text-muted text-sm">Generate TypeScript types and client. One-shot execution.</p>
+			<h4 class="text-sm font-semibold text-text-muted pt-1">Input</h4>
+			<table class="w-full text-sm">
+				<thead><tr class="text-left text-text-faint border-b border-border">
+					<th class="pb-2 pr-4 font-medium">Flag</th><th class="pb-2 pr-4 font-medium">Default</th><th class="pb-2 font-medium">Description</th>
+				</tr></thead>
+				<tbody class="text-text-muted">
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>-d, --dir</code></td><td class="py-1.5 pr-4">api</td><td class="py-1.5">Rust source directory</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--include</code></td><td class="py-1.5 pr-4">**/*.rs</td><td class="py-1.5">Glob patterns to include (repeatable)</td></tr>
+					<tr><td class="py-1.5 pr-4 font-mono text-xs"><code>--exclude</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Glob patterns to exclude (repeatable)</td></tr>
+				</tbody>
+			</table>
+			<h4 class="text-sm font-semibold text-text-muted pt-1">Output</h4>
+			<table class="w-full text-sm">
+				<thead><tr class="text-left text-text-faint border-b border-border">
+					<th class="pb-2 pr-4 font-medium">Flag</th><th class="pb-2 pr-4 font-medium">Default</th><th class="pb-2 font-medium">Description</th>
+				</tr></thead>
+				<tbody class="text-text-muted">
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>-o, --output</code></td><td class="py-1.5 pr-4">src/lib/rpc-types.ts</td><td class="py-1.5">Types file path</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>-c, --client-output</code></td><td class="py-1.5 pr-4">src/lib/rpc-client.ts</td><td class="py-1.5">Client file path</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--svelte-output</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Svelte 5 wrapper (opt-in)</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--react-output</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">React hooks (opt-in)</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--vue-output</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Vue 3 composables (opt-in)</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--solid-output</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">SolidJS primitives (opt-in)</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--types-import</code></td><td class="py-1.5 pr-4">./rpc-types</td><td class="py-1.5">Import path for types in client</td></tr>
+					<tr><td class="py-1.5 pr-4 font-mono text-xs"><code>--extension</code></td><td class="py-1.5 pr-4">""</td><td class="py-1.5">Import extension, e.g. <code class="text-xs font-mono">".js"</code> for ESM</td></tr>
+				</tbody>
+			</table>
+			<h4 class="text-sm font-semibold text-text-muted pt-1">Codegen</h4>
+			<table class="w-full text-sm">
+				<thead><tr class="text-left text-text-faint border-b border-border">
+					<th class="pb-2 pr-4 font-medium">Flag</th><th class="pb-2 pr-4 font-medium">Default</th><th class="pb-2 font-medium">Description</th>
+				</tr></thead>
+				<tbody class="text-text-muted">
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--preserve-docs</code></td><td class="py-1.5 pr-4">false</td><td class="py-1.5">Forward Rust <code class="text-xs font-mono">///</code> as JSDoc</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--branded-newtypes</code></td><td class="py-1.5 pr-4">false</td><td class="py-1.5">Emit branded types for newtypes</td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--fields</code></td><td class="py-1.5 pr-4">preserve</td><td class="py-1.5"><code class="text-xs font-mono">preserve</code> or <code class="text-xs font-mono">camelCase</code></td></tr>
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--type-override</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Map Rust type to TS (repeatable)</td></tr>
+					<tr><td class="py-1.5 pr-4 font-mono text-xs"><code>--bigint-type</code></td><td class="py-1.5 pr-4">—</td><td class="py-1.5">Map integer type to <code class="text-xs font-mono">bigint</code> (repeatable)</td></tr>
+				</tbody>
+			</table>
 		</div>
 
-		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-2">
+		<!-- rpc watch -->
+		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
 			<h3 class="text-lg font-semibold font-mono">rpc watch</h3>
-			<p class="text-text-muted text-sm">Same as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> but watches for <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.rs</code> file changes and regenerates automatically.</p>
+			<p class="text-text-muted text-sm">Same as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> but watches for <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.rs</code> file changes and regenerates automatically. Accepts all <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> flags plus:</p>
+			<table class="w-full text-sm">
+				<thead><tr class="text-left text-text-faint border-b border-border">
+					<th class="pb-2 pr-4 font-medium">Flag</th><th class="pb-2 pr-4 font-medium">Default</th><th class="pb-2 font-medium">Description</th>
+				</tr></thead>
+				<tbody class="text-text-muted">
+					<tr class="border-b border-border/50"><td class="py-1.5 pr-4 font-mono text-xs"><code>--debounce-ms</code></td><td class="py-1.5 pr-4">200</td><td class="py-1.5">Milliseconds to wait after file change before regenerating</td></tr>
+					<tr><td class="py-1.5 pr-4 font-mono text-xs"><code>--clear-screen</code></td><td class="py-1.5 pr-4">false</td><td class="py-1.5">Clear terminal before each regeneration</td></tr>
+				</tbody>
+			</table>
 		</div>
 	</section>
 
-	<!-- Flags -->
+	<!-- Global Flags -->
 	<section class="space-y-4">
-		<h2 class="text-2xl font-semibold">Flags</h2>
-
+		<h2 class="text-2xl font-semibold">Global Flags</h2>
+		<p class="text-text-muted text-sm">Available on all commands.</p>
 		<div class="overflow-x-auto rounded-lg border border-border">
-			<table class="w-full text-sm text-left">
-				<thead class="bg-bg-code text-text-muted text-xs uppercase">
-					<tr>
-						<th class="px-4 py-3">Flag</th>
-						<th class="px-4 py-3">Default</th>
-						<th class="px-4 py-3">Description</th>
-					</tr>
-				</thead>
-				<tbody class="text-text-primary">
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>-d, --dir</code></td>
-						<td class="px-4 py-2 text-text-muted">api</td>
-						<td class="px-4 py-2 text-text-muted">Rust source directory</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>-o, --output</code></td>
-						<td class="px-4 py-2 text-text-muted">src/lib/rpc-types.ts</td>
-						<td class="px-4 py-2 text-text-muted">Types file path</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>-c, --client-output</code></td>
-						<td class="px-4 py-2 text-text-muted">src/lib/rpc-client.ts</td>
-						<td class="px-4 py-2 text-text-muted">Client file path</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--svelte-output</code></td>
-						<td class="px-4 py-2 text-text-muted">—</td>
-						<td class="px-4 py-2 text-text-muted">Svelte 5 wrapper (opt-in)</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--react-output</code></td>
-						<td class="px-4 py-2 text-text-muted">—</td>
-						<td class="px-4 py-2 text-text-muted">React hooks (opt-in)</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--vue-output</code></td>
-						<td class="px-4 py-2 text-text-muted">—</td>
-						<td class="px-4 py-2 text-text-muted">Vue 3 composables (opt-in)</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--solid-output</code></td>
-						<td class="px-4 py-2 text-text-muted">—</td>
-						<td class="px-4 py-2 text-text-muted">SolidJS primitives (opt-in)</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--types-import</code></td>
-						<td class="px-4 py-2 text-text-muted">./rpc-types</td>
-						<td class="px-4 py-2 text-text-muted">Import path for types in client</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--preserve-docs</code></td>
-						<td class="px-4 py-2 text-text-muted">false</td>
-						<td class="px-4 py-2 text-text-muted">Forward Rust <code class="bg-bg-code px-1 py-0.5 rounded text-xs">///</code> as JSDoc</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--fields</code></td>
-						<td class="px-4 py-2 text-text-muted">preserve</td>
-						<td class="px-4 py-2 text-text-muted"><code class="bg-bg-code px-1 py-0.5 rounded text-xs">preserve</code> or <code class="bg-bg-code px-1 py-0.5 rounded text-xs">camelCase</code></td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--branded-newtypes</code></td>
-						<td class="px-4 py-2 text-text-muted">false</td>
-						<td class="px-4 py-2 text-text-muted">Enable branded types for newtypes</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--type-override</code></td>
-						<td class="px-4 py-2 text-text-muted">—</td>
-						<td class="px-4 py-2 text-text-muted">Map Rust type to TS (repeatable)</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--bigint-type</code></td>
-						<td class="px-4 py-2 text-text-muted">—</td>
-						<td class="px-4 py-2 text-text-muted">Map integer type to bigint (repeatable)</td>
-					</tr>
-					<tr class="border-b border-border">
-						<td class="px-4 py-2 font-mono text-xs"><code>--config</code></td>
-						<td class="px-4 py-2 text-text-muted">auto</td>
-						<td class="px-4 py-2 text-text-muted">Explicit config file path</td>
-					</tr>
-					<tr>
-						<td class="px-4 py-2 font-mono text-xs"><code>--no-config</code></td>
-						<td class="px-4 py-2 text-text-muted">false</td>
-						<td class="px-4 py-2 text-text-muted">Disable config file loading</td>
-					</tr>
+			<table class="w-full text-sm">
+				<thead><tr class="text-left text-text-faint border-b border-border bg-bg-code">
+					<th class="px-4 py-2 font-medium">Flag</th><th class="px-4 py-2 font-medium">Default</th><th class="px-4 py-2 font-medium">Description</th>
+				</tr></thead>
+				<tbody class="text-text-muted">
+					<tr class="border-b border-border/50"><td class="px-4 py-1.5 font-mono text-xs"><code>--config</code></td><td class="px-4 py-1.5">auto</td><td class="px-4 py-1.5">Explicit config file path</td></tr>
+					<tr><td class="px-4 py-1.5 font-mono text-xs"><code>--no-config</code></td><td class="px-4 py-1.5">false</td><td class="px-4 py-1.5">Disable config file loading</td></tr>
 				</tbody>
 			</table>
 		</div>

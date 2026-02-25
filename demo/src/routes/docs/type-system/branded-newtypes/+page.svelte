@@ -21,5 +21,9 @@
 		<CodeBlock html={data.highlighted['newtypeBrandedTs']} />
 	</div>
 
-	<CodeBlock html={data.highlighted['configToml']} />
+	<div class="space-y-3">
+		<CodeBlock html={data.highlighted['configToml']} />
+		<p class="text-text-faint text-xs">or via CLI</p>
+		<CodeBlock html={data.highlighted['configCli']} />
+	</div>
 </div>

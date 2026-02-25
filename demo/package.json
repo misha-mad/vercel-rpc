@@ -36,6 +36,7 @@
 		"playwright": "^1.58.2",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.4.1",
+		"shiki": "^3.22.0",
 		"svelte": "^5.49.2",
 		"svelte-check": "^4.3.6",
 		"typescript": "^5.9.3",

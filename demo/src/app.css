@@ -39,7 +39,7 @@ html {
 	font-size: 1.3rem;
 	line-height: 1.5;
 	padding: 0.75rem;
-	border-radius: 0.5rem;
+	border-radius: 0 0 0.5rem 0.5rem;
 	overflow-x: auto;
 	margin: 0;
 	flex: 1;
@@ -77,6 +77,11 @@ html {
 }
 
 .code-lang-badge.lang-sh {
+	color: rgba(255, 255, 255, 0.6);
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.code-lang-badge.lang-toml {
 	color: rgba(255, 255, 255, 0.6);
 	background: rgba(255, 255, 255, 0.08);
 }

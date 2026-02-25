@@ -1,14 +1,16 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' }> = {
-	setup: {
-		lang: 'typescript',
+const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'toml' | 'shellscript' }> = {
+	setupToml: {
+		lang: 'toml',
 		code: `# rpc.config.toml
 [output]
-svelte = "src/lib/rpc.svelte.ts"
-
-# Or CLI: rpc generate --svelte-output src/lib/rpc.svelte.ts`
+svelte = "src/lib/rpc.svelte.ts"`
+	},
+	setupCli: {
+		lang: 'shellscript',
+		code: `rpc generate --svelte-output src/lib/rpc.svelte.ts`
 	},
 	query: {
 		lang: 'typescript',

@@ -1,14 +1,16 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' }> = {
-	setup: {
-		lang: 'typescript',
+const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'toml' | 'shellscript' }> = {
+	setupToml: {
+		lang: 'toml',
 		code: `# rpc.config.toml
 [output]
-vue = "src/lib/rpc.vue.ts"
-
-# Or CLI: rpc generate --vue-output src/lib/rpc.vue.ts`
+vue = "src/lib/rpc.vue.ts"`
+	},
+	setupCli: {
+		lang: 'shellscript',
+		code: `rpc generate --vue-output src/lib/rpc.vue.ts`
 	},
 	query: {
 		lang: 'typescript',

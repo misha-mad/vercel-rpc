@@ -65,23 +65,23 @@
 				<tbody class="text-text-primary">
 					<tr class="border-b border-border">
 						<td class="px-4 py-2 font-mono text-xs">cache</td>
-						<td class="px-4 py-2 text-green-400">yes</td>
+						<td class="px-4 py-2 text-accent-ts">yes</td>
 						<td class="px-4 py-2 text-red-400">no (compile error)</td>
 					</tr>
 					<tr class="border-b border-border">
 						<td class="px-4 py-2 font-mono text-xs">init</td>
-						<td class="px-4 py-2 text-green-400">yes</td>
-						<td class="px-4 py-2 text-green-400">yes</td>
+						<td class="px-4 py-2 text-accent-ts">yes</td>
+						<td class="px-4 py-2 text-accent-ts">yes</td>
 					</tr>
 					<tr class="border-b border-border">
 						<td class="px-4 py-2 font-mono text-xs">timeout</td>
-						<td class="px-4 py-2 text-green-400">yes</td>
-						<td class="px-4 py-2 text-green-400">yes</td>
+						<td class="px-4 py-2 text-accent-ts">yes</td>
+						<td class="px-4 py-2 text-accent-ts">yes</td>
 					</tr>
 					<tr>
 						<td class="px-4 py-2 font-mono text-xs">idempotent</td>
 						<td class="px-4 py-2 text-red-400">no (compile error)</td>
-						<td class="px-4 py-2 text-green-400">yes</td>
+						<td class="px-4 py-2 text-accent-ts">yes</td>
 					</tr>
 				</tbody>
 			</table>

@@ -40,13 +40,15 @@
 
 	<p class="text-text-muted text-sm mb-2">Call your lambda</p>
 
-	<div class="pl-6 space-y-4">
-		<p class="text-text-muted text-sm mb-2">Your any TS frontend</p>
-		<CodeBlock html={data.highlighted['gettingStartedTs']} />
+	<ul class="list-disc list-inside text-text-muted text-sm mb-2">
+		<li>Your any TS frontend</li>
+	</ul>
+	<CodeBlock html={data.highlighted['gettingStartedTs']} />
 
-		<p class="text-text-muted text-sm mb-2">Or 1 of 4 frameworks</p>
-		<CodeBlock html={data.highlighted['gettingStartedSvelte']} />
-	</div>
+	<ul class="list-disc list-inside text-text-muted text-sm mb-2">
+		<li>Or 1 of 4 frameworks</li>
+	</ul>
+	<CodeBlock html={data.highlighted['gettingStartedSvelte']} />
 
 	<h3 class="text-xl font-semibold mt-8">Try it live</h3>
 

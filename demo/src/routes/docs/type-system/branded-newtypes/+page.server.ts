@@ -1,7 +1,7 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' }> = {
+const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'toml' | 'shellscript' }> = {
 	newtypeRust: {
 		lang: 'rust',
 		code: `pub struct UserId(pub String);
@@ -31,13 +31,14 @@ const userId: UserId = "u-123" as UserId;
 const orderId: OrderId = userId; // TS error!`
 	},
 	configToml: {
-		lang: 'typescript',
+		lang: 'toml',
 		code: `# rpc.config.toml
 [codegen]
-branded_newtypes = true
-
-# Or via CLI:
-# rpc generate --branded-newtypes`
+branded_newtypes = true`
+	},
+	configCli: {
+		lang: 'shellscript',
+		code: `rpc generate --branded-newtypes`
 	}
 };
 

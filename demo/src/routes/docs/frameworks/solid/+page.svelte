@@ -15,7 +15,11 @@
 	</p>
 
 	<h2 class="text-2xl font-semibold">Setup</h2>
-	<CodeBlock html={data.highlighted['setup']} />
+	<div class="space-y-3">
+		<CodeBlock html={data.highlighted['setupToml']} />
+		<p class="text-text-faint text-xs">or via CLI</p>
+		<CodeBlock html={data.highlighted['setupCli']} />
+	</div>
 
 	<h2 class="text-2xl font-semibold">createQuery</h2>
 	<CodeBlock html={data.highlighted['query']} large />

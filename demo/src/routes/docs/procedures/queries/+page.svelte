@@ -55,6 +55,24 @@
 		Wrap them with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createQuery</code> in Svelte for reactive, auto-refetching data.
 	</p>
 
+	<!-- Code examples -->
+	<div class="space-y-3">
+		<CodeBlock html={data.highlighted['exampleRust']} />
+		<CodeBlock html={data.highlighted['exampleTs']} />
+		<CodeBlock html={data.highlighted['exampleSvelte']} />
+	</div>
+
+	<!-- Per-Call Options -->
+	<h2 class="text-xl font-semibold mt-8">Per-Call Options</h2>
+	<p class="text-text-muted text-sm">
+		Every <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">query()</code> call accepts an optional trailing <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">CallOptions</code> object to override client-level defaults.
+	</p>
+	<CodeBlock html={data.highlighted['callOptionsType']} />
+	<CodeBlock html={data.highlighted['callOptionsUsage']} />
+
+	<!-- Try it -->
+	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+
 	<!-- Hello: Simple string query -->
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
 		<h3 class="text-lg font-semibold mb-2">Hello — Reactive String Query</h3>

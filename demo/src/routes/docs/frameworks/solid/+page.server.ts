@@ -1,14 +1,16 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' }> = {
-	setup: {
-		lang: 'typescript',
+const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'toml' | 'shellscript' }> = {
+	setupToml: {
+		lang: 'toml',
 		code: `# rpc.config.toml
 [output]
-solid = "src/lib/rpc.solid.ts"
-
-# Or CLI: rpc generate --solid-output src/lib/rpc.solid.ts`
+solid = "src/lib/rpc.solid.ts"`
+	},
+	setupCli: {
+		lang: 'shellscript',
+		code: `rpc generate --solid-output src/lib/rpc.solid.ts`
 	},
 	query: {
 		lang: 'typescript',
