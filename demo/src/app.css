@@ -1,9 +1,14 @@
 @import 'tailwindcss';
 @import '@fontsource/fira-mono';
 
+html {
+	overscroll-behavior: none;
+}
+
 @theme {
-	--font-body: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	--font-body:
+		Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+		'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
 
 	--color-bg-primary: #1b1b1f;
@@ -20,5 +25,70 @@
 	--color-accent-ts: #3178c6;
 
 	--color-border: rgba(255, 255, 255, 0.08);
-	--color-border-hover: rgba(255, 255, 255, 0.16);
+}
+
+/* Shiki code block overrides */
+.code-block {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.code-block pre.shiki {
+	font-family: var(--font-mono);
+	font-size: 1.3rem;
+	line-height: 1.5;
+	padding: 0.75rem;
+	border-radius: 0 0 0.5rem 0.5rem;
+	overflow-x: auto;
+	margin: 0;
+	flex: 1;
+	scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.code-block pre.shiki::-webkit-scrollbar {
+	height: 6px;
+}
+
+.code-block pre.shiki::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.code-block pre.shiki::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 3px;
+}
+
+.code-lang-badge {
+	font-family: var(--font-mono);
+	backdrop-filter: blur(4px);
+	background: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.4);
+}
+
+.code-lang-badge.lang-rust {
+	color: var(--color-accent-rust);
+	background: rgba(247, 76, 0, 0.12);
+}
+
+.code-lang-badge.lang-ts {
+	color: var(--color-accent-ts);
+	background: rgba(49, 120, 198, 0.12);
+}
+
+.code-lang-badge.lang-sh {
+	color: rgba(255, 255, 255, 0.6);
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.code-lang-badge.lang-toml {
+	color: rgba(255, 255, 255, 0.6);
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.code-block-lg pre.shiki {
+	font-size: 1.55rem;
+	padding: 1rem;
+	margin-bottom: 1rem;
 }
