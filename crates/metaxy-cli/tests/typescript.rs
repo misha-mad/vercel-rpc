@@ -2420,8 +2420,8 @@ fn snapshot_flatten() {
 
 #[test]
 fn snapshot_type_overrides() {
-    use std::collections::HashMap;
     use metaxy_cli::codegen::overrides::{apply_type_overrides, build_base_index};
+    use std::collections::HashMap;
 
     let overrides: HashMap<String, String> = [
         ("chrono::DateTime".to_string(), "string".to_string()),
@@ -2551,8 +2551,8 @@ fn base_name_deeply_qualified() {
 
 #[test]
 fn snapshot_bigint_types() {
-    use std::collections::HashMap;
     use metaxy_cli::codegen::overrides::{apply_type_overrides, build_base_index};
+    use std::collections::HashMap;
 
     // Simulate bigint_types = ["i64", "u64"] merged into effective overrides
     let mut effective_overrides = HashMap::new();

@@ -1,5 +1,5 @@
-use serde::Serialize;
 use metaxy::rpc_query;
+use serde::Serialize;
 
 /// Overall health of the service.
 #[derive(Debug, PartialEq, Serialize)]

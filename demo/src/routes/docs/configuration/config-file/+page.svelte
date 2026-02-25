@@ -11,7 +11,9 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold">Config File</h1>
 	<p class="text-text-muted leading-relaxed">
-		Place an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">metaxy.config.toml</code>
+		Place an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>metaxy.config.toml</code
+		>
 		in your project root. The CLI auto-discovers it by walking up from the current directory. Use
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">--config &lt;path&gt;</code>
 		to override or

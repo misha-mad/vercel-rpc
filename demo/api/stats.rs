@@ -1,6 +1,6 @@
+use metaxy::rpc_query;
 use serde::Serialize;
 use std::collections::HashMap;
-use metaxy::rpc_query;
 
 /// Descriptive statistics for a list of numbers.
 #[derive(Debug, Serialize)]

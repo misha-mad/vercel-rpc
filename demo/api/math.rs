@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use metaxy::rpc_query;
+use serde::{Deserialize, Serialize};
 
 /// Arithmetic operation to perform.
 #[derive(Deserialize, Serialize)]

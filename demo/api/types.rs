@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 use std::collections::{BTreeSet, HashSet};
 
-use serde::Serialize;
 use metaxy::rpc_query;
+use serde::Serialize;
 
 /// Showcases expanded type mappings: sets, smart pointers, and Cow.
 ///

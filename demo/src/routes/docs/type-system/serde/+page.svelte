@@ -11,9 +11,8 @@
 <div class="max-w-3xl space-y-10">
 	<h1 class="text-3xl font-bold">Serde Support</h1>
 	<p class="text-text-muted leading-relaxed">
-		metaxy respects serde attributes on your Rust types and translates them into the
-		corresponding TypeScript output. This ensures the generated types match exactly what your API
-		serializes.
+		metaxy respects serde attributes on your Rust types and translates them into the corresponding
+		TypeScript output. This ensures the generated types match exactly what your API serializes.
 	</p>
 
 	<!-- rename_all -->

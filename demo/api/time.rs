@@ -1,6 +1,6 @@
+use metaxy::rpc_query;
 use serde::Serialize;
 use std::time::SystemTime;
-use metaxy::rpc_query;
 
 /// Server timestamp with a human-readable message.
 #[derive(Serialize)]
