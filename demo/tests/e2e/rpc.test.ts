@@ -1,117 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('RPC page — full e2e cycle', () => {
+test.describe('Landing page', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/examples');
+		await page.goto('/');
 	});
 
 	test('page loads with correct heading', async ({ page }) => {
 		await expect(page.locator('h1')).toContainText('vercel-rpc');
 	});
 
-	test('displays server time on load', async ({ page }) => {
-		const timeText = page.locator('strong').first();
-		await expect(timeText).not.toHaveText('loading...', { timeout: 10_000 });
-	});
-
-	test('hello query returns greeting', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Hello — Reactive Query' });
-		const input = section.locator('input[type="text"]');
-
-		await input.fill('Playwright');
-
-		// Reactive query auto-fetches on input change
-		const result = section.locator('.result.success');
-		await expect(result).toContainText('Hello, Playwright', { timeout: 10_000 });
-	});
-
-	test('math query calculates result', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Math — Reactive Calc' });
-
-		// Reactive query auto-fetches with default inputs (10 + 3)
-		const result = section.locator('.result.success');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-	});
-
-	test('echo mutation works', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Echo — Mutation' });
-		const button = section.locator('button').filter({ hasText: 'Send' });
-		await button.click();
-
-		const result = section.locator('.result.success');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-		await expect(result).toContainText('Original:');
-	});
-
-	test('stats query computes statistics', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Stats — Vec' });
-
-		// Reactive query auto-fetches with default input "1, 2, 3, 4, 5, 3, 2"
-		const result = section.locator('.result.success');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-		await expect(result).toContainText('Count:');
-		await expect(result).toContainText('Mean:');
-	});
-
-	test('status query shows service info', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Status — Enum in Struct' });
-		const result = section.locator('.result.success');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-		await expect(result).toContainText('vercel-rpc-demo');
-		await expect(result).toContainText('Healthy');
-	});
-
-	test('profile query returns user profile with serde attributes', async ({ page }) => {
-		const section = page
-			.locator('section')
-			.filter({ hasText: 'Profile — Reactive Serde Attributes' });
-
-		// Reactive query auto-fetches with default profileId = 1
-		const result = section.locator('.result.success');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-		await expect(result).toContainText('Alice');
-		await expect(result).toContainText('admin');
-		await expect(result).toContainText('sign-in');
-		await expect(result).toContainText('profile_url');
-	});
-
-	test('types query returns type showcase', async ({ page }) => {
-		const section = page
-			.locator('section')
-			.filter({ has: page.locator('h2', { hasText: 'Types — Reactive Expanded Types' }) });
-
-		// Reactive query auto-fetches with default category "demo"
-		const result = section.locator('.result.success');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-		await expect(result).toContainText('sorted_ids');
-		await expect(result).toContainText('boxed_label');
-		await expect(result).toContainText('cow_message');
-	});
-
-	test('secret endpoint rejects without token', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Secret — Protected Endpoint' });
-		const button = section.locator('button').filter({ hasText: 'Call without token' });
-		await button.click();
-
-		const result = section.locator('.result.error');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-		await expect(result).toContainText('Unauthorized');
-	});
-
-	test('secret endpoint succeeds with token', async ({ page }) => {
-		const section = page.locator('section').filter({ hasText: 'Secret — Protected Endpoint' });
-		const button = section.locator('button').filter({ hasText: 'Call with token' });
-		await button.click();
-
-		const result = section.locator('.result.success');
-		await expect(result).toBeVisible({ timeout: 10_000 });
-		await expect(result).toContainText('the cake is a lie');
-	});
-
-	test('navigation link to RPC exists in header', async ({ page }) => {
-		const examplesLink = page.locator('nav a[href="/examples"]');
-		await expect(examplesLink).toBeVisible();
-		await expect(examplesLink).toHaveText('Examples');
+	test('navigation links are present in header', async ({ page }) => {
+		const docsLink = page.locator('nav a[href="/docs"]');
+		await expect(docsLink).toBeVisible();
+		await expect(docsLink).toHaveText('Docs');
 	});
 });
 
