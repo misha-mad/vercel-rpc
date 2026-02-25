@@ -1,10 +1,10 @@
 <div align="center">
 
-# ⚡ metaxy
+# metaxy
 
 **End-to-end typesafe RPC between Rust lambdas on Vercel and any TypeScript frontend**
 
-[**Live Demo →** metaxy.vercel.app](https://metaxy.vercel.app)
+[**Live Demo →** metaxy-demo.vercel.app](https://metaxy-demo.vercel.app)
 
 [![CI](https://github.com/misha-mad/metaxy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/misha-mad/metaxy/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/misha-mad/metaxy/graph/badge.svg)](https://codecov.io/gh/misha-mad/metaxy)

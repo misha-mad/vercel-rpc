@@ -5,7 +5,7 @@ export default defineConfig({
 	timeout: 30_000,
 	retries: 1,
 	use: {
-		baseURL: process.env.BASE_URL || 'https://metaxy.vercel.app',
+		baseURL: process.env.BASE_URL || 'https://metaxy-demo.vercel.app',
 		trace: 'on-first-retry'
 	},
 	projects: [
