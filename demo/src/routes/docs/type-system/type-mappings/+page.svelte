@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Type Mappings — vercel-rpc</title>
+	<title>Type Mappings — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

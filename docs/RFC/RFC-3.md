@@ -3,7 +3,7 @@
 - **Status:** Implemented
 - **Topic:** Parse serde attributes for accurate TypeScript codegen
 - **Date:** February 2026
-- **PR:** [#40](https://github.com/misha-mad/vercel-rpc/pull/40)
+- **PR:** [#40](https://github.com/misha-mad/metaxy/pull/40)
 
 ## 1. Summary
 
@@ -153,7 +153,7 @@ Each variant implements a `fn apply(&self, input: &str) -> String` method that t
 
 ### 5.1 New `serde.rs` module
 
-Create `crates/rpc-cli/src/parser/serde.rs` with helpers for extracting serde attributes from `syn` AST nodes:
+Create `crates/metaxy-cli/src/parser/serde.rs` with helpers for extracting serde attributes from `syn` AST nodes:
 
 ```rust
 /// Extract `#[serde(rename_all = "...")]` from container attributes.
@@ -444,13 +444,13 @@ export interface UserProfile {
 
 | File                                       | Action                                                                                    |
 |--------------------------------------------|-------------------------------------------------------------------------------------------|
-| `crates/rpc-cli/src/model.rs`              | Add `FieldDef`, `RenameRule`; update `StructDef`, `EnumDef`, `EnumVariant`, `VariantKind` |
-| `crates/rpc-cli/src/parser/serde.rs`       | **New** — serde attribute parsing helpers                                                 |
-| `crates/rpc-cli/src/parser.rs`             | Add `pub mod serde;`                                                                      |
-| `crates/rpc-cli/src/parser/extract.rs`     | Use `FieldDef`, parse serde attrs on structs/enums/fields/variants                        |
-| `crates/rpc-cli/src/codegen/typescript.rs` | Use `resolve_field_name`, skip logic, optional fields                                     |
-| `crates/rpc-cli/src/codegen/client.rs`     | No changes expected (operates on procedure level)                                         |
-| `crates/rpc-cli/tests/*.rs`                | Update existing tests for `FieldDef`, add serde-specific tests                            |
+| `crates/metaxy-cli/src/model.rs`              | Add `FieldDef`, `RenameRule`; update `StructDef`, `EnumDef`, `EnumVariant`, `VariantKind` |
+| `crates/metaxy-cli/src/parser/serde.rs`       | **New** — serde attribute parsing helpers                                                 |
+| `crates/metaxy-cli/src/parser.rs`             | Add `pub mod serde;`                                                                      |
+| `crates/metaxy-cli/src/parser/extract.rs`     | Use `FieldDef`, parse serde attrs on structs/enums/fields/variants                        |
+| `crates/metaxy-cli/src/codegen/typescript.rs` | Use `resolve_field_name`, skip logic, optional fields                                     |
+| `crates/metaxy-cli/src/codegen/client.rs`     | No changes expected (operates on procedure level)                                         |
+| `crates/metaxy-cli/tests/*.rs`                | Update existing tests for `FieldDef`, add serde-specific tests                            |
 
 ## 10. Test Plan
 

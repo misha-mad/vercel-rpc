@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Streaming — vercel-rpc</title>
+	<title>Streaming — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

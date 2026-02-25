@@ -7,13 +7,13 @@ const codeBlocks: Record<
 > = {
 	setupToml: {
 		lang: 'toml',
-		code: `# rpc.config.toml
+		code: `# metaxy.config.toml
 [output]
 react = "src/lib/rpc.react.ts"`
 	},
 	setupCli: {
 		lang: 'shellscript',
-		code: `rpc generate --react-output src/lib/rpc.react.ts`
+		code: `metaxy generate --react-output src/lib/rpc.react.ts`
 	},
 	query: {
 		lang: 'typescript',

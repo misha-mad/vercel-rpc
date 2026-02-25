@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::collections::{BTreeSet, HashSet};
 
 use serde::Serialize;
-use vercel_rpc::rpc_query;
+use metaxy::rpc_query;
 
 /// Showcases expanded type mappings: sets, smart pointers, and Cow.
 ///

@@ -91,7 +91,7 @@ When `svelte` is omitted (default), no wrapper file is generated.
 ### 4.2 CLI Flag
 
 ```
-rpc generate --svelte-output src/lib/rpc.svelte.ts
+metaxy generate --svelte-output src/lib/rpc.svelte.ts
 ```
 
 ### 4.3 Import Path

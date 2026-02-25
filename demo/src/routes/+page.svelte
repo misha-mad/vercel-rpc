@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>vercel-rpc</title>
+	<title>metaxy</title>
 	<meta
 		name="description"
 		content="End-to-end typesafe RPC between Rust lambdas on Vercel and any frontend"
@@ -14,7 +14,7 @@
 </svelte:head>
 
 <section class="flex flex-col items-center justify-center px-4 py-20 text-center">
-	<h1 class="text-4xl sm:text-5xl font-bold mb-4">vercel-rpc</h1>
+	<h1 class="text-4xl sm:text-5xl font-bold mb-4">metaxy</h1>
 
 	<p class="text-lg sm:text-xl text-text-muted max-w-2xl mb-10 leading-relaxed">
 		End-to-end typesafe RPC between<br />
@@ -31,7 +31,7 @@
 			Get Started →
 		</a>
 		<a
-			href="https://github.com/misha-mad/vercel-rpc"
+			href="https://github.com/misha-mad/metaxy"
 			class="rounded-lg border border-accent-ts px-6 py-2.5 font-semibold text-accent-ts text-sm transition-opacity hover:opacity-85"
 		>
 			GitHub

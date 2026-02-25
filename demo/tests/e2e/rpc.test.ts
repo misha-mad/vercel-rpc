@@ -6,7 +6,7 @@ test.describe('Landing page', () => {
 	});
 
 	test('page loads with correct heading', async ({ page }) => {
-		await expect(page.locator('h1')).toContainText('vercel-rpc');
+		await expect(page.locator('h1')).toContainText('metaxy');
 	});
 
 	test('navigation links are present in header', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('API endpoints — direct HTTP', () => {
 		const res = await request.get('/api/status');
 		expect(res.ok()).toBe(true);
 		const json = await res.json();
-		expect(json.result.data.name).toBe('vercel-rpc-demo');
+		expect(json.result.data.name).toBe('metaxy-demo');
 		expect(json.result.data.status).toBe('Healthy');
 	});
 

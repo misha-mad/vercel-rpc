@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Branded Newtypes — vercel-rpc</title>
+	<title>Branded Newtypes — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Vue 3 — vercel-rpc</title>
+	<title>Vue 3 — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

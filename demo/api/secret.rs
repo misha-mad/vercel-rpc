@@ -1,4 +1,4 @@
-use vercel_rpc::{Headers, rpc_query};
+use metaxy::{Headers, rpc_query};
 
 /// Access a protected secret.
 /// Requires a valid Bearer token in the Authorization header.

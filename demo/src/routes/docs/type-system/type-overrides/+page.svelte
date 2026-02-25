@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Type Overrides — vercel-rpc</title>
+	<title>Type Overrides — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

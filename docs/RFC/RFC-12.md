@@ -216,7 +216,7 @@ fn extract_idempotent(attrs: &[Attribute]) -> bool {
 }
 ```
 
-> **Note:** The CLI only looks at `#[rpc_mutation]` attributes for `idempotent`. If someone writes `#[rpc_query(idempotent)]`, the CLI ignores it — it never reaches the parser because it filters on `RPC_MUTATION_ATTR`. This is consistent with the macro, which rejects `idempotent` on queries at compile time. In normal usage the macro runs first (at `cargo build`), so invalid combinations never reach the CLI. The CLI being lenient here is intentional: it scans raw source files and should not abort on code that hasn't been compiled yet (e.g. during `rpc watch` while the user is still editing).
+> **Note:** The CLI only looks at `#[rpc_mutation]` attributes for `idempotent`. If someone writes `#[rpc_query(idempotent)]`, the CLI ignores it — it never reaches the parser because it filters on `RPC_MUTATION_ATTR`. This is consistent with the macro, which rejects `idempotent` on queries at compile time. In normal usage the macro runs first (at `cargo build`), so invalid combinations never reach the CLI. The CLI being lenient here is intentional: it scans raw source files and should not abort on code that hasn't been compiled yet (e.g. during `metaxy watch` while the user is still editing).
 
 ### 5.3 Client Codegen
 

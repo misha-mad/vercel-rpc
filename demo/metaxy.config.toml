@@ -1,0 +1,12 @@
+# metaxy.config.toml — demo configuration
+
+[input]
+dir = "api"
+
+[output]
+types = "src/lib/rpc-types.ts"
+client = "src/lib/rpc-client.ts"
+svelte = "src/lib/rpc.svelte.ts"
+
+[codegen]
+preserve_docs = true

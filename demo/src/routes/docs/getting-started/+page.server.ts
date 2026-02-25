@@ -4,16 +4,16 @@ import type { PageServerLoad } from './$types';
 const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'shellscript' }> = {
 	installCli: {
 		lang: 'shellscript',
-		code: `cargo install vercel-rpc-cli`
+		code: `cargo install metaxy-cli`
 	},
 	installCrate: {
 		lang: 'shellscript',
-		code: `cargo add vercel-rpc`
+		code: `cargo add metaxy`
 	},
 	writeLambda: {
 		lang: 'rust',
 		code: `// api/hello.rs
-use vercel_rpc::rpc_query;
+use metaxy::rpc_query;
 
 #[rpc_query]
 async fn hello(name: String) -> String {
@@ -22,7 +22,7 @@ async fn hello(name: String) -> String {
 	},
 	installGenerate: {
 		lang: 'shellscript',
-		code: `rpc generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts`
+		code: `metaxy generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts`
 	},
 	gettingStartedRust: {
 		lang: 'rust',

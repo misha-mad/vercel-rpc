@@ -6,7 +6,7 @@ body:
       value: |
         ## 🙌 Show & Tell
 
-        Built something cool with **vercel-rpc**? Share it here!
+        Built something cool with **metaxy**? Share it here!
 
         We'd love to see your projects, demos, blog posts, tutorials, or creative uses of the framework.
   - type: textarea
@@ -14,7 +14,7 @@ body:
     attributes:
       label: What did you build?
       description: Tell us about your project or creation.
-      placeholder: Describe what you built and how you used vercel-rpc...
+      placeholder: Describe what you built and how you used metaxy...
     validations:
       required: true
   - type: textarea

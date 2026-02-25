@@ -10,7 +10,7 @@
 			href={resolve('/')}
 			class="flex items-center gap-2 text-lg font-bold text-text-primary hover:text-accent-rust transition-colors"
 		>
-			<span>vercel-rpc</span>
+			<span>metaxy</span>
 		</a>
 
 		<nav class="flex items-center gap-6">
@@ -31,7 +31,7 @@
 				Docs
 			</a>
 			<a
-				href="https://github.com/misha-mad/vercel-rpc"
+				href="https://github.com/misha-mad/metaxy"
 				class="flex items-center text-text-muted hover:text-text-primary transition-colors"
 				target="_blank"
 				rel="noopener"

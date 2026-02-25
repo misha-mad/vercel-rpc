@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Generics — vercel-rpc</title>
+	<title>Generics — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

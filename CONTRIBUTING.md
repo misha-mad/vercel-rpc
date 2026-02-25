@@ -1,4 +1,4 @@
-# Contributing to vercel-rpc
+# Contributing to metaxy
 
 Thank you for your interest in contributing! This guide will help you get started.
 
@@ -13,8 +13,8 @@ Thank you for your interest in contributing! This guide will help you get starte
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/misha-mad/vercel-rpc.git
-cd vercel-rpc
+git clone https://github.com/misha-mad/metaxy.git
+cd metaxy
 ```
 
 ### 2. Install dependencies
@@ -69,9 +69,9 @@ The project is a Cargo workspace with two main crates and a SvelteKit demo:
 
 | Path                | Description                                          |
 |---------------------|------------------------------------------------------|
-| `crates/rpc/`       | Facade crate — re-exports macros + all runtime deps  |
-| `crates/rpc-macro/` | Proc-macro crate (`#[rpc_query]`, `#[rpc_mutation]`) |
-| `crates/rpc-cli/`   | CLI binary — `scan`, `generate`, `watch` commands    |
+| `crates/metaxy/`       | Facade crate — re-exports macros + all runtime deps  |
+| `crates/metaxy-macro/` | Proc-macro crate (`#[rpc_query]`, `#[rpc_mutation]`) |
+| `crates/metaxy-cli/`   | CLI binary — `scan`, `generate`, `watch` commands    |
 | `demo/`             | SvelteKit demo app with Rust lambdas in `demo/api/`  |
 
 See the [README](README.md) for a detailed file tree.
@@ -106,7 +106,7 @@ npm run test:e2e
 
 | Suite       | Location                                    | Runner       | What it covers                                   |
 |-------------|---------------------------------------------|--------------|--------------------------------------------------|
-| Rust        | `crates/*/src/` and `crates/rpc-cli/tests/` | `cargo test` | Parser, codegen, macro expansion, type mapping   |
+| Rust        | `crates/*/src/` and `crates/metaxy-cli/tests/` | `cargo test` | Parser, codegen, macro expansion, type mapping   |
 | Integration | `demo/tests/integration/`                   | Vitest       | End-to-end codegen pipeline (Rust → TypeScript)  |
 | E2E         | `demo/tests/e2e/`                           | Playwright   | UI interactions and API responses in the browser |
 
@@ -227,11 +227,11 @@ git config core.hooksPath .githooks
 
 ### Scopes
 
-| Scope       | Crate              |
-|-------------|---------------------|
-| `rpc`       | `vercel-rpc`        |
-| `rpc-macro` | `vercel-rpc-macro`  |
-| `rpc-cli`   | `vercel-rpc-cli`    |
+| Scope         | Crate           |
+|---------------|-----------------|
+| `metaxy`      | `metaxy`        |
+| `metaxy-macro`| `metaxy-macro`  |
+| `metaxy-cli`  | `metaxy-cli`    |
 
 ### Breaking Changes
 

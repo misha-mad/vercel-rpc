@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Retry — vercel-rpc</title>
+	<title>Retry — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

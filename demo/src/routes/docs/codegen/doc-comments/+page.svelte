@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Doc Comments — vercel-rpc</title>
+	<title>Doc Comments — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

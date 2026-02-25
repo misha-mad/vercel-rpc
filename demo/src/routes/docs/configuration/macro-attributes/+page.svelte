@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Macro Attributes — vercel-rpc</title>
+	<title>Macro Attributes — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-10">

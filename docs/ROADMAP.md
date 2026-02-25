@@ -1,10 +1,10 @@
 # Roadmap
 
-This document outlines the planned features and improvements for vercel-rpc, organized into phases.
+This document outlines the planned features and improvements for metaxy, organized into phases.
 
 ## Phase 1 — Foundation
 
-### ~~Configuration File (`rpc.config.toml`)~~ ✅
+### ~~Configuration File (`metaxy.config.toml`)~~ ✅
 
 > Implemented in [RFC-2](./RFC/RFC-2.md). Full config file with CLI flag parity.
 
@@ -14,7 +14,7 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ### ~~Expanded Primitive and Wrapper Types~~ ✅
 
-> Implemented in [PR #41](https://github.com/misha-mad/vercel-rpc/pull/41). Sets map to `T[]`, smart pointers and `Cow` unwrap to inner type, fixed-size arrays already map to `T[]`.
+> Implemented in [PR #41](https://github.com/misha-mad/metaxy/pull/41). Sets map to `T[]`, smart pointers and `Cow` unwrap to inner type, fixed-size arrays already map to `T[]`.
 
 ---
 
@@ -22,11 +22,11 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ### ~~`RpcClientConfig` (first iteration)~~ ✅
 
-> Implemented in [PR #43](https://github.com/misha-mad/vercel-rpc/pull/43). `createRpcClient` now accepts an `RpcClientConfig` object with `baseUrl`, optional `fetch` override (SSR, testing), and optional static/async `headers` (auth tokens).
+> Implemented in [PR #43](https://github.com/misha-mad/metaxy/pull/43). `createRpcClient` now accepts an `RpcClientConfig` object with `baseUrl`, optional `fetch` override (SSR, testing), and optional static/async `headers` (auth tokens).
 
 ### ~~`RpcClientConfig` — extended options~~ ✅
 
-> Implemented in [RFC-4](./RFC/RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/vercel-rpc/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/vercel-rpc/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/vercel-rpc/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/vercel-rpc/pull/49).
+> Implemented in [RFC-4](./RFC/RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/metaxy/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/metaxy/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/metaxy/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/metaxy/pull/49).
 
 ### ~~Per-Call Options~~ ✅ → [RFC-5](./RFC/RFC-5.md)
 
@@ -68,7 +68,7 @@ This document outlines the planned features and improvements for vercel-rpc, org
 
 ### ~~Serde Enum Representations~~ ✅
 
-> Implemented in [PR #68](https://github.com/misha-mad/vercel-rpc/pull/68). All four serde enum tagging strategies are supported: externally tagged (default), internally tagged (`#[serde(tag = "...")]`), adjacently tagged (`#[serde(tag = "...", content = "...")]`), and untagged (`#[serde(untagged)]`). `#[serde(default)]` on `Option<T>` fields in enum struct variants is also handled correctly.
+> Implemented in [PR #68](https://github.com/misha-mad/metaxy/pull/68). All four serde enum tagging strategies are supported: externally tagged (default), internally tagged (`#[serde(tag = "...")]`), adjacently tagged (`#[serde(tag = "...", content = "...")]`), and untagged (`#[serde(untagged)]`). `#[serde(default)]` on `Option<T>` fields in enum struct variants is also handled correctly.
 
 ### ~~Generics~~ ✅
 
@@ -182,7 +182,7 @@ async fn chat(input: ChatInput, tx: StreamSender) {
 ```
 
 **Key design points:**
-- New `StreamSender` type (re-exported from `vercel_rpc`) wraps the Axum/hyper `Bytes` channel
+- New `StreamSender` type (re-exported from `metaxy`) wraps the Axum/hyper `Bytes` channel
 - Handler receives typed input (deserialized as usual) plus a `StreamSender` for emitting chunks
 - Generated TypeScript client gets a `stream()` method returning an `AsyncIterable` or `ReadableStream`
 - Framework wrappers get `createStream` / `useStream` primitives with reactive state

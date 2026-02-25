@@ -7,13 +7,13 @@ const codeBlocks: Record<
 > = {
 	setupToml: {
 		lang: 'toml',
-		code: `# rpc.config.toml
+		code: `# metaxy.config.toml
 [output]
 svelte = "src/lib/rpc.svelte.ts"`
 	},
 	setupCli: {
 		lang: 'shellscript',
-		code: `rpc generate --svelte-output src/lib/rpc.svelte.ts`
+		code: `metaxy generate --svelte-output src/lib/rpc.svelte.ts`
 	},
 	query: {
 		lang: 'typescript',

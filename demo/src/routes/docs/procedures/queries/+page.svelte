@@ -45,7 +45,7 @@
 </script>
 
 <svelte:head>
-	<title>Queries — vercel-rpc</title>
+	<title>Queries — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
@@ -117,7 +117,7 @@
 		{#if openCode['hello']}
 			<div class="mt-3 space-y-3">
 				<a
-					href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/hello.rs"
+					href="https://github.com/misha-mad/metaxy/blob/main/demo/api/hello.rs"
 					target="_blank"
 					class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block"
 					>api/hello.rs</a
@@ -159,7 +159,7 @@
 		{#if openCode['time']}
 			<div class="mt-3 space-y-3">
 				<a
-					href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/time.rs"
+					href="https://github.com/misha-mad/metaxy/blob/main/demo/api/time.rs"
 					target="_blank"
 					class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block"
 					>api/time.rs</a
@@ -207,7 +207,7 @@
 		{#if openCode['status']}
 			<div class="mt-3 space-y-3">
 				<a
-					href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/status.rs"
+					href="https://github.com/misha-mad/metaxy/blob/main/demo/api/status.rs"
 					target="_blank"
 					class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block"
 					>api/status.rs</a

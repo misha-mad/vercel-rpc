@@ -1,11 +1,11 @@
 [package]
-name = "vercel-rpc-demo"
+name = "metaxy-demo"
 version = "0.1.0"
 edition = "2024"
 publish = false
 
 [dependencies]
-vercel-rpc = { path = "../crates/rpc" }
+metaxy = { path = "../crates/metaxy" }
 serde = { version = "1", features = ["derive"] }
 
 [[bin]]

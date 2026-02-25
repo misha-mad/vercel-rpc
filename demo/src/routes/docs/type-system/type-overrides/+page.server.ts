@@ -7,7 +7,7 @@ const codeBlocks: Record<
 > = {
 	configToml: {
 		lang: 'toml',
-		code: `# rpc.config.toml
+		code: `# metaxy.config.toml
 [codegen.type_overrides]
 "chrono::DateTime" = "string"      # ISO 8601 strings
 "chrono::NaiveDate" = "string"
@@ -18,7 +18,7 @@ const codeBlocks: Record<
 	},
 	configCli: {
 		lang: 'shellscript',
-		code: `rpc generate --type-override "chrono::DateTime=string" --type-override "uuid::Uuid=string"`
+		code: `metaxy generate --type-override "chrono::DateTime=string" --type-override "uuid::Uuid=string"`
 	},
 	exampleRust: {
 		lang: 'rust',

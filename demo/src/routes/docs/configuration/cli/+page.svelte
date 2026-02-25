@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>CLI — vercel-rpc</title>
+	<title>CLI — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
@@ -15,9 +15,9 @@
 	<section class="space-y-6">
 		<h2 class="text-2xl font-semibold">Commands</h2>
 
-		<!-- rpc scan -->
+		<!-- metaxy scan -->
 		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
-			<h3 class="text-lg font-semibold font-mono">rpc scan</h3>
+			<h3 class="text-lg font-semibold font-mono">metaxy scan</h3>
 			<p class="text-text-muted text-sm">
 				Parse Rust files and print discovered procedures, structs, and enums. Useful for debugging.
 			</p>
@@ -48,9 +48,9 @@
 			</table>
 		</div>
 
-		<!-- rpc generate -->
+		<!-- metaxy generate -->
 		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
-			<h3 class="text-lg font-semibold font-mono">rpc generate</h3>
+			<h3 class="text-lg font-semibold font-mono">metaxy generate</h3>
 			<p class="text-text-muted text-sm">
 				Generate TypeScript types and client. One-shot execution.
 			</p>
@@ -177,9 +177,9 @@
 			</table>
 		</div>
 
-		<!-- rpc watch -->
+		<!-- metaxy watch -->
 		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
-			<h3 class="text-lg font-semibold font-mono">rpc watch</h3>
+			<h3 class="text-lg font-semibold font-mono">metaxy watch</h3>
 			<p class="text-text-muted text-sm">
 				Same as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> but
 				watches for <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.rs</code> file

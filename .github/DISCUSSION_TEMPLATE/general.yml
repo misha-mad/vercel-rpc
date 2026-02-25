@@ -6,7 +6,7 @@ body:
       value: |
         ## 💬 General Discussion
 
-        This is a space for open-ended conversations about **vercel-rpc**.
+        This is a space for open-ended conversations about **metaxy**.
 
         Topics can include architecture decisions, best practices, comparisons with other tools, community feedback, or anything that doesn't fit other categories.
   - type: textarea

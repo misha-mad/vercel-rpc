@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>RpcClientConfig — vercel-rpc</title>
+	<title>RpcClientConfig — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

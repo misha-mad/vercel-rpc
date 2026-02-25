@@ -41,7 +41,7 @@ A CLI tool written in Rust that bridges the gap between the Backend and Frontend
 ### Workspace Structure
 
 ```
-vercel-rpc/
+metaxy/
 ├── crates/
 │   ├── rpc/                    # Facade crate (re-exports macros + runtime deps)
 │   │   └── src/lib.rs
@@ -52,7 +52,7 @@ vercel-rpc/
 │       │   ├── lib.rs          # Library root — public module declarations
 │       │   ├── main.rs         # CLI entry (clap arg parsing)
 │       │   ├── commands.rs     # scan / generate command implementations
-│       │   ├── config.rs       # rpc.config.toml loading & merging
+│       │   ├── config.rs       # metaxy.config.toml loading & merging
 │       │   ├── model.rs        # Manifest, Procedure, RustType, StructDef, EnumDef
 │       │   ├── parser/         # Rust source -> Manifest (via syn)
 │       │   │   ├── extract.rs  # File scanning & procedure extraction
@@ -96,7 +96,7 @@ vercel-rpc/
 
 ```rust
 // api/hello.rs
-use vercel_rpc::rpc_query;
+use metaxy::rpc_query;
 
 #[rpc_query]
 async fn hello(name: String) -> String {

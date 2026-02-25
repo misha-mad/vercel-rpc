@@ -1,5 +1,5 @@
 use serde::Serialize;
-use vercel_rpc::rpc_query;
+use metaxy::rpc_query;
 
 /// User role with snake_case serialization.
 /// Produces: `"admin"`, `"power_user"`, `"guest"`.

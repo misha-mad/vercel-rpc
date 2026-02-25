@@ -41,9 +41,9 @@ interface User {
 ├── src/lib/
 │   ├── rpc-types.ts  # ← auto-regenerated
 │   └── rpc-client.ts # ← auto-regenerated
-└── rpc.config.toml
+└── metaxy.config.toml
 
-$ rpc watch
+$ metaxy watch
   ▸ Watching api/ for changes...
   ✓ Generated rpc-types.ts (3 queries, 1 mutation)
   ▸ api/users.rs changed
@@ -118,7 +118,7 @@ const user = createRpcQuery(rpc, 'get_user', () => id);`
 │   ├── math.rs      → /api/math
 │   └── echo.rs      → /api/echo
 ├── src/              # frontend (any framework)
-├── rpc.config.toml
+├── metaxy.config.toml
 ├── Cargo.toml
 └── vercel.json       # zero config needed`
 	},

@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>SolidJS — vercel-rpc</title>
+	<title>SolidJS — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

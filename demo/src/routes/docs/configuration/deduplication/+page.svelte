@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Request Deduplication — vercel-rpc</title>
+	<title>Request Deduplication — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

@@ -92,7 +92,7 @@ When `vue` is omitted (default), no composable file is generated.
 ### 4.2 CLI Flag
 
 ```
-rpc generate --vue-output src/rpc.vue.ts
+metaxy generate --vue-output src/rpc.vue.ts
 ```
 
 ### 4.3 Import Path

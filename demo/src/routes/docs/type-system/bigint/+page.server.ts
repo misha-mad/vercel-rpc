@@ -7,13 +7,13 @@ const codeBlocks: Record<
 > = {
 	configToml: {
 		lang: 'toml',
-		code: `# rpc.config.toml
+		code: `# metaxy.config.toml
 [codegen]
 bigint_types = ["i64", "u64", "i128", "u128"]`
 	},
 	configCli: {
 		lang: 'shellscript',
-		code: `rpc generate --bigint-type i64 --bigint-type u64`
+		code: `metaxy generate --bigint-type i64 --bigint-type u64`
 	},
 	defaultTs: {
 		lang: 'typescript',

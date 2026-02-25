@@ -17,9 +17,9 @@
 	>
 		<p>
 			visit <a
-				href="https://github.com/misha-mad/vercel-rpc"
+				href="https://github.com/misha-mad/metaxy"
 				class="text-accent-ts hover:underline font-bold">GitHub</a
-			> to learn more about vercel-rpc
+			> to learn more about metaxy
 		</p>
 	</footer>
 </div>

@@ -1,5 +1,5 @@
 use serde::Serialize;
-use vercel_rpc::rpc_query;
+use metaxy::rpc_query;
 
 /// Overall health of the service.
 #[derive(Debug, PartialEq, Serialize)]
@@ -27,7 +27,7 @@ async fn status() -> ServiceStatus {
         .as_secs();
 
     ServiceStatus {
-        name: "vercel-rpc-demo".to_string(),
+        name: "metaxy-demo".to_string(),
         status: HealthStatus::Healthy,
         uptime_secs: uptime,
         version: "0.1.0".to_string(),

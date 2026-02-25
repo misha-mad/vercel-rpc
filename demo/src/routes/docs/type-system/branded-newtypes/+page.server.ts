@@ -35,13 +35,13 @@ const orderId: OrderId = userId; // TS error!`
 	},
 	configToml: {
 		lang: 'toml',
-		code: `# rpc.config.toml
+		code: `# metaxy.config.toml
 [codegen]
 branded_newtypes = true`
 	},
 	configCli: {
 		lang: 'shellscript',
-		code: `rpc generate --branded-newtypes`
+		code: `metaxy generate --branded-newtypes`
 	}
 };
 

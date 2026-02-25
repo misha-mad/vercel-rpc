@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/rpc", "crates/rpc-macro", "crates/rpc-cli", "demo"]
+members = ["crates/metaxy", "crates/metaxy-macro", "crates/metaxy-cli", "demo"]
 resolver = "3"
 
 [workspace.lints.clippy]

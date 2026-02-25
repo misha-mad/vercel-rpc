@@ -93,7 +93,7 @@ When `solid` is omitted (default), no file is generated.
 ### 4.2 CLI Flag
 
 ```
-rpc generate --solid-output src/rpc.solid.ts
+metaxy generate --solid-output src/rpc.solid.ts
 ```
 
 ### 4.3 Config Struct Changes
@@ -663,7 +663,7 @@ Solid has a built-in `createResource` primitive for async data fetching. Our `cr
 
 ## 12. Implementation Notes
 
-Implemented in PR [#66](https://github.com/misha-mad/vercel-rpc/pull/66). Key deviations from the initial draft:
+Implemented in PR [#66](https://github.com/misha-mad/metaxy/pull/66). Key deviations from the initial draft:
 
 1. **`createMemo` for derived state** — `isSuccess` and `isError` use `createMemo()` instead of plain derived functions. This caches the result and provides proper signal semantics outside reactive contexts.
 

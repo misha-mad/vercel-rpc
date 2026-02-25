@@ -1,0 +1,43 @@
+[package]
+name = "metaxy-cli"
+version = "0.4.0"
+edition = "2024"
+description = "CLI tool for Metaxy: parses Rust functions and generates TypeScript types and client"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/misha-mad/metaxy"
+homepage = "https://github.com/misha-mad/metaxy"
+keywords = ["rpc", "metaxy", "cli", "serverless", "typescript"]
+categories = ["web-programming", "command-line-utilities"]
+readme = "README.md"
+
+[lints]
+workspace = true
+
+[lib]
+name = "metaxy_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "metaxy"
+path = "src/main.rs"
+
+[dependencies]
+syn = { version = "2", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1"
+thiserror = "2"
+clap = { version = "4", features = ["derive"] }
+walkdir = "2"
+notify = "7"
+notify-debouncer-mini = "0.5"
+colored = "2"
+ctrlc = "3"
+toml = "0.8"
+globset = "0.4"
+
+[dev-dependencies]
+tempfile = "3"
+insta = "1"

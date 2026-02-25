@@ -85,7 +85,7 @@ When `react` is omitted (default), no hook file is generated.
 ### 4.2 CLI Flag
 
 ```
-rpc generate --react-output src/rpc.react.ts
+metaxy generate --react-output src/rpc.react.ts
 ```
 
 ### 4.3 Import Path

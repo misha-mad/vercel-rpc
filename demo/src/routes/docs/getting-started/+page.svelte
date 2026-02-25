@@ -10,14 +10,14 @@
 </script>
 
 <svelte:head>
-	<title>Getting Started — vercel-rpc</title>
+	<title>Getting Started — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold">Getting Started</h1>
 
 	<p class="text-text-muted leading-relaxed">
-		<strong class="text-text-primary">vercel-rpc</strong> is an end-to-end typesafe RPC toolkit for building
+		<strong class="text-text-primary">metaxy</strong> is an end-to-end typesafe RPC toolkit for building
 		serverless APIs with Rust on Vercel. Write plain Rust functions, and get a fully typed TypeScript
 		client — no manual sync required.
 	</p>

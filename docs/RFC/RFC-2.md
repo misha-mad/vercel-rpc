@@ -1,4 +1,4 @@
-# RFC-2: Configuration File (`rpc.config.toml`)
+# RFC-2: Configuration File (`metaxy.config.toml`)
 
 - **Status:** Implemented
 - **Topic:** Project-level configuration file for rpc-cli
@@ -6,14 +6,14 @@
 
 ## 1. Summary
 
-Replace the CLI-flags-only configuration model with an optional `rpc.config.toml` file. All current CLI flags become config fields. CLI flags remain as overrides. When no config file is found, the current defaults apply — full backward compatibility.
+Replace the CLI-flags-only configuration model with an optional `metaxy.config.toml` file. All current CLI flags become config fields. CLI flags remain as overrides. When no config file is found, the current defaults apply — full backward compatibility.
 
 ## 2. Motivation
 
 Today every option must be passed as a CLI flag:
 
 ```bash
-rpc generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts --types-import ./rpc-types
+metaxy generate --dir api --output src/lib/rpc-types.ts --client-output src/lib/rpc-client.ts --types-import ./rpc-types
 ```
 
 This has several problems:
@@ -25,12 +25,12 @@ This has several problems:
 
 ## 3. Config File Format
 
-TOML is chosen for consistency with the Rust ecosystem (`Cargo.toml`, `rustfmt.toml`). The file is named `rpc.config.toml` and placed at the project root (next to `Cargo.toml` or `package.json`).
+TOML is chosen for consistency with the Rust ecosystem (`Cargo.toml`, `rustfmt.toml`). The file is named `metaxy.config.toml` and placed at the project root (next to `Cargo.toml` or `package.json`).
 
 ### Full Example
 
 ```toml
-# rpc.config.toml — all fields are optional, defaults shown
+# metaxy.config.toml — all fields are optional, defaults shown
 
 [input]
 dir = "api"                          # Rust source directory to scan
@@ -74,56 +74,56 @@ fields = "camelCase"
 
 ### Empty or Missing File
 
-When `rpc.config.toml` is absent or empty, behavior is identical to the current CLI defaults. No config file is ever required.
+When `metaxy.config.toml` is absent or empty, behavior is identical to the current CLI defaults. No config file is ever required.
 
 ## 4. Resolution Order
 
 Values are resolved with the following priority (highest first):
 
 ```
-CLI flag  >  rpc.config.toml  >  built-in default
+CLI flag  >  metaxy.config.toml  >  built-in default
 ```
 
 This means:
-- A `rpc.config.toml` sets project-level defaults.
+- A `metaxy.config.toml` sets project-level defaults.
 - A CLI flag overrides any config file value for that invocation.
 - Built-in defaults fill in anything not specified by either.
 
 ### Example
 
 ```toml
-# rpc.config.toml
+# metaxy.config.toml
 [input]
 dir = "lambdas"
 ```
 
 ```bash
 # Uses dir = "lambdas" from config
-rpc generate
+metaxy generate
 
 # Overrides to dir = "api" for this run only
-rpc generate --dir api
+metaxy generate --dir api
 ```
 
 ## 5. Config Discovery
 
-The CLI searches for `rpc.config.toml` using the following strategy:
+The CLI searches for `metaxy.config.toml` using the following strategy:
 
 1. Start from the current working directory.
-2. Walk up parent directories until a `rpc.config.toml` is found.
+2. Walk up parent directories until a `metaxy.config.toml` is found.
 3. Stop at the filesystem root.
 4. If no file is found, use built-in defaults.
 
 A `--config <path>` flag allows explicit override, skipping discovery:
 
 ```bash
-rpc generate --config ./custom-config.toml
+metaxy generate --config ./custom-config.toml
 ```
 
 A `--no-config` flag disables config file loading entirely:
 
 ```bash
-rpc generate --no-config --dir api
+metaxy generate --no-config --dir api
 ```
 
 ## 6. Field Reference
@@ -190,7 +190,7 @@ import type { Procedures, ... } from "./rpc-types.js";
 Add the `toml` crate to `rpc-cli`:
 
 ```toml
-# crates/rpc-cli/Cargo.toml
+# crates/metaxy-cli/Cargo.toml
 toml = "0.8"
 glob = "0.3"        # for include/exclude patterns
 ```
@@ -200,7 +200,7 @@ glob = "0.3"        # for include/exclude patterns
 A `config` module in `rpc-cli` (implemented as a single file):
 
 ```
-crates/rpc-cli/src/
+crates/metaxy-cli/src/
 └── config.rs       # RpcConfig struct, TOML parsing, discovery, CLI merge
 ```
 
@@ -283,9 +283,9 @@ Each nested struct implements `Default` with the values listed in the field refe
 use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 
-const CONFIG_FILENAME: &str = "rpc.config.toml";
+const CONFIG_FILENAME: &str = "metaxy.config.toml";
 
-/// Walk up from `start` looking for rpc.config.toml.
+/// Walk up from `start` looking for metaxy.config.toml.
 /// Returns None if no config file is found.
 pub fn discover(start: &Path) -> Option<PathBuf> {
     let mut dir = start.canonicalize().ok()?;
@@ -426,7 +426,7 @@ fn should_include(path: &Path, config: &InputConfig) -> bool {
 - **No breaking changes.** All existing CLI invocations work unchanged.
 - Default values match the current hardcoded defaults exactly.
 - The config file is optional — projects without it behave identically to before.
-- Existing `package.json` scripts continue to work. Users can gradually move flags into `rpc.config.toml` and simplify their scripts.
+- Existing `package.json` scripts continue to work. Users can gradually move flags into `metaxy.config.toml` and simplify their scripts.
 
 ## 8. Future Extensions
 
@@ -452,11 +452,11 @@ Each of these will be introduced alongside the feature it configures, as separat
 
 ## 9. Alternatives Considered
 
-### JSON (`rpc.config.json`)
+### JSON (`metaxy.config.json`)
 
 Pros: native to JS/TS ecosystem. Cons: no comments, verbose, inconsistent with Rust tooling conventions. Rejected.
 
-### YAML (`rpc.config.yaml`)
+### YAML (`metaxy.config.yaml`)
 
 Pros: clean syntax. Cons: whitespace-sensitive, requires a heavier parser, not standard in Rust ecosystem. Rejected.
 

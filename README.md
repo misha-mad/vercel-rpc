@@ -1,13 +1,13 @@
 <div align="center">
 
-# ⚡ vercel-rpc
+# ⚡ metaxy
 
 **End-to-end typesafe RPC between Rust lambdas on Vercel and any TypeScript frontend**
 
-[**Live Demo →** vercel-rpc.vercel.app](https://vercel-rpc.vercel.app)
+[**Live Demo →** metaxy.vercel.app](https://metaxy.vercel.app)
 
-[![CI](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/misha-mad/vercel-rpc/graph/badge.svg)](https://codecov.io/gh/misha-mad/vercel-rpc)
+[![CI](https://github.com/misha-mad/metaxy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/misha-mad/metaxy/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/misha-mad/metaxy/graph/badge.svg)](https://codecov.io/gh/misha-mad/metaxy)
 [![Rust Tests](https://img.shields.io/badge/rust_tests-passed-brightgreen?logo=rust)](./crates)
 [![Vitest](https://img.shields.io/badge/vitest-passed-brightgreen?logo=vitest)](./demo/tests/integration)
 [![Playwright](https://img.shields.io/badge/e2e-passed-brightgreen?logo=playwright)](./demo/tests/e2e)
@@ -23,7 +23,7 @@ Write Rust functions → get a fully typed TypeScript client.
 
 ## Why?
 
-Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript types in sync is painful. **vercel-rpc** solves this:
+Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript types in sync is painful. **metaxy** solves this:
 
 - 🦀 **Write plain Rust functions** with `#[rpc_query]` / `#[rpc_mutation]`
 - 🔄 **Auto-generate TypeScript types & client** from Rust source code
@@ -59,7 +59,7 @@ Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript 
 
 ```rust
 // api/hello.rs
-use vercel_rpc::rpc_query;
+use metaxy::rpc_query;
 
 #[rpc_query]
 async fn hello(name: String) -> String {
@@ -82,7 +82,7 @@ cd demo
 npm run generate
 
 # Or directly with cargo (from project root)
-cargo run -p vercel-rpc-cli -- generate --dir api --output demo/src/lib/rpc-types.ts --client-output demo/src/lib/rpc-client.ts
+cargo run -p metaxy-cli -- generate --dir api --output demo/src/lib/rpc-types.ts --client-output demo/src/lib/rpc-client.ts
 ```
 
 This produces two files (plus optional framework wrappers — see [Svelte 5](#svelte-5-reactive-wrappers-opt-in), [React](#react-hooks-opt-in), [Vue 3](#vue-3-composables-opt-in), and [SolidJS](#solidjs-primitives-opt-in) below):
@@ -138,7 +138,7 @@ npm run dev
 This runs the RPC watcher and Vite dev server in parallel. Every time you save a `.rs` file in `api/`, the TypeScript types and client are regenerated automatically:
 
 ```
-  vercel-rpc watch mode
+  metaxy watch mode
   api dir: api
   types:   src/lib/rpc-types.ts
   client:  src/lib/rpc-client.ts
@@ -158,12 +158,12 @@ See [docs/PROJECT-STRUCTURE.md](./docs/PROJECT-STRUCTURE.md) for the full annota
 
 ## CLI Reference
 
-### `rpc scan`
+### `metaxy scan`
 
 Scan Rust source files and print discovered procedures:
 
 ```bash
-cargo run -p vercel-rpc-cli -- scan --dir api
+cargo run -p metaxy-cli -- scan --dir api
 ```
 
 ```
@@ -178,12 +178,12 @@ Discovered 2 procedure(s), 1 struct(s), 0 enum(s):
   }
 ```
 
-### `rpc generate`
+### `metaxy generate`
 
 Generate TypeScript types and client:
 
 ```bash
-cargo run -p vercel-rpc-cli -- generate \
+cargo run -p metaxy-cli -- generate \
   --dir api \
   --output src/lib/rpc-types.ts \
   --client-output src/lib/rpc-client.ts \
@@ -205,20 +205,20 @@ cargo run -p vercel-rpc-cli -- generate \
 | `--bigint-type`         | *(none)*                | Map an integer type to `bigint` (repeatable) |
 | `--no-config`           | `false`                 | Disable config file loading                  |
 
-### `rpc watch`
+### `metaxy watch`
 
 Watch for changes and regenerate on save (same flags as `generate`):
 
 ```bash
-cargo run -p vercel-rpc-cli -- watch --dir api
+cargo run -p metaxy-cli -- watch --dir api
 ```
 
 ### Configuration file
 
-Instead of passing flags every time, you can create an `rpc.config.toml` at the project root:
+Instead of passing flags every time, you can create a `metaxy.config.toml` at the project root:
 
 ```toml
-# rpc.config.toml — all fields are optional
+# metaxy.config.toml — all fields are optional
 
 [input]
 dir = "api"
@@ -346,7 +346,7 @@ Map external crate types (or any Rust type) to custom TypeScript types via `[cod
 Or via the CLI (repeatable):
 
 ```sh
-rpc generate --type-override "chrono::DateTime=string" --type-override "uuid::Uuid=string"
+metaxy generate --type-override "chrono::DateTime=string" --type-override "uuid::Uuid=string"
 ```
 
 Overrides are applied before code generation — every occurrence of the matched type (including inside `Vec<T>`, `Option<T>`, etc.) is replaced with the specified TypeScript type, and generic parameters are stripped.
@@ -472,14 +472,14 @@ const [a, b] = await Promise.all([
 
 Dedup is on by default for queries. Disable globally via `dedupe: false` in config or per-call via `CallOptions`. Mutations are never deduplicated.
 
-See the [rpc-cli README](./crates/rpc-cli/README.md#generated-client-features) for full details on lifecycle hooks, retry, timeout, serialization, signal, per-call options, and deduplication.
+See the [rpc-cli README](./crates/metaxy-cli/README.md#generated-client-features) for full details on lifecycle hooks, retry, timeout, serialization, signal, per-call options, and deduplication.
 
 ### Svelte 5 reactive wrappers (opt-in)
 
 When `output.svelte` is configured, the CLI generates a `.svelte.ts` file with `createQuery` and `createMutation` helpers that wrap the `RpcClient` with Svelte 5 runes (`$state`, `$effect`):
 
 ```toml
-# rpc.config.toml
+# metaxy.config.toml
 [output]
 svelte = "src/lib/rpc.svelte.ts"
 ```
@@ -507,14 +507,14 @@ svelte = "src/lib/rpc.svelte.ts"
 {/if}
 ```
 
-See the [rpc-cli README](./crates/rpc-cli/README.md#svelte-5-reactive-wrappers) and [RFC-7](./docs/RFC/RFC-7.md) for full API details.
+See the [rpc-cli README](./crates/metaxy-cli/README.md#svelte-5-reactive-wrappers) and [RFC-7](./docs/RFC/RFC-7.md) for full API details.
 
 ### React hooks (opt-in)
 
 When `output.react` is configured, the CLI generates a `.ts` file with `useQuery` and `useMutation` hooks that wrap the `RpcClient` with React state (`useState`, `useEffect`):
 
 ```toml
-# rpc.config.toml
+# metaxy.config.toml
 [output]
 react = "src/lib/rpc.react.ts"
 ```
@@ -540,14 +540,14 @@ function UserProfile() {
 }
 ```
 
-See the [rpc-cli README](./crates/rpc-cli/README.md#react-hooks) and [RFC-8](./docs/RFC/RFC-8.md) for full API details.
+See the [rpc-cli README](./crates/metaxy-cli/README.md#react-hooks) and [RFC-8](./docs/RFC/RFC-8.md) for full API details.
 
 ### Vue 3 composables (opt-in)
 
 When `output.vue` is configured, the CLI generates a `.ts` file with `useQuery` and `useMutation` composables that wrap the `RpcClient` with Vue 3 Composition API (`ref`, `computed`, `watch`):
 
 ```toml
-# rpc.config.toml
+# metaxy.config.toml
 [output]
 vue = "src/lib/rpc.vue.ts"
 ```
@@ -576,14 +576,14 @@ const updateName = useMutation(rpc, "update_profile", {
 </template>
 ```
 
-See the [rpc-cli README](./crates/rpc-cli/README.md#vue-3-composables) and [RFC-9](./docs/RFC/RFC-9.md) for full API details.
+See the [rpc-cli README](./crates/metaxy-cli/README.md#vue-3-composables) and [RFC-9](./docs/RFC/RFC-9.md) for full API details.
 
 ### SolidJS primitives (opt-in)
 
 When `output.solid` is configured, the CLI generates a `.ts` file with `createQuery` and `createMutation` primitives that wrap the `RpcClient` with SolidJS reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`):
 
 ```toml
-# rpc.config.toml
+# metaxy.config.toml
 [output]
 solid = "src/lib/rpc.solid.ts"
 ```
@@ -614,14 +614,14 @@ function UserProfile() {
 }
 ```
 
-See the [rpc-cli README](./crates/rpc-cli/README.md#solidjs-primitives) and [RFC-10](./docs/RFC/RFC-10.md) for full API details.
+See the [rpc-cli README](./crates/metaxy-cli/README.md#solidjs-primitives) and [RFC-10](./docs/RFC/RFC-10.md) for full API details.
 
 ## Rust Macros
 
 ### `#[rpc_query]` — GET endpoint
 
 ```rust
-use vercel_rpc::rpc_query;
+use metaxy::rpc_query;
 
 // No input
 #[rpc_query]
@@ -743,7 +743,7 @@ Duration shorthand: `30s`, `5m`, `1h`, `1d`. The timeout is also forwarded to th
 ### `#[rpc_mutation]` — POST endpoint
 
 ```rust
-use vercel_rpc::rpc_mutation;
+use metaxy::rpc_mutation;
 
 #[rpc_mutation]
 async fn create_item(input: CreateInput) -> Item {

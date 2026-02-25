@@ -5,7 +5,7 @@ git_release_enable = true
 git_tag_enable = true
 
 [[package]]
-name = "vercel-rpc-demo"
+name = "metaxy-demo"
 release = false
 publish = false
 changelog_update = false

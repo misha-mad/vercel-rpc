@@ -7,13 +7,13 @@ const codeBlocks: Record<
 > = {
 	configToml: {
 		lang: 'toml',
-		code: `# rpc.config.toml
+		code: `# metaxy.config.toml
 [codegen.naming]
 fields = "camelCase"`
 	},
 	configCli: {
 		lang: 'shellscript',
-		code: `rpc generate --field-naming camelCase`
+		code: `metaxy generate --field-naming camelCase`
 	},
 	exampleRust: {
 		lang: 'rust',

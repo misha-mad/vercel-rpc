@@ -1,12 +1,12 @@
 {
-	"name": "vercel-rpc-demo",
+	"name": "metaxy-demo",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- watch & vite dev",
-		"build": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- generate && vite build",
-		"generate": "cargo run --manifest-path ../Cargo.toml -p vercel-rpc-cli -- generate",
+		"dev": "cargo run --manifest-path ../Cargo.toml -p metaxy-cli -- watch & vite dev",
+		"build": "cargo run --manifest-path ../Cargo.toml -p metaxy-cli -- generate && vite build",
+		"generate": "cargo run --manifest-path ../Cargo.toml -p metaxy-cli -- generate",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -14,7 +14,7 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test": "cargo test --manifest-path ../Cargo.toml --workspace && npx vitest run",
-		"test:e2e": "BASE_URL=${BASE_URL:-https://vercel-rpc.vercel.app} npx playwright test",
+		"test:e2e": "BASE_URL=${BASE_URL:-https://metaxy.vercel.app} npx playwright test",
 		"test:integration": "npx vitest run",
 		"test:rust": "cargo test --manifest-path ../Cargo.toml --workspace",
 		"test:all": "cargo test --manifest-path ../Cargo.toml --workspace && npx vitest run && npx playwright test"

@@ -41,7 +41,7 @@
 </script>
 
 <svelte:head>
-	<title>Error Handling — vercel-rpc</title>
+	<title>Error Handling — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
@@ -144,7 +144,7 @@
 		{#if openCode['secret']}
 			<div class="mt-3 space-y-3">
 				<a
-					href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/secret.rs"
+					href="https://github.com/misha-mad/metaxy/blob/main/demo/api/secret.rs"
 					target="_blank"
 					class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block"
 					>api/secret.rs</a

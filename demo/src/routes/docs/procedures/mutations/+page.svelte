@@ -6,7 +6,7 @@
 	let { data } = $props();
 
 	// --- Echo (mutation with struct input/output) ---
-	let echoMessage = $state('Hello from vercel-rpc!');
+	let echoMessage = $state('Hello from metaxy!');
 	let echoUppercase = $state(false);
 	const echo = createMutation(rpc, 'echo');
 
@@ -18,7 +18,7 @@
 </script>
 
 <svelte:head>
-	<title>Mutations — vercel-rpc</title>
+	<title>Mutations — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
@@ -106,7 +106,7 @@
 		{#if openCode['echo']}
 			<div class="mt-3 space-y-3">
 				<a
-					href="https://github.com/misha-mad/vercel-rpc/blob/main/demo/api/echo.rs"
+					href="https://github.com/misha-mad/metaxy/blob/main/demo/api/echo.rs"
 					target="_blank"
 					class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block"
 					>api/echo.rs</a

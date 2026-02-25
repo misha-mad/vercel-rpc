@@ -7,13 +7,13 @@ const codeBlocks: Record<
 > = {
 	configToml: {
 		lang: 'toml',
-		code: `# rpc.config.toml
+		code: `# metaxy.config.toml
 [codegen]
 preserve_docs = true`
 	},
 	configCli: {
 		lang: 'shellscript',
-		code: `rpc generate --preserve-docs`
+		code: `metaxy generate --preserve-docs`
 	},
 	exampleRust: {
 		lang: 'rust',

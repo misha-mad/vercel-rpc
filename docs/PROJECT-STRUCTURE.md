@@ -1,18 +1,18 @@
 # Project Structure
 
 ```
-vercel-rpc/
+metaxy/
 ├── crates/
-│   ├── rpc/                      # Facade crate (re-exports macros + runtime deps)
-│   │   └── src/lib.rs            #   pub use vercel_rpc_macro::{rpc_query, rpc_mutation}
-│   ├── rpc-macro/                # Proc-macro crate
+│   ├── metaxy/                   # Facade crate (re-exports macros + runtime deps)
+│   │   └── src/lib.rs            #   pub use metaxy_macro::{rpc_query, rpc_mutation}
+│   ├── metaxy-macro/             # Proc-macro crate
 │   │   └── src/lib.rs            #   #[rpc_query] / #[rpc_mutation]
-│   └── rpc-cli/                  # CLI crate (library + binary: `rpc`)
+│   └── metaxy-cli/               # CLI crate (library + binary: `metaxy`)
 │       ├── src/
 │       │   ├── lib.rs            #   Library root — public module declarations
 │       │   ├── main.rs           #   CLI entry (clap arg parsing)
 │       │   ├── commands.rs       #   scan / generate command implementations
-│       │   ├── config.rs         #   rpc.config.toml loading & merging
+│       │   ├── config.rs         #   metaxy.config.toml loading & merging
 │       │   ├── model.rs          #   Manifest, Procedure, RustType, StructDef, EnumDef, FieldDef
 │       │   ├── parser/           #   Rust source → Manifest (via syn)
 │       │   │   ├── extract.rs    #     File scanning & procedure extraction

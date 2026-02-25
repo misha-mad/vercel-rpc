@@ -382,8 +382,8 @@ The `RpcClient` interface (query/mutate overloads) and `createRpcClient` factory
 
 | File                                   | Action                                                            |
 |----------------------------------------|-------------------------------------------------------------------|
-| `crates/rpc-cli/src/codegen/client.rs` | Update `CONFIG_INTERFACE`, `FETCH_HELPER`; add new type constants |
-| `crates/rpc-cli/tests/client.rs`       | Add tests for new types in generated output                       |
+| `crates/metaxy-cli/src/codegen/client.rs` | Update `CONFIG_INTERFACE`, `FETCH_HELPER`; add new type constants |
+| `crates/metaxy-cli/tests/client.rs`       | Add tests for new types in generated output                       |
 | `demo/src/lib/rpc-client.ts`           | Regenerated (auto)                                                |
 
 ## 10. Test Plan

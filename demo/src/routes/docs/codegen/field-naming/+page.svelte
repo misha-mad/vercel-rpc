@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Field Naming — vercel-rpc</title>
+	<title>Field Naming — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

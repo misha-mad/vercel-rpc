@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>Svelte 5 — vercel-rpc</title>
+	<title>Svelte 5 — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">

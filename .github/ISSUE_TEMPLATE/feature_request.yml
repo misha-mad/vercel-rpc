@@ -8,9 +8,9 @@ body:
       value: |
         ## ✨ Feature Request
 
-        Suggest a new feature or improvement for **vercel-rpc**!
+        Suggest a new feature or improvement for **metaxy**!
 
-        For open-ended ideas and brainstorming, consider using [Discussions](https://github.com/misha-mad/vercel-rpc/discussions/categories/ideas) instead.
+        For open-ended ideas and brainstorming, consider using [Discussions](https://github.com/misha-mad/metaxy/discussions/categories/ideas) instead.
   - type: textarea
     id: description
     attributes:

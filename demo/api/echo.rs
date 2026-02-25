@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use vercel_rpc::rpc_mutation;
+use metaxy::rpc_mutation;
 
 /// Input for the echo mutation.
 #[derive(Deserialize, Serialize)]

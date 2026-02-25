@@ -5,13 +5,13 @@
 </script>
 
 <svelte:head>
-	<title>Config File — vercel-rpc</title>
+	<title>Config File — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold">Config File</h1>
 	<p class="text-text-muted leading-relaxed">
-		Place an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">rpc.config.toml</code>
+		Place an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">metaxy.config.toml</code>
 		in your project root. The CLI auto-discovers it by walking up from the current directory. Use
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">--config &lt;path&gt;</code>
 		to override or
@@ -242,7 +242,7 @@
 			<h3 class="text-lg font-semibold">[watch]</h3>
 			<p class="text-text-muted text-sm">
 				Watch mode settings for <code class="bg-bg-code px-1 py-0.5 rounded text-xs font-mono"
-					>rpc generate --watch</code
+					>metaxy generate --watch</code
 				>.
 			</p>
 			<table class="w-full text-sm">
