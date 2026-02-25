@@ -21,7 +21,9 @@
 				{ label: 'Config File', href: '/docs/configuration/config-file' },
 				{ label: 'CLI', href: '/docs/configuration/cli' },
 				{ label: 'Macro Attributes', href: '/docs/configuration/macro-attributes' },
-				{ label: 'RpcClientConfig', href: '/docs/configuration/client-config' }
+				{ label: 'RpcClientConfig', href: '/docs/configuration/client-config' },
+				{ label: 'Retry', href: '/docs/configuration/retry' },
+				{ label: 'Deduplication', href: '/docs/configuration/deduplication' }
 			]
 		},
 		{
@@ -30,7 +32,16 @@
 				{ label: 'Type Mappings', href: '/docs/type-system/type-mappings' },
 				{ label: 'Serde Support', href: '/docs/type-system/serde' },
 				{ label: 'Generics', href: '/docs/type-system/generics' },
-				{ label: 'Branded Newtypes', href: '/docs/type-system/branded-newtypes' }
+				{ label: 'Branded Newtypes', href: '/docs/type-system/branded-newtypes' },
+				{ label: 'Type Overrides', href: '/docs/type-system/type-overrides' },
+				{ label: 'BigInt Mapping', href: '/docs/type-system/bigint' }
+			]
+		},
+		{
+			label: 'Codegen',
+			children: [
+				{ label: 'Doc Comments', href: '/docs/codegen/doc-comments' },
+				{ label: 'Field Naming', href: '/docs/codegen/field-naming' }
 			]
 		},
 		{
