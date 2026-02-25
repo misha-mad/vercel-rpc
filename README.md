@@ -15,6 +15,8 @@
 [![Vercel](https://img.shields.io/badge/deploy-vercel-black?logo=vercel)](https://vercel.com)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-yellow.svg)](#license)
 
+> *Metaxy (Greek: μεταξύ) — a concept originating in Platonic philosophy. The in-between.*
+
 Write Rust functions → get a fully typed TypeScript client.
 
 </div>
