@@ -6,7 +6,7 @@
 
 [**Live Demo →** vercel-rpc.vercel.app](https://vercel-rpc.vercel.app)
 
-[![CI](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml/badge.svg)](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml)
+[![CI](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/misha-mad/vercel-rpc/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/misha-mad/vercel-rpc/graph/badge.svg)](https://codecov.io/gh/misha-mad/vercel-rpc)
 [![Rust Tests](https://img.shields.io/badge/rust_tests-passed-brightgreen?logo=rust)](./crates)
 [![Vitest](https://img.shields.io/badge/vitest-passed-brightgreen?logo=vitest)](./demo/tests/integration)
