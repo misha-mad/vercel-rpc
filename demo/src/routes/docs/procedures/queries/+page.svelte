@@ -246,7 +246,16 @@
 			/>
 		</div>
 		{#if math.data !== undefined}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-green-400">Result: {math.data}</div>
+			<div class="rounded-md bg-bg-code p-3 text-sm space-y-1">
+				<div>
+					<span class="text-text-muted">Expression:</span>
+					<span class="text-text-primary">{math.data.expression}</span>
+				</div>
+				<div>
+					<span class="text-text-muted">Result:</span>
+					<span class="text-green-400">{math.data.result}</span>
+				</div>
+			</div>
 		{/if}
 		{#if math.isError}
 			<div class="rounded-md bg-bg-code p-3 text-sm text-red-400">{math.error?.message}</div>
