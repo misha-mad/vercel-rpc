@@ -5,11 +5,7 @@
 
 	let { children } = $props();
 
-	type NavItem = { label: string; href: string; badge?: string };
-	type NavGroup = { label: string; children: NavItem[] };
-	type NavEntry = NavItem | NavGroup;
-
-	const nav: NavEntry[] = [
+	const nav = [
 		{ label: 'Getting Started', href: '/docs/getting-started' },
 		{
 			label: 'Procedures',
@@ -47,7 +43,10 @@
 			]
 		},
 		{ label: 'Error Handling', href: '/docs/error-handling' }
-	];
+	] as const;
+
+	type NavEntry = (typeof nav)[number];
+	type NavGroup = Extract<NavEntry, { children: readonly unknown[] }>;
 
 	function isGroup(entry: NavEntry): entry is NavGroup {
 		return 'children' in entry;
@@ -89,7 +88,7 @@
 
 	// Reset manual overrides on navigation (so auto-expand takes over)
 	$effect(() => {
-		page.url.pathname;
+		void page.url.pathname;
 		toggleOverrides = {};
 	});
 </script>
@@ -97,7 +96,7 @@
 <div class="mx-auto flex max-w-7xl">
 	<!-- Mobile toggle -->
 	<button
-		class="fixed bottom-4 left-4 z-[60] flex h-10 w-10 items-center justify-center rounded-lg bg-accent-rust text-white shadow-lg lg:hidden"
+		class="fixed bottom-4 left-4 z-60 flex h-10 w-10 items-center justify-center rounded-lg bg-accent-rust text-white shadow-lg lg:hidden"
 		onclick={() => (sidebarOpen = !sidebarOpen)}
 	>
 		{sidebarOpen ? '✕' : '☰'}
@@ -105,12 +104,12 @@
 
 	<!-- Sidebar -->
 	<aside
-		class="fixed top-0 bottom-0 left-0 z-40 w-60 overflow-y-auto border-r border-border bg-bg-sidebar pt-[4.5rem] pb-16 px-4 transition-transform lg:translate-x-0 {sidebarOpen
+		class="fixed top-0 bottom-0 left-0 z-40 w-60 overflow-y-auto border-r border-border bg-bg-sidebar pt-18 pb-16 px-4 transition-transform lg:translate-x-0 {sidebarOpen
 			? 'translate-x-0'
 			: '-translate-x-full'}"
 	>
 		<nav class="flex flex-col gap-0.5">
-			{#each nav as entry}
+			{#each nav as entry (entry.label)}
 				{#if isGroup(entry)}
 					<button
 						class="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-sm font-medium text-text-muted transition-colors hover:bg-bg-soft hover:text-text-primary"
@@ -128,13 +127,13 @@
 							transition:slide={{ duration: 150 }}
 							class="ml-2 flex flex-col gap-0.5 border-l border-border pl-2"
 						>
-							{#each entry.children as child}
+							{#each entry.children as child (child.href)}
 								<a
-									href={resolve(child.href as any)}
+									href={resolve(child.href)}
 									class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors {isActive(
 										child.href
 									)
-										? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
+										? `bg-bg-soft text-text-primary border-l-2 -ml-0.5 pl-2.5 ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 										: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
 									onclick={() => {
 										clickCount++;
@@ -142,7 +141,7 @@
 									}}
 								>
 									{child.label}
-									{#if child.badge}
+									{#if 'badge' in child}
 										<span class="rounded-full bg-accent-rust/20 text-accent-rust text-[10px] px-1.5"
 											>{child.badge}</span
 										>
@@ -153,9 +152,9 @@
 					{/if}
 				{:else}
 					<a
-						href={resolve(entry.href as any)}
+						href={resolve(entry.href)}
 						class="rounded-md px-3 py-1.5 text-sm transition-colors {isActive(entry.href)
-							? `bg-bg-soft text-text-primary border-l-2 -ml-[2px] pl-[10px] font-medium ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
+							? `bg-bg-soft text-text-primary border-l-2 -ml-0.5 pl-2.5 font-medium ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 							: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"
 						onclick={() => {
 							clickCount++;

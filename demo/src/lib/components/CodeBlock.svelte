@@ -59,5 +59,6 @@
 			{/if}
 		</button>
 	</div>
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- Shiki pre-rendered HTML -->
 	{@html html}
 </div>

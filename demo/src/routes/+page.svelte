@@ -199,7 +199,7 @@
 	</div>
 	<div class="hidden sm:block bg-bg-primary overflow-hidden">
 		<svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-			{#each Array.from({ length: 20 }, (_, i) => (i + 1) * 5) as r}
+			{#each Array.from({ length: 20 }, (_, i) => (i + 1) * 5) as r (r)}
 				<circle
 					cx="50"
 					cy="50"
