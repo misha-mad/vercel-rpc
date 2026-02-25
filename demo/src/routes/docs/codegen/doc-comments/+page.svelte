@@ -12,9 +12,9 @@
 	<h1 class="text-3xl font-bold">Doc Comments</h1>
 	<p class="text-text-muted leading-relaxed">
 		Forward Rust
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">///</code> doc comments as
-		JSDoc in the generated TypeScript — giving you editor tooltips and inline documentation on
-		the TypeScript side.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">///</code> doc comments as JSDoc
+		in the generated TypeScript — giving you editor tooltips and inline documentation on the TypeScript
+		side.
 	</p>
 
 	<div class="space-y-3">
@@ -30,8 +30,8 @@
 	</div>
 
 	<p class="text-text-muted leading-relaxed text-sm">
-		Doc comments are preserved on procedures, structs, and enums. Disabled by default
-		(<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">preserve_docs = false</code
+		Doc comments are preserved on procedures, structs, and enums. Disabled by default (<code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">preserve_docs = false</code
 		>).
 	</p>
 </div>

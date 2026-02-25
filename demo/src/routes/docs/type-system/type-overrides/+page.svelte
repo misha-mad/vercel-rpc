@@ -12,8 +12,7 @@
 	<h1 class="text-3xl font-bold">Type Overrides</h1>
 	<p class="text-text-muted leading-relaxed">
 		Map external crate types (or any Rust type) to custom TypeScript types via
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-			>[codegen.type_overrides]</code
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">[codegen.type_overrides]</code
 		>.
 	</p>
 
@@ -34,16 +33,18 @@
 		Override keys are matched against type names by their last path segment. For example, key
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">"chrono::DateTime"</code>
 		matches both the fully-qualified
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">chrono::DateTime&lt;Utc&gt;</code>
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>chrono::DateTime&lt;Utc&gt;</code
+		>
 		and the imported
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">DateTime&lt;Utc&gt;</code>.
-		If you use fully-qualified paths in your Rust source, exact full-path matching takes priority.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">DateTime&lt;Utc&gt;</code>. If
+		you use fully-qualified paths in your Rust source, exact full-path matching takes priority.
 	</p>
 	<p class="text-text-muted leading-relaxed text-sm">
-		Overrides are applied before code generation — every occurrence of the matched type
-		(including inside
+		Overrides are applied before code generation — every occurrence of the matched type (including
+		inside
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Vec&lt;T&gt;</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Option&lt;T&gt;</code>,
-		etc.) is replaced with the specified TypeScript type, and generic parameters are stripped.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Option&lt;T&gt;</code>, etc.)
+		is replaced with the specified TypeScript type, and generic parameters are stripped.
 	</p>
 </div>

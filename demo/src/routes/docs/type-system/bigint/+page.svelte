@@ -35,10 +35,10 @@
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i64</code>,
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>,
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i128</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u128</code>. Smaller types
-		like <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i32</code> and
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u128</code>. Smaller types like
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i32</code>
+		and
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u32</code> are safe as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code> and rarely need
-		mapping.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code> and rarely need mapping.
 	</p>
 </div>

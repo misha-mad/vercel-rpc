@@ -14,8 +14,8 @@
 		By default field names are emitted as-is. Set
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">camelCase</code> to convert
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">snake_case</code> fields to
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">camelCase</code> in the
-		generated TypeScript.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">camelCase</code> in the generated
+		TypeScript.
 	</p>
 
 	<div class="space-y-3">
@@ -34,8 +34,8 @@
 	<CodeBlock html={data.highlighted['camelTs']} />
 
 	<p class="text-text-muted leading-relaxed text-sm">
-		The transform also applies to struct variant fields in enums. Enum variant names and
-		procedure names are not affected.
+		The transform also applies to struct variant fields in enums. Enum variant names and procedure
+		names are not affected.
 	</p>
 
 	<p class="text-text-muted leading-relaxed text-sm">
