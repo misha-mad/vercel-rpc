@@ -21,6 +21,10 @@ Write Rust functions → get a fully typed TypeScript client.
 
 ---
 
+> **Note:** This project was previously published as `vercel-rpc` / `vercel-rpc-macro` / `vercel-rpc-cli` on crates.io. Those crates are deprecated — use `metaxy`, `metaxy-macro`, and `metaxy-cli` instead.
+
+---
+
 ## Why?
 
 Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript types in sync is painful. **metaxy** solves this:
