@@ -103,14 +103,11 @@ const user = createRpcQuery(rpc, 'get_user', () => id);`
 		lang: 'shellscript',
 		code: `my-app/
 ├── api/
-│   ├── hello.rs     → /api/hello
-│   ├── users.rs     → /api/users
-│   ├── math.rs      → /api/math
-│   └── echo.rs      → /api/echo
-├── src/              # frontend (any framework)
-├── metaxy.config.toml
+│   ├── hello.rs  → /api/hello
+│   └── users.rs  → /api/users
+├── src/             # frontend (any framework)
 ├── Cargo.toml
-└── vercel.json       # zero config needed`
+└── vercel.json`
 	},
 
 	// 9. Rich client
