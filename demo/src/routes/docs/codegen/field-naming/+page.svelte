@@ -40,9 +40,14 @@
 
 	<p class="text-text-muted leading-relaxed text-sm">
 		Priority: field-level
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">serde(rename)</code> &gt;
-		container
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">rename_all</code> &gt;
+		<a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
+			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">serde(rename)</code></a
+		>
+		&gt; container
+		<a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
+			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">rename_all</code></a
+		>
+		&gt;
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">codegen.naming.fields</code>
 		&gt; original name.
 	</p>

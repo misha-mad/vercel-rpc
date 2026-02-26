@@ -24,17 +24,40 @@ async fn time() -> TimeResponse { /* ... */ }
 /// A timestamp with a human-readable message.
 #[derive(Serialize)]
 struct TimeResponse {
+    /// Unix timestamp in seconds.
     timestamp: u64,
+    /// Formatted message for display.
     message: String,
+}
+
+/// Supported user roles.
+#[derive(Serialize)]
+enum Role {
+    /// Read-only access.
+    Viewer,
+    /// Can create and edit content.
+    Editor,
+    /// Full access including user management.
+    Admin,
 }`
 	},
 	exampleTs: {
 		lang: 'typescript',
 		code: `/** A timestamp with a human-readable message. */
 export interface TimeResponse {
+  /** Unix timestamp in seconds. */
   timestamp: number;
+  /** Formatted message for display. */
   message: string;
 }
+
+/**
+ * Supported user roles.
+ * - \`"Viewer"\` — Read-only access.
+ * - \`"Editor"\` — Can create and edit content.
+ * - \`"Admin"\` — Full access including user management.
+ */
+export type Role = "Viewer" | "Editor" | "Admin";
 
 export type Procedures = {
   queries: {

@@ -41,7 +41,7 @@
 	<p class="text-text-muted text-sm mb-2">Call your lambda</p>
 
 	<ul class="list-disc list-inside text-text-muted text-sm mb-2">
-		<li>Your any TS frontend</li>
+		<li>Any TypeScript frontend</li>
 	</ul>
 	<CodeBlock html={data.highlighted['gettingStartedTs']} />
 
@@ -86,10 +86,15 @@
 
 	<ol class="list-decimal list-inside space-y-2 text-text-muted">
 		<li>
-			Annotate Rust functions with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-				>#[rpc_query]</code
+			Annotate Rust functions with <a
+				href="/docs/procedures/queries"
+				class="text-accent-ts hover:underline"
+				><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_query]</code></a
 			>
-			or <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code>
+			or
+			<a href="/docs/procedures/mutations" class="text-accent-ts hover:underline"
+				><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code></a
+			>
 		</li>
 		<li>
 			The CLI scans your <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">api/</code

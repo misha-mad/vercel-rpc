@@ -155,7 +155,9 @@
 	</defs>
 </svg>
 
-<section class="border-t border-border grid grid-cols-1 sm:grid-cols-3 gap-px bg-border mb-16">
+<section
+	class="border-t border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-px bg-border mb-16"
+>
 	<!-- Row 1: left -->
 	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
 		<h3 class="text-lg font-semibold">End-to-end type safety</h3>
