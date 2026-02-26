@@ -53,9 +53,15 @@
 </section>
 
 <section
-	class="border-t border-b border-border grid grid-cols-1 sm:grid-cols-2 gap-px bg-border mb-16"
+	class="border-t border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-px bg-border mb-16"
 >
-	<!-- 1 -->
+	<!-- 1: code left, text right -->
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+			<CodeBlock html={data.highlighted['typeSafetyRust']} />
+			<CodeBlock html={data.highlighted['typeSafetyTs']} />
+		</div>
+	</div>
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">End-to-end type safety</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
@@ -65,17 +71,8 @@
 			>, no runtime surprises.
 		</p>
 	</div>
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-			<CodeBlock html={data.highlighted['typeSafetyRust']} />
-			<CodeBlock html={data.highlighted['typeSafetyTs']} />
-		</div>
-	</div>
 
-	<!-- 2 -->
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
-		<CodeBlock html={data.highlighted['autoClient']} />
-	</div>
+	<!-- 2: text left, code right -->
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Auto-generated client</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
@@ -84,8 +81,14 @@
 			for every procedure. Input and output types are inferred from your Rust code.
 		</p>
 	</div>
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['autoClient']} />
+	</div>
 
-	<!-- 3 -->
+	<!-- 3: code left, text right -->
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['watchMode']} />
+	</div>
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Watch mode</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
@@ -94,14 +97,8 @@
 			steps.
 		</p>
 	</div>
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
-		<CodeBlock html={data.highlighted['watchMode']} />
-	</div>
 
-	<!-- 4 -->
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
-		<CodeBlock html={data.highlighted['macroDriven']} />
-	</div>
+	<!-- 4: text left, code right -->
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Macro-driven</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
@@ -111,8 +108,14 @@
 			time.
 		</p>
 	</div>
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['macroDriven']} />
+	</div>
 
-	<!-- 5 -->
+	<!-- 5: code left, text right -->
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['initState']} />
+	</div>
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Init &amp; state injection</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
@@ -120,14 +123,8 @@
 			state as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">&T</code> into your handler automatically.
 		</p>
 	</div>
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
-		<CodeBlock html={data.highlighted['initState']} />
-	</div>
 
-	<!-- 6 -->
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
-		<CodeBlock html={data.highlighted['serde']} />
-	</div>
+	<!-- 6: text left, code right -->
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Serde support</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
@@ -138,36 +135,41 @@
 			matches the actual JSON output.
 		</p>
 	</div>
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['serde']} />
+	</div>
 
-	<!-- 7 -->
+	<!-- 7: code left, text right -->
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['edgeCache']} />
+	</div>
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Edge caching</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
 			Add <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">cache = "1h"</code> and the macro
-			generates
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">Cache-Control</code> headers. On Vercel,
-			this enables CDN caching with zero infrastructure changes.
+			generates <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">Cache-Control</code> headers. On
+			Vercel, this enables CDN caching with zero infrastructure changes.
 		</p>
 	</div>
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
-		<CodeBlock html={data.highlighted['edgeCache']} />
-	</div>
 
-	<!-- 8 -->
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
-		<CodeBlock html={data.highlighted['vercelNative']} />
-	</div>
+	<!-- 8: text left, code right -->
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Vercel-native</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
 			Each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file in
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">api/</code> becomes a serverless
-			function. No routing config, no server setup — just deploy with
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">api/</code>
+			becomes a serverless function. No routing config, no server setup — just deploy with
 			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">vercel</code>.
 		</p>
 	</div>
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['vercelNative']} />
+	</div>
 
-	<!-- 9 -->
+	<!-- 9: code left, text right -->
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['frameworks']} />
+	</div>
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">4 framework wrappers</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
@@ -175,19 +177,16 @@
 			mutation lifecycle callbacks — generated alongside the base client.
 		</p>
 	</div>
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
-		<CodeBlock html={data.highlighted['frameworks']} />
-	</div>
 
-	<!-- 10 -->
-	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
-		<CodeBlock html={data.highlighted['richClient']} />
-	</div>
+	<!-- 10: text left, code right -->
 	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Rich client</h3>
 		<p class="text-sm text-text-muted leading-relaxed">
 			Retry with backoff, per-request timeout, AbortSignal support, request deduplication, lifecycle
 			hooks, async headers — all configurable globally or per-call.
 		</p>
+	</div>
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['richClient']} />
 	</div>
 </section>
