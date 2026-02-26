@@ -33,17 +33,7 @@ interface User {
 	// 3. Watch mode
 	watchMode: {
 		lang: 'shellscript',
-		code: `my-app/
-├── api/
-│   ├── hello.rs      # ← edit Rust
-│   ├── users.rs      # ← add new file
-│   └── math.rs
-├── src/lib/
-│   ├── rpc-types.ts  # ← auto-regenerated
-│   └── rpc-client.ts # ← auto-regenerated
-└── metaxy.config.toml
-
-$ metaxy watch
+		code: `$ metaxy watch
   ▸ Watching api/ for changes...
   ✓ Generated rpc-types.ts (3 queries, 1 mutation)
   ▸ api/users.rs changed
