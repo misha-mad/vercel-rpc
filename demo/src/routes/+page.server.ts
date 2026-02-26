@@ -15,7 +15,6 @@ pub struct User {
 	typeSafetyTs: {
 		lang: 'typescript',
 		code: `// Auto-generated
-// zero manual sync
 interface User {
   id: number;
   name: string;
@@ -26,8 +25,12 @@ interface User {
 	// 2. Auto-generated client
 	autoClient: {
 		lang: 'typescript',
-		code: `const greeting = await rpc.query('hello', 'World');
-// greeting: string — fully typed, with autocomplete`
+		code: `import { createRpcClient } from './rpc-client';
+
+const rpc = createRpcClient({ baseUrl: '/api' });
+
+const greeting = await rpc.query('hello', 'World');
+//    ^ string — fully typed, with autocomplete`
 	},
 
 	// 3. Watch mode
