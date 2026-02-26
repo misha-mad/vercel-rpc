@@ -81,7 +81,7 @@
 			for every procedure. Input and output types are inferred from your Rust code.
 		</p>
 	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[200px]">
+	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
 		<CodeBlock html={data.highlighted['autoClient']} />
 	</div>
 
