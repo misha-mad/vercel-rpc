@@ -1,7 +1,7 @@
 flags:
-  rpc-cli:
+  metaxy-cli:
     paths:
-      - crates/rpc-cli/
-  rpc-macro:
+      - crates/metaxy-cli/
+  metaxy-macro:
     paths:
-      - crates/rpc-macro/
+      - crates/metaxy-macro/
