@@ -52,283 +52,142 @@
 	</div>
 </section>
 
-<!-- SVG pattern definitions -->
-<svg class="absolute w-0 h-0">
-	<defs>
-		<!-- 1: Diagonal lines -->
-		<pattern id="pat-diag" width="20" height="20" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="20" x2="20" y2="0" stroke="#f74c00" stroke-opacity="0.7" stroke-width="1" />
-		</pattern>
-		<!-- 2: Horizontal waves -->
-		<pattern id="pat-wave" width="40" height="20" patternUnits="userSpaceOnUse">
-			<path
-				d="M0 10 Q10 0 20 10 Q30 20 40 10"
-				fill="none"
-				stroke="#3178c6"
-				stroke-opacity="0.7"
-				stroke-width="1"
-			/>
-		</pattern>
-		<!-- 3: Concentric circles -->
-		<pattern id="pat-circles" width="60" height="60" patternUnits="userSpaceOnUse">
-			<circle
-				cx="30"
-				cy="30"
-				r="5"
-				fill="none"
-				stroke="white"
-				stroke-opacity="0.7"
-				stroke-width="0.25"
-			/>
-			<circle
-				cx="30"
-				cy="30"
-				r="12"
-				fill="none"
-				stroke="white"
-				stroke-opacity="0.7"
-				stroke-width="0.25"
-			/>
-			<circle
-				cx="30"
-				cy="30"
-				r="19"
-				fill="none"
-				stroke="white"
-				stroke-opacity="0.7"
-				stroke-width="0.25"
-			/>
-			<circle
-				cx="30"
-				cy="30"
-				r="26"
-				fill="none"
-				stroke="white"
-				stroke-opacity="0.7"
-				stroke-width="0.25"
-			/>
-		</pattern>
-		<!-- 4: Zigzag -->
-		<pattern id="pat-zigzag" width="20" height="20" patternUnits="userSpaceOnUse">
-			<polyline
-				points="0,10 5,0 10,10 15,0 20,10"
-				fill="none"
-				stroke="#f74c00"
-				stroke-opacity="0.7"
-				stroke-width="1"
-			/>
-		</pattern>
-		<!-- 5: Horizontal lines varying thickness -->
-		<pattern id="pat-hlines" width="10" height="24" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="4" x2="10" y2="4" stroke="#f74c00" stroke-opacity="0.7" stroke-width="1" />
-			<line x1="0" y1="12" x2="10" y2="12" stroke="#f74c00" stroke-opacity="0.7" stroke-width="1" />
-			<line x1="0" y1="20" x2="10" y2="20" stroke="#f74c00" stroke-opacity="0.7" stroke-width="1" />
-		</pattern>
-		<!-- 6: Dots grid -->
-		<pattern id="pat-dots" width="16" height="16" patternUnits="userSpaceOnUse">
-			<circle cx="8" cy="8" r="1.5" fill="#3178c6" fill-opacity="0.7" />
-		</pattern>
-		<!-- 7: Cross-hatch -->
-		<pattern id="pat-cross" width="16" height="16" patternUnits="userSpaceOnUse">
-			<line x1="0" y1="16" x2="16" y2="0" stroke="#3178c6" stroke-opacity="0.7" stroke-width="1" />
-			<line x1="0" y1="0" x2="16" y2="16" stroke="#3178c6" stroke-opacity="0.7" stroke-width="1" />
-		</pattern>
-		<!-- 8: Vertical lines -->
-		<pattern id="pat-vlines" width="12" height="10" patternUnits="userSpaceOnUse">
-			<line x1="4" y1="0" x2="4" y2="10" stroke="#f74c00" stroke-opacity="0.7" stroke-width="1" />
-			<line x1="8" y1="0" x2="8" y2="10" stroke="#f74c00" stroke-opacity="0.7" stroke-width="1" />
-		</pattern>
-		<!-- 9: Arcs -->
-		<pattern id="pat-arcs" width="30" height="30" patternUnits="userSpaceOnUse">
-			<path
-				d="M0 30 A30 30 0 0 1 30 0"
-				fill="none"
-				stroke="#3178c6"
-				stroke-opacity="0.7"
-				stroke-width="1"
-			/>
-			<path
-				d="M0 15 A15 15 0 0 1 15 0"
-				fill="none"
-				stroke="#3178c6"
-				stroke-opacity="0.7"
-				stroke-width="1"
-			/>
-		</pattern>
-		<!-- 10: Diamond grid -->
-		<pattern id="pat-diamond" width="24" height="24" patternUnits="userSpaceOnUse">
-			<polygon
-				points="12,2 22,12 12,22 2,12"
-				fill="none"
-				stroke="white"
-				stroke-opacity="0.7"
-				stroke-width="1"
-			/>
-		</pattern>
-	</defs>
-</svg>
-
 <section
-	class="border-t border-b border-border grid grid-cols-1 sm:grid-cols-3 gap-px bg-border mb-16"
+	class="border-t border-b border-border grid grid-cols-1 sm:grid-cols-2 gap-px bg-border mb-16"
 >
-	<!-- Row 1: left -->
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<!-- 1 -->
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">End-to-end type safety</h3>
-		<p class="text-sm text-text-muted">
-			Rust types become TypeScript interfaces — zero manual sync.
+		<p class="text-sm text-text-muted leading-relaxed">
+			Define a Rust struct once — the CLI generates matching TypeScript interfaces. Rename a field,
+			and your frontend won't compile until it's updated. No more <code
+				class="bg-bg-code px-1.5 py-0.5 rounded text-xs">any</code
+			>, no runtime surprises.
 		</p>
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 flex-1">
+	</div>
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
 			<CodeBlock html={data.highlighted['typeSafetyRust']} />
 			<CodeBlock html={data.highlighted['typeSafetyTs']} />
 		</div>
 	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-diag)" /></svg>
-	</div>
 
-	<!-- Row 2: right -->
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-wave)" /></svg>
+	<!-- 2 -->
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
+		<CodeBlock html={data.highlighted['autoClient']} />
 	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Auto-generated client</h3>
-		<p class="text-sm text-text-muted">
-			Typed <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.query()</code> /
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.mutate()</code> with autocomplete.
+		<p class="text-sm text-text-muted leading-relaxed">
+			A fully typed <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.query()</code> /
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rpc.mutate()</code> client with autocomplete
+			for every procedure. Input and output types are inferred from your Rust code.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['autoClient']} />
-		</div>
 	</div>
 
-	<!-- Row 3: left -->
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<!-- 3 -->
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Watch mode</h3>
-		<p class="text-sm text-text-muted">
-			Types regenerate on every <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> save
-			— your frontend stays in sync automatically.
+		<p class="text-sm text-text-muted leading-relaxed">
+			Save a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file and types regenerate
+			instantly. Runs alongside your dev server so the frontend always has the latest types without manual
+			steps.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['watchMode']} />
-		</div>
 	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-			{#each Array.from({ length: 20 }, (_, i) => (i + 1) * 5) as r (r)}
-				<circle
-					cx="50"
-					cy="50"
-					{r}
-					fill="none"
-					stroke="white"
-					stroke-opacity="0.7"
-					stroke-width="0.25"
-				/>
-			{/each}
-		</svg>
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['watchMode']} />
 	</div>
 
-	<!-- Row 4: right -->
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-zigzag)" /></svg>
+	<!-- 4 -->
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
+		<CodeBlock html={data.highlighted['macroDriven']} />
 	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Macro-driven</h3>
-		<p class="text-sm text-text-muted">
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_query]</code> /
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_mutation]</code> — CORS, parsing &
-			errors built in.
+		<p class="text-sm text-text-muted leading-relaxed">
+			Annotate with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_query]</code> or
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">#[rpc_mutation]</code> and get CORS, input
+			parsing, JSON serialization, error handling, and HTTP method validation — all generated at compile
+			time.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['macroDriven']} />
-		</div>
 	</div>
 
-	<!-- Row 5: left -->
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<!-- 5 -->
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Init &amp; state injection</h3>
-		<p class="text-sm text-text-muted">
-			Cold-start setup for DB pools, HTTP clients via <code
-				class="bg-bg-code px-1.5 py-0.5 rounded text-xs">init = "setup"</code
-			>.
+		<p class="text-sm text-text-muted leading-relaxed">
+			Set up database pools, HTTP clients, or loggers once at cold start. The macro injects shared
+			state as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">&T</code> into your handler automatically.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['initState']} />
-		</div>
 	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-dots)" /></svg>
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['initState']} />
 	</div>
 
-	<!-- Row 6: right -->
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-hlines)" /></svg>
+	<!-- 6 -->
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
+		<CodeBlock html={data.highlighted['serde']} />
 	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Serde support</h3>
-		<p class="text-sm text-text-muted">
+		<p class="text-sm text-text-muted leading-relaxed">
 			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">rename_all</code>,
 			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">skip</code>,
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">flatten</code> & all enum tagging strategies.
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">flatten</code>, and all four enum
+			tagging strategies — the codegen reads your serde attributes and generates TypeScript that
+			matches the actual JSON output.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['serde']} />
-		</div>
 	</div>
 
-	<!-- Row 7: left -->
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<!-- 7 -->
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Edge caching</h3>
-		<p class="text-sm text-text-muted">
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">cache = "1h"</code> generates Cache-Control
-			headers for Vercel CDN.
+		<p class="text-sm text-text-muted leading-relaxed">
+			Add <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">cache = "1h"</code> and the macro
+			generates
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">Cache-Control</code> headers. On Vercel,
+			this enables CDN caching with zero infrastructure changes.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['edgeCache']} />
-		</div>
 	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-cross)" /></svg>
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['edgeCache']} />
 	</div>
 
-	<!-- Row 8: right -->
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-diamond)" /></svg>
+	<!-- 8 -->
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
+		<CodeBlock html={data.highlighted['vercelNative']} />
 	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Vercel-native</h3>
-		<p class="text-sm text-text-muted">
-			Each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file deploys as a serverless
-			lambda — no infra config needed.
+		<p class="text-sm text-text-muted leading-relaxed">
+			Each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">.rs</code> file in
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">api/</code> becomes a serverless
+			function. No routing config, no server setup — just deploy with
+			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs">vercel</code>.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['vercelNative']} />
-		</div>
 	</div>
 
-	<!-- Row 9: left -->
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<!-- 9 -->
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">4 framework wrappers</h3>
-		<p class="text-sm text-text-muted">Svelte 5, React, Vue 3, SolidJS — reactive hooks, opt-in.</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['frameworks']} />
-		</div>
+		<p class="text-sm text-text-muted leading-relaxed">
+			Opt-in reactive wrappers for Svelte 5, React, Vue 3, and SolidJS. Auto-refetching queries,
+			mutation lifecycle callbacks — generated alongside the base client.
+		</p>
 	</div>
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-vlines)" /></svg>
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3">
+		<CodeBlock html={data.highlighted['frameworks']} />
 	</div>
 
-	<!-- Row 10: right -->
-	<div class="hidden sm:block bg-bg-primary overflow-hidden">
-		<svg class="h-full w-full"><rect width="100%" height="100%" fill="url(#pat-arcs)" /></svg>
+	<!-- 10 -->
+	<div class="bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:order-none order-1">
+		<CodeBlock html={data.highlighted['richClient']} />
 	</div>
-	<div class="sm:col-span-2 bg-bg-primary p-5 sm:p-10 flex flex-col gap-3 sm:min-h-[576px]">
+	<div class="bg-bg-primary p-6 sm:p-10 flex flex-col justify-center gap-3">
 		<h3 class="text-lg font-semibold">Rich client</h3>
-		<p class="text-sm text-text-muted">
-			Retry, timeout, dedup, lifecycle hooks, custom headers, AbortSignal.
+		<p class="text-sm text-text-muted leading-relaxed">
+			Retry with backoff, per-request timeout, AbortSignal support, request deduplication, lifecycle
+			hooks, async headers — all configurable globally or per-call.
 		</p>
-		<div class="mt-2 flex-1 flex flex-col">
-			<CodeBlock html={data.highlighted['richClient']} />
-		</div>
 	</div>
 </section>
