@@ -25,9 +25,7 @@ interface User {
 	// 2. Auto-generated client
 	autoClient: {
 		lang: 'typescript',
-		code: `import { createRpcClient } from './rpc-client';
-
-const rpc = createRpcClient({ baseUrl: '/api' });
+		code: `const rpc = createRpcClient({ baseUrl: '/api' });
 
 const greeting = await rpc.query('hello', 'World');
 //    ^ string — fully typed, with autocomplete`
