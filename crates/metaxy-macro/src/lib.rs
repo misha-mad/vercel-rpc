@@ -63,7 +63,7 @@
 //! | `async fn f() -> Result<T, E>` | none | `Ok` → 200, `Err` → 400 |
 //! | `async fn f(input: I) -> Result<T, E>` | `I` deserialized | `Ok` → 200, `Err` → 400 |
 //!
-//! More than one parameter is a **compile error**.
+//! More than one parameter is a **compilation error**.
 //!
 //! # CORS
 //!
@@ -87,7 +87,7 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// Generates a Vercel-compatible lambda handler from an async **query** function.
 ///
 /// The annotated function becomes a **GET** endpoint. Input is read from the
-/// `?input=<JSON>` query parameter and the return value is serialized as JSON.
+/// `?input=<JSON>` query parameter, and the return value is serialized as JSON.
 ///
 /// The macro generates:
 /// - A `main()` entry point with a single-threaded tokio runtime that calls `vercel_runtime::run`.
@@ -176,7 +176,7 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// # Initialization
 ///
 /// Use the `init` attribute to run an async function once at cold start.
-/// The init function can optionally return shared state injected as `&T`:
+/// The init function can optionally return the shared state injected as `&T`:
 ///
 /// ```rust,ignore
 /// // Side-effects only (logger, env loading)
@@ -217,7 +217,7 @@ use syn::{FnArg, ItemFn, ReturnType, Type, parse_macro_input};
 /// # Idempotent
 ///
 /// The `idempotent` flag is **not** accepted on queries — queries are inherently
-/// idempotent (GET requests). Using `#[rpc_query(idempotent)]` is a compile error.
+/// idempotent (GET requests). Using `#[rpc_query(idempotent)]` is a compiler error.
 ///
 /// # Limitations
 ///
@@ -553,7 +553,7 @@ fn parse_handler_attrs_inner(attr: proc_macro2::TokenStream) -> Result<HandlerAt
     })
 }
 
-/// Parses a human-readable duration shorthand into seconds.
+/// Parses human-readable duration shorthand into seconds.
 ///
 /// Supported suffixes: `s` (seconds), `m` (minutes), `h` (hours), `d` (days).
 /// Zero durations are rejected.
