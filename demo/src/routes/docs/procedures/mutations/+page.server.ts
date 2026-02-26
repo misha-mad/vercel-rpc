@@ -9,6 +9,25 @@ async fn create_order(input: OrderInput) -> Order {
     db::insert_order(input).await
 }`
 	},
+	voidRust: {
+		lang: 'rust',
+		code: `// Void-input mutation — no arguments needed
+#[rpc_mutation]
+async fn reset() -> bool {
+    cache::clear_all().await;
+    true
+}
+
+// Result error handling in mutations
+#[rpc_mutation]
+async fn delete_user(id: u64) -> Result<(), String> {
+    if !db::user_exists(id).await {
+        return Err("User not found".into());
+    }
+    db::delete_user(id).await;
+    Ok(())
+}`
+	},
 	exampleTs: {
 		lang: 'typescript',
 		code: `// Direct call
@@ -17,20 +36,41 @@ const order = await rpc.mutate('create_order', orderInput);
 // With options
 const order = await rpc.mutate('create_order', orderInput, {
   timeout: 10000,
-});`
+});
+
+// Void-input mutation
+await rpc.mutate('reset');
+
+// Result<T, E> — errors throw RpcError
+try {
+  await rpc.mutate('delete_user', userId);
+} catch (e) {
+  if (e instanceof RpcError) {
+    console.error(e.status, e.data);
+  }
+}`
 	},
 	exampleSvelte: {
 		lang: 'typescript',
 		code: `// Reactive wrapper — triggered explicitly via .mutate()
-const order = createMutation(rpc, 'create_order');
+const order = createMutation(rpc, 'create_order', {
+  onSuccess: (data) => console.log('Created:', data),
+  onError: (err) => console.error(err),
+});
 
-// Trigger:
+// Fire-and-forget
 order.mutate(orderInput);
 
+// Await the result
+const result = await order.mutateAsync(orderInput);
+
+// Access state
 // order.data       — Order | undefined
+// order.error      — RpcError | undefined
 // order.isLoading  — boolean
+// order.isSuccess  — boolean
 // order.isError    — boolean
-// order.error      — RpcError | undefined`
+// order.reset()    — clear state`
 	},
 	callOptionsType: {
 		lang: 'typescript',
@@ -51,18 +91,23 @@ pub struct EchoInput {
 
 #[derive(Serialize)]
 pub struct EchoOutput {
-    pub message: String,
-    pub length: usize,
+    pub original: String,
+    pub transformed: String,
+    pub length: u32,
 }
 
 #[rpc_mutation]
 async fn echo(input: EchoInput) -> EchoOutput {
-    let msg = if input.uppercase {
+    let transformed = if input.uppercase {
         input.message.to_uppercase()
     } else {
-        input.message
+        input.message.clone()
     };
-    EchoOutput { message: msg.clone(), length: msg.len() }
+    EchoOutput {
+        length: transformed.len() as u32,
+        original: input.message,
+        transformed,
+    }
 }`
 	},
 	echoTs: {

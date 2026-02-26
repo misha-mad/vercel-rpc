@@ -42,13 +42,21 @@ users.refetch()    // manual refetch`
 
 const create = createMutation(rpc, 'create_user', {
   onSuccess: (data) => console.log('Created:', data),
+  onError: (err) => console.error(err),
 });
 
-// Trigger
+// Fire-and-forget
 create.mutate({ name: 'Alice' });
 
+// Await the result
+const user = await create.mutateAsync({ name: 'Alice' });
+
+// Access via signal accessors
 create.data()       // T | undefined
+create.error()      // RpcError | undefined
 create.isLoading()  // boolean
+create.isSuccess()  // boolean (memo)
+create.isError()    // boolean (memo)
 create.reset()      // clear state`
 	}
 };

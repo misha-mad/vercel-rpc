@@ -103,6 +103,37 @@
 		</table>
 	</div>
 
+	<h2 class="text-2xl font-semibold">Global onError Hook</h2>
+	<p class="text-text-muted text-sm mb-2">
+		Catch all errors at the client level. The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onError</code>
+		callback receives an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ErrorContext</code> with
+		the procedure name, attempt number, and whether the client will retry.
+	</p>
+	<CodeBlock html={data.highlighted['onErrorCallback']} />
+
+	<h2 class="text-2xl font-semibold">Reactive Error Handling</h2>
+	<p class="text-text-muted text-sm mb-2">
+		Framework wrappers expose <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">isError</code>
+		and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">error</code> state for conditional UI rendering.
+	</p>
+	<CodeBlock html={data.highlighted['frameworkError']} />
+
+	<h2 class="text-2xl font-semibold">Mutation Errors</h2>
+	<p class="text-text-muted text-sm mb-2">
+		Use <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">mutateAsync</code> with try/catch
+		for fine-grained control, or <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onError</code>
+		callback for fire-and-forget style.
+	</p>
+	<CodeBlock html={data.highlighted['mutationError']} />
+
+	<h2 class="text-2xl font-semibold">Timeout &amp; Abort</h2>
+	<p class="text-text-muted text-sm mb-2">
+		Timeouts and manual aborts throw a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">DOMException</code>
+		with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">name: 'AbortError'</code>,
+		not <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code>.
+	</p>
+	<CodeBlock html={data.highlighted['timeoutError']} />
+
 	<h2 class="text-2xl font-semibold">Secret — Protected Endpoint</h2>
 	<p class="text-text-muted text-sm mb-4">
 		This endpoint requires an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"

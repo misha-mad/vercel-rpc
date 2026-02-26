@@ -1,9 +1,3 @@
-<script lang="ts">
-	import CodeBlock from '$lib/components/CodeBlock.svelte';
-
-	let { data } = $props();
-</script>
-
 <svelte:head>
 	<title>Streaming — metaxy</title>
 </svelte:head>
@@ -32,11 +26,6 @@
 			method returning an
 			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AsyncIterable</code>.
 		</p>
-
-		<div class="space-y-3 mb-4">
-			<CodeBlock html={data.highlighted['streamRust']} />
-			<CodeBlock html={data.highlighted['streamTs']} />
-		</div>
 
 		<h3 class="text-lg font-semibold mb-3">Supported formats</h3>
 		<ul class="list-disc list-inside space-y-1 text-text-muted text-sm">

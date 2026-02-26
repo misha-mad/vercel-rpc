@@ -36,12 +36,14 @@ const users = createQuery(rpc, 'list_users', () => page, {
 });
 
 // Access state
-hello.data       // T | undefined
-hello.error      // RpcError | undefined
-hello.isLoading  // boolean
-hello.isError    // boolean
-hello.isSuccess  // boolean
-hello.refetch()  // manual refetch`
+hello.data              // T | undefined
+hello.error             // RpcError | undefined
+hello.status            // "idle" | "loading" | "success" | "error"
+hello.isLoading         // boolean
+hello.isSuccess         // boolean
+hello.isError           // boolean
+hello.isPlaceholderData // boolean (true until first real fetch)
+hello.refetch()         // manual refetch`
 	},
 	mutation: {
 		lang: 'typescript',
@@ -50,13 +52,21 @@ hello.refetch()  // manual refetch`
 const echo = createMutation(rpc, 'echo', {
   onSuccess: (data) => console.log('Done:', data),
   onError: (err) => console.error(err),
+  onSettled: () => console.log('Finished'),
 });
 
-// Trigger explicitly
+// Fire-and-forget
 echo.mutate({ message: 'Hello', uppercase: true });
 
+// Await the result
+const result = await echo.mutateAsync({ message: 'Hello', uppercase: true });
+
+// Access state
 echo.data       // T | undefined
+echo.error      // RpcError | undefined
 echo.isLoading  // boolean
+echo.isSuccess  // boolean
+echo.isError    // boolean
 echo.reset()    // clear state`
 	}
 };

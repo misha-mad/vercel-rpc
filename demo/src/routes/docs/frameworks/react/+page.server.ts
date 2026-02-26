@@ -49,15 +49,27 @@ function UserList() {
 function CreateForm() {
   const create = useMutation(rpc, 'create_user', {
     onSuccess: (data) => console.log('Created:', data),
+    onError: (err) => console.error(err),
   });
 
+  // Await the result
+  const handleSubmit = async () => {
+    try {
+      const user = await create.mutateAsync({ name: 'Alice' });
+      console.log('Created:', user);
+    } catch (err) {
+      // err is RpcError
+    }
+  };
+
   return (
-    <button
-      onClick={() => create.mutate({ name: 'Alice' })}
-      disabled={create.isLoading}
-    >
-      {create.isLoading ? 'Creating...' : 'Create'}
-    </button>
+    <>
+      <button onClick={handleSubmit} disabled={create.isLoading}>
+        {create.isLoading ? 'Creating...' : 'Create'}
+      </button>
+      {create.isError && <p>Error: {create.error?.message}</p>}
+      {create.isSuccess && <p>Created: {create.data?.name}</p>}
+    </>
   );
 }`
 	}

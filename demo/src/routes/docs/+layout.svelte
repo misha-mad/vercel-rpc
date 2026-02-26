@@ -16,32 +16,40 @@
 			]
 		},
 		{
-			label: 'Configuration',
+			label: 'Macro Attributes',
 			children: [
-				{ label: 'Config File', href: '/docs/configuration/config-file' },
-				{ label: 'CLI', href: '/docs/configuration/cli' },
-				{ label: 'Macro Attributes', href: '/docs/configuration/macro-attributes' },
-				{ label: 'RpcClientConfig', href: '/docs/configuration/client-config' },
-				{ label: 'Retry', href: '/docs/configuration/retry' },
-				{ label: 'Deduplication', href: '/docs/configuration/deduplication' }
-			]
-		},
-		{
-			label: 'Type System',
-			children: [
-				{ label: 'Type Mappings', href: '/docs/type-system/type-mappings' },
-				{ label: 'Serde Support', href: '/docs/type-system/serde' },
-				{ label: 'Generics', href: '/docs/type-system/generics' },
-				{ label: 'Branded Newtypes', href: '/docs/type-system/branded-newtypes' },
-				{ label: 'Type Overrides', href: '/docs/type-system/type-overrides' },
-				{ label: 'BigInt Mapping', href: '/docs/type-system/bigint' }
+				{ label: 'Overview', href: '/docs/macros/attributes' },
+				{ label: 'cache', href: '/docs/macros/cache' },
+				{ label: 'stale', href: '/docs/macros/stale' },
+				{ label: 'init', href: '/docs/macros/init' },
+				{ label: 'timeout', href: '/docs/macros/timeout' },
+				{ label: 'idempotent', href: '/docs/macros/idempotent' }
 			]
 		},
 		{
 			label: 'Codegen',
 			children: [
+				{ label: 'Type Mappings', href: '/docs/codegen/type-mappings' },
+				{ label: 'Serde Support', href: '/docs/codegen/serde' },
+				{ label: 'Generics', href: '/docs/codegen/generics' },
 				{ label: 'Doc Comments', href: '/docs/codegen/doc-comments' },
-				{ label: 'Field Naming', href: '/docs/codegen/field-naming' }
+				{ label: 'Field Naming', href: '/docs/codegen/field-naming' },
+				{ label: 'Branded Newtypes', href: '/docs/codegen/branded-newtypes' },
+				{ label: 'BigInt Mapping', href: '/docs/codegen/bigint' },
+				{ label: 'Type Overrides', href: '/docs/codegen/type-overrides' }
+			]
+		},
+		{
+			label: 'Client',
+			children: [
+				{ label: 'Config', href: '/docs/client/config' },
+				{ label: 'Headers', href: '/docs/client/headers' },
+				{ label: 'Timeout & Abort', href: '/docs/client/timeout' },
+				{ label: 'Lifecycle Hooks', href: '/docs/client/hooks' },
+				{ label: 'Retry', href: '/docs/client/retry' },
+				{ label: 'Deduplication', href: '/docs/client/deduplication' },
+				{ label: 'Custom Fetch', href: '/docs/client/fetch' },
+				{ label: 'Serialization', href: '/docs/client/serialization' }
 			]
 		},
 		{
@@ -53,7 +61,17 @@
 				{ label: 'SolidJS', href: '/docs/frameworks/solid' }
 			]
 		},
-		{ label: 'Error Handling', href: '/docs/error-handling' }
+		{ label: 'Error Handling', href: '/docs/error-handling' },
+		{
+			label: 'CLI',
+			children: [
+				{ label: 'Overview', href: '/docs/cli/commands' },
+				{ label: 'generate', href: '/docs/cli/generate' },
+				{ label: 'scan', href: '/docs/cli/scan' },
+				{ label: 'watch', href: '/docs/cli/watch' }
+			]
+		},
+		{ label: 'Config File', href: '/docs/config-file' }
 	] as const;
 
 	type NavEntry = (typeof nav)[number];
@@ -75,8 +93,25 @@
 		return group.children.some((child) => isActive(child.href));
 	}
 
-	// Track manually toggled groups. Key = group label, value = open/closed override.
-	let toggleOverrides: Record<string, boolean> = $state({});
+	// Track manually toggled groups. Persisted to sessionStorage.
+	const STORAGE_KEY = 'docs-nav-open';
+
+	function loadOverrides(): Record<string, boolean> {
+		try {
+			const raw = sessionStorage.getItem(STORAGE_KEY);
+			return raw ? JSON.parse(raw) : {};
+		} catch {
+			return {};
+		}
+	}
+
+	let toggleOverrides: Record<string, boolean> = $state(loadOverrides());
+
+	function saveOverrides() {
+		try {
+			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toggleOverrides));
+		} catch {}
+	}
 
 	function isGroupOpen(group: NavGroup): boolean {
 		if (group.label in toggleOverrides) return toggleOverrides[group.label];
@@ -86,7 +121,21 @@
 	function toggleGroup(group: NavGroup) {
 		const current = isGroupOpen(group);
 		toggleOverrides[group.label] = !current;
+		saveOverrides();
 	}
+
+	// Auto-expand group containing the active page (without clearing manual overrides)
+	$effect(() => {
+		const path = page.url.pathname;
+		for (const entry of nav) {
+			if (isGroup(entry) && entry.children.some((c) => c.href === path)) {
+				if (!(entry.label in toggleOverrides)) {
+					toggleOverrides[entry.label] = true;
+					saveOverrides();
+				}
+			}
+		}
+	});
 
 	let sidebarOpen = $state(false);
 
@@ -95,12 +144,6 @@
 		return () => {
 			document.body.style.overflow = '';
 		};
-	});
-
-	// Reset manual overrides on navigation (so auto-expand takes over)
-	$effect(() => {
-		void page.url.pathname;
-		toggleOverrides = {};
 	});
 </script>
 

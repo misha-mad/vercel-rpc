@@ -1,0 +1,70 @@
+import { highlightCode } from '$lib/highlight.server';
+import type { PageServerLoad } from './$types';
+
+const codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' }> = {
+	basic: {
+		lang: 'rust',
+		code: `// Safe to retry on failure — repeated calls produce the same result
+#[rpc_mutation(idempotent)]
+async fn upsert_user(input: UpsertInput) -> User { ... }
+
+// NOT safe to retry (default) — each call creates a new resource
+#[rpc_mutation]
+async fn create_order(input: OrderInput) -> Order { ... }`
+	},
+	examples: {
+		lang: 'rust',
+		code: `// Good candidates for idempotent:
+#[rpc_mutation(idempotent)]
+async fn set_preference(input: PrefInput) -> Pref { ... }  // upsert
+
+#[rpc_mutation(idempotent)]
+async fn update_status(input: StatusInput) -> Status { ... }  // overwrite
+
+#[rpc_mutation(idempotent)]
+async fn delete_item(id: u64) -> bool { ... }  // delete is idempotent
+
+// BAD — do NOT mark as idempotent:
+// #[rpc_mutation(idempotent)]
+// async fn transfer_money(input: TransferInput) -> Receipt { ... }`
+	},
+	retryBehavior: {
+		lang: 'typescript',
+		code: `// Without idempotent: mutation is NEVER retried, even with retry policy
+// With idempotent: mutation follows the same retry policy as queries
+
+const rpc = createRpcClient({
+  baseUrl: '/api',
+  retry: { attempts: 3, delay: 1000 },
+});
+
+// upsert_user (idempotent) — will retry up to 3 times on failure
+await rpc.mutate('upsert_user', input);
+
+// create_order (not idempotent) — will NOT retry, even though retry is configured
+await rpc.mutate('create_order', input);`
+	},
+	combined: {
+		lang: 'rust',
+		code: `// Combine with other attributes
+#[rpc_mutation(idempotent, timeout = "10s")]
+async fn upsert_record(input: RecordInput) -> Record { ... }
+
+#[rpc_mutation(idempotent, init = "setup_db")]
+async fn sync_profile(pool: &PgPool, input: ProfileInput) -> Profile { ... }
+
+// ❌ Compile error — idempotent is mutations only
+// #[rpc_query(idempotent)]
+// async fn get_data() -> Data { ... }`
+	}
+};
+
+export const load: PageServerLoad = async () => {
+	const entries = Object.entries(codeBlocks);
+	const results = await Promise.all(entries.map(([, { code, lang }]) => highlightCode(code, lang)));
+	const highlighted: Record<string, string> = {};
+	entries.forEach(([key], i) => {
+		highlighted[key] = results[i];
+	});
+	return { highlighted };
+};
