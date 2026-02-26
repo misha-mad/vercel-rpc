@@ -35,4 +35,3 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: misha-mad/metaxy
           fail_ci_if_error: true
-          verbose: true
