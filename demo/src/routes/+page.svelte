@@ -13,13 +13,15 @@
 	/>
 </svelte:head>
 
-<section class="flex flex-col items-center justify-center px-4 py-20 text-center">
+<section
+	class="relative flex flex-col items-center justify-center px-4 py-20 text-center overflow-hidden"
+>
 	<img
 		src="/hero.png"
-		alt="The Creation of Adam — the in-between"
-		class="w-48 sm:w-64 mb-6 opacity-80 invert"
+		alt=""
+		class="pointer-events-none absolute inset-0 m-auto h-full w-full object-contain opacity-[0.07] invert"
 	/>
-	<h1 class="text-4xl sm:text-5xl font-bold mb-2">metaxy</h1>
+	<h1 class="relative text-4xl sm:text-5xl font-bold mb-2">metaxy</h1>
 	<p class="text-sm text-text-faint mb-6">/mɛˈtæk.si/ · Greek: μεταξύ · <em>the in-between</em></p>
 
 	<p class="text-lg sm:text-xl text-text-muted max-w-2xl mb-10 leading-relaxed">
