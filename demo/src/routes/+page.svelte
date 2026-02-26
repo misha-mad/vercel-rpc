@@ -19,12 +19,12 @@
 	<img
 		src="/hero-left.png"
 		alt=""
-		class="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 h-[120%] object-contain invert opacity-70 hidden sm:block"
+		class="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-1/3 object-contain invert opacity-70 hidden sm:block"
 	/>
 	<img
 		src="/hero-right.png"
 		alt=""
-		class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-[120%] object-contain invert opacity-70 hidden sm:block"
+		class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1/3 object-contain invert opacity-70 hidden sm:block"
 	/>
 	<h1 class="relative text-4xl sm:text-5xl font-bold mb-2">metaxy</h1>
 	<p class="text-sm text-text-faint mb-6">/mɛˈtæk.si/ · Greek: μεταξύ · <em>the in-between</em></p>
