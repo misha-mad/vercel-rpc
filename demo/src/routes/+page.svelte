@@ -14,7 +14,8 @@
 </svelte:head>
 
 <section class="flex flex-col items-center justify-center px-4 py-20 text-center">
-	<h1 class="text-4xl sm:text-5xl font-bold mb-4">metaxy</h1>
+	<h1 class="text-4xl sm:text-5xl font-bold mb-2">metaxy</h1>
+	<p class="text-sm text-text-faint mb-6">/mɛˈtæk.si/ · Greek: μεταξύ · <em>the in-between</em></p>
 
 	<p class="text-lg sm:text-xl text-text-muted max-w-2xl mb-10 leading-relaxed">
 		End-to-end typesafe RPC between<br />
