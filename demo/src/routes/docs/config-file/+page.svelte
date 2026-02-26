@@ -32,7 +32,13 @@
 		<!-- [input] -->
 		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
 			<h3 class="text-lg font-semibold">[input]</h3>
-			<p class="text-text-muted text-sm">Where to find Rust source files. See <a href="/docs/cli/generate" class="text-accent-ts hover:underline">metaxy generate</a> and <a href="/docs/cli/scan" class="text-accent-ts hover:underline">metaxy scan</a> for CLI equivalents.</p>
+			<p class="text-text-muted text-sm">
+				Where to find Rust source files. See <a
+					href="/docs/cli/generate"
+					class="text-accent-ts hover:underline">metaxy generate</a
+				>
+				and <a href="/docs/cli/scan" class="text-accent-ts hover:underline">metaxy scan</a> for CLI equivalents.
+			</p>
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-text-faint border-b border-border">
@@ -72,8 +78,10 @@
 		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
 			<h3 class="text-lg font-semibold">[output]</h3>
 			<p class="text-text-muted text-sm">
-				Generated file paths. Framework wrappers are opt-in — set a path to enable.
-				See <a href="/docs/cli/generate" class="text-accent-ts hover:underline">metaxy generate</a> for CLI equivalents.
+				Generated file paths. Framework wrappers are opt-in — set a path to enable. See <a
+					href="/docs/cli/generate"
+					class="text-accent-ts hover:underline">metaxy generate</a
+				> for CLI equivalents.
 			</p>
 			<table class="w-full text-sm">
 				<thead
@@ -164,7 +172,12 @@
 		<!-- [codegen] -->
 		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
 			<h3 class="text-lg font-semibold">[codegen]</h3>
-			<p class="text-text-muted text-sm">Code generation options. See <a href="/docs/codegen/doc-comments" class="text-accent-ts hover:underline">Codegen</a> section for details on each option.</p>
+			<p class="text-text-muted text-sm">
+				Code generation options. See <a
+					href="/docs/codegen/doc-comments"
+					class="text-accent-ts hover:underline">Codegen</a
+				> section for details on each option.
+			</p>
 			<table class="w-full text-sm">
 				<thead
 					><tr class="text-left text-text-faint border-b border-border">
@@ -181,7 +194,11 @@
 							></td
 						><td class="py-1.5 pr-4">bool</td><td class="py-1.5 pr-4"
 							><code class="text-xs font-mono">false</code></td
-						><td class="py-1.5"><a href="/docs/codegen/doc-comments" class="text-accent-ts hover:underline">Forward Rust doc comments as JSDoc</a></td></tr
+						><td class="py-1.5"
+							><a href="/docs/codegen/doc-comments" class="text-accent-ts hover:underline"
+								>Forward Rust doc comments as JSDoc</a
+							></td
+						></tr
 					>
 					<tr class="border-b border-border/50"
 						><td class="py-1.5 pr-4"
@@ -189,7 +206,11 @@
 							></td
 						><td class="py-1.5 pr-4">bool</td><td class="py-1.5 pr-4"
 							><code class="text-xs font-mono">false</code></td
-						><td class="py-1.5"><a href="/docs/codegen/branded-newtypes" class="text-accent-ts hover:underline">Emit nominal (branded) types for Rust newtypes</a></td></tr
+						><td class="py-1.5"
+							><a href="/docs/codegen/branded-newtypes" class="text-accent-ts hover:underline"
+								>Emit nominal (branded) types for Rust newtypes</a
+							></td
+						></tr
 					>
 					<tr
 						><td class="py-1.5 pr-4"
@@ -198,7 +219,9 @@
 						><td class="py-1.5 pr-4">string[]</td><td class="py-1.5 pr-4"
 							><code class="text-xs font-mono">[]</code></td
 						><td class="py-1.5"
-							><a href="/docs/codegen/bigint" class="text-accent-ts hover:underline">Rust types mapped to <code class="text-xs font-mono">bigint</code></a>, e.g.
+							><a href="/docs/codegen/bigint" class="text-accent-ts hover:underline"
+								>Rust types mapped to <code class="text-xs font-mono">bigint</code></a
+							>, e.g.
 							<code class="text-xs font-mono">["i64", "u64"]</code></td
 						></tr
 					>
@@ -222,8 +245,10 @@
 						><td class="py-1.5 pr-4">string</td><td class="py-1.5 pr-4"
 							><code class="text-xs font-mono">"preserve"</code></td
 						><td class="py-1.5"
-							><a href="/docs/codegen/field-naming" class="text-accent-ts hover:underline"><code class="text-xs font-mono">"preserve"</code> keeps snake_case,
-							<code class="text-xs font-mono">"camelCase"</code> converts</a></td
+							><a href="/docs/codegen/field-naming" class="text-accent-ts hover:underline"
+								><code class="text-xs font-mono">"preserve"</code> keeps snake_case,
+								<code class="text-xs font-mono">"camelCase"</code> converts</a
+							></td
 						></tr
 					>
 				</tbody>
@@ -231,8 +256,9 @@
 
 			<h4 class="text-base font-semibold pt-2">[codegen.type_overrides]</h4>
 			<p class="text-text-muted text-sm">
-				<a href="/docs/codegen/type-overrides" class="text-accent-ts hover:underline">Map external crate types to TypeScript types.</a> Keys are fully-qualified Rust paths, values
-				are TS type names.
+				<a href="/docs/codegen/type-overrides" class="text-accent-ts hover:underline"
+					>Map external crate types to TypeScript types.</a
+				> Keys are fully-qualified Rust paths, values are TS type names.
 			</p>
 			<div class="text-text-muted text-sm font-mono bg-bg-code rounded-md px-3 py-2">
 				"chrono::DateTime" = "string"<br />
@@ -244,8 +270,9 @@
 		<div class="rounded-lg border border-border bg-bg-soft p-5 space-y-3">
 			<h3 class="text-lg font-semibold">[watch]</h3>
 			<p class="text-text-muted text-sm">
-				Watch mode settings for <a href="/docs/cli/watch" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1 py-0.5 rounded text-xs font-mono"
-					>metaxy watch</code></a>.
+				Watch mode settings for <a href="/docs/cli/watch" class="text-accent-ts hover:underline"
+					><code class="bg-bg-code px-1 py-0.5 rounded text-xs font-mono">metaxy watch</code></a
+				>.
 			</p>
 			<table class="w-full text-sm">
 				<thead

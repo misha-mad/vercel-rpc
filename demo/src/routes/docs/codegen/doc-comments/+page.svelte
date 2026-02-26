@@ -31,8 +31,8 @@
 
 	<p class="text-text-muted leading-relaxed text-sm">
 		Doc comments are preserved on procedures, structs, struct fields, enums, and enum variants.
-		Disabled by default (<code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">preserve_docs = false</code
+		Disabled by default (<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>preserve_docs = false</code
 		>).
 	</p>
 </div>

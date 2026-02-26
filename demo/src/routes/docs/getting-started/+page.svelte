@@ -86,9 +86,15 @@
 
 	<ol class="list-decimal list-inside space-y-2 text-text-muted">
 		<li>
-			Annotate Rust functions with <a href="/docs/procedures/queries" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-				>#[rpc_query]</code></a>
-			or <a href="/docs/procedures/mutations" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code></a>
+			Annotate Rust functions with <a
+				href="/docs/procedures/queries"
+				class="text-accent-ts hover:underline"
+				><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_query]</code></a
+			>
+			or
+			<a href="/docs/procedures/mutations" class="text-accent-ts hover:underline"
+				><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code></a
+			>
 		</li>
 		<li>
 			The CLI scans your <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">api/</code

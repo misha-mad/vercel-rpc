@@ -22,31 +22,53 @@
 			</thead>
 			<tbody class="text-text-primary">
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"><a href="/docs/macros/cache" class="text-accent-ts hover:underline font-mono text-xs">cache</a></td>
+					<td class="px-4 py-2"
+						><a href="/docs/macros/cache" class="text-accent-ts hover:underline font-mono text-xs"
+							>cache</a
+						></td
+					>
 					<td class="px-4 py-2 text-accent-ts">yes</td>
 					<td class="px-4 py-2 text-red-400">no</td>
 					<td class="px-4 py-2 text-text-muted text-xs">Cache-Control headers on responses</td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"><a href="/docs/macros/stale" class="text-accent-ts hover:underline font-mono text-xs">stale</a></td>
+					<td class="px-4 py-2"
+						><a href="/docs/macros/stale" class="text-accent-ts hover:underline font-mono text-xs"
+							>stale</a
+						></td
+					>
 					<td class="px-4 py-2 text-accent-ts">yes (requires cache)</td>
 					<td class="px-4 py-2 text-red-400">no</td>
 					<td class="px-4 py-2 text-text-muted text-xs">stale-while-revalidate</td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"><a href="/docs/macros/init" class="text-accent-ts hover:underline font-mono text-xs">init</a></td>
+					<td class="px-4 py-2"
+						><a href="/docs/macros/init" class="text-accent-ts hover:underline font-mono text-xs"
+							>init</a
+						></td
+					>
 					<td class="px-4 py-2 text-accent-ts">yes</td>
 					<td class="px-4 py-2 text-accent-ts">yes</td>
-					<td class="px-4 py-2 text-text-muted text-xs">Cold-start initialization + shared state</td>
+					<td class="px-4 py-2 text-text-muted text-xs">Cold-start initialization + shared state</td
+					>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"><a href="/docs/macros/timeout" class="text-accent-ts hover:underline font-mono text-xs">timeout</a></td>
+					<td class="px-4 py-2"
+						><a href="/docs/macros/timeout" class="text-accent-ts hover:underline font-mono text-xs"
+							>timeout</a
+						></td
+					>
 					<td class="px-4 py-2 text-accent-ts">yes</td>
 					<td class="px-4 py-2 text-accent-ts">yes</td>
 					<td class="px-4 py-2 text-text-muted text-xs">Server-side timeout (504 on exceed)</td>
 				</tr>
 				<tr>
-					<td class="px-4 py-2"><a href="/docs/macros/idempotent" class="text-accent-ts hover:underline font-mono text-xs">idempotent</a></td>
+					<td class="px-4 py-2"
+						><a
+							href="/docs/macros/idempotent"
+							class="text-accent-ts hover:underline font-mono text-xs">idempotent</a
+						></td
+					>
 					<td class="px-4 py-2 text-red-400">no</td>
 					<td class="px-4 py-2 text-accent-ts">yes</td>
 					<td class="px-4 py-2 text-text-muted text-xs">Opt mutation into retry</td>

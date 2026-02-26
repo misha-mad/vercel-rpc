@@ -26,7 +26,8 @@
 
 	<h2 class="text-xl font-semibold">Multiple Type Parameters</h2>
 	<p class="text-text-muted text-sm mb-2">
-		Structs with multiple type parameters are supported. All parameters are preserved in the generated TypeScript.
+		Structs with multiple type parameters are supported. All parameters are preserved in the
+		generated TypeScript.
 	</p>
 	<div class="space-y-3">
 		<CodeBlock html={data.highlighted['multiRust']} />

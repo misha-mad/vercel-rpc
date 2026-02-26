@@ -40,8 +40,13 @@
 	<!-- Void input & Result -->
 	<h2 class="text-xl font-semibold mt-8">Void Input &amp; Error Handling</h2>
 	<p class="text-text-muted text-sm">
-		Mutations can take no input (void) or return <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Result&lt;T, E&gt;</code>
-		for typed error handling. Errors are propagated as <a href="/docs/error-handling" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a>
+		Mutations can take no input (void) or return <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Result&lt;T, E&gt;</code
+		>
+		for typed error handling. Errors are propagated as
+		<a href="/docs/error-handling" class="text-accent-ts hover:underline"
+			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a
+		>
 		on the client side.
 	</p>
 	<CodeBlock html={data.highlighted['voidRust']} />

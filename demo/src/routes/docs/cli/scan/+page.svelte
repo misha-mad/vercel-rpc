@@ -11,8 +11,8 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold font-mono">metaxy scan</h1>
 	<p class="text-text-muted leading-relaxed">
-		Parse Rust files and print discovered procedures, structs, and enums. Useful for debugging
-		and verifying what the CLI sees before generating code.
+		Parse Rust files and print discovered procedures, structs, and enums. Useful for debugging and
+		verifying what the CLI sees before generating code.
 	</p>
 
 	<h2 class="text-xl font-semibold">Usage</h2>

@@ -17,13 +17,17 @@
 
 	<h2 class="text-xl font-semibold">Default</h2>
 	<p class="text-text-muted text-sm mb-2">
-		When not specified, the client uses the global <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">fetch</code>.
+		When not specified, the client uses the global <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">fetch</code
+		>.
 	</p>
 	<CodeBlock html={data.highlighted['defaultFetch']} />
 
 	<h2 class="text-xl font-semibold">SSR (SvelteKit)</h2>
 	<p class="text-text-muted text-sm mb-2">
-		In SvelteKit server loads, pass the platform <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">fetch</code>
+		In SvelteKit server loads, pass the platform <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">fetch</code
+		>
 		to forward cookies and resolve relative URLs correctly.
 	</p>
 	<CodeBlock html={data.highlighted['ssrFetch']} />

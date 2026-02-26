@@ -13,8 +13,8 @@
 	<p class="text-text-muted leading-relaxed">
 		Server-side timeout via
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">tokio::time::timeout</code>.
-		Returns HTTP 504 if exceeded. Also forwarded to the TypeScript client as the default timeout
-		for that procedure. Works with both queries and mutations.
+		Returns HTTP 504 if exceeded. Also forwarded to the TypeScript client as the default timeout for
+		that procedure. Works with both queries and mutations.
 	</p>
 
 	<h2 class="text-xl font-semibold">Basic Usage</h2>
@@ -25,9 +25,11 @@
 
 	<h2 class="text-xl font-semibold">Behavior</h2>
 	<p class="text-text-muted text-sm mb-2">
-		When the handler exceeds the timeout, the future is cancelled and the server returns 504.
-		The TypeScript client receives an
-		<a href="/docs/error-handling" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a> with status 504.
+		When the handler exceeds the timeout, the future is cancelled and the server returns 504. The
+		TypeScript client receives an
+		<a href="/docs/error-handling" class="text-accent-ts hover:underline"
+			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a
+		> with status 504.
 	</p>
 	<CodeBlock html={data.highlighted['behavior']} />
 

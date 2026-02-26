@@ -11,11 +11,11 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold font-mono">metaxy watch</h1>
 	<p class="text-text-muted leading-relaxed">
-		Same as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> but watches
-		for <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.rs</code> file changes and
-		regenerates automatically. Accepts all
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> flags plus the
-		watch-specific flags below.
+		Same as <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> but
+		watches for <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.rs</code> file
+		changes and regenerates automatically. Accepts all
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> flags plus the watch-specific
+		flags below.
 	</p>
 
 	<h2 class="text-xl font-semibold">Usage</h2>
@@ -51,8 +51,10 @@
 
 	<p class="text-text-muted text-sm">
 		All <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">generate</code> flags
-		(input, output, codegen) work with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">watch</code>
-		as well. See <a href="/docs/cli/generate" class="text-accent-ts hover:underline">metaxy generate</a>
+		(input, output, codegen) work with
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">watch</code>
+		as well. See
+		<a href="/docs/cli/generate" class="text-accent-ts hover:underline">metaxy generate</a>
 		for the full reference.
 	</p>
 </div>

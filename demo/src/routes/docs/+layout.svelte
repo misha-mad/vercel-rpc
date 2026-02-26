@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { base } from '$app/paths';
 	import { page } from '$app/state';
 	import { slide } from 'svelte/transition';
 
@@ -110,7 +110,9 @@
 	function saveOverrides() {
 		try {
 			sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toggleOverrides));
-		} catch {}
+		} catch {
+			// sessionStorage may be unavailable (e.g. private browsing)
+		}
 	}
 
 	function isGroupOpen(group: NavGroup): boolean {
@@ -183,7 +185,7 @@
 						>
 							{#each entry.children as child (child.href)}
 								<a
-									href={resolve(child.href)}
+									href={base + child.href}
 									class="flex items-center gap-2 rounded-md px-3 py-1 text-sm transition-colors {isActive(
 										child.href
 									)
@@ -206,7 +208,7 @@
 					{/if}
 				{:else}
 					<a
-						href={resolve(entry.href)}
+						href={base + entry.href}
 						class="rounded-md px-3 py-1.5 text-sm transition-colors {isActive(entry.href)
 							? `bg-bg-soft text-text-primary border-l-2 -ml-0.5 pl-2.5 font-medium ${activeColor === 'rust' ? 'border-accent-rust' : 'border-accent-ts'}`
 							: 'text-text-muted hover:bg-bg-soft hover:text-text-primary'}"

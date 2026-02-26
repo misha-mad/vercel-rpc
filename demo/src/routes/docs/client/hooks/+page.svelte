@@ -20,7 +20,9 @@
 
 	<h2 class="text-2xl font-semibold mt-8">onRequest</h2>
 	<p class="text-text-muted text-sm mb-2">
-		Fires before the fetch. You can mutate <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ctx.headers</code>
+		Fires before the fetch. You can mutate <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ctx.headers</code
+		>
 		to add or override headers dynamically. Runs again on every retry attempt.
 	</p>
 	<CodeBlock html={data.highlighted['onRequest']} />
@@ -35,8 +37,11 @@
 
 	<h2 class="text-2xl font-semibold mt-8">onError</h2>
 	<p class="text-text-muted text-sm mb-2">
-		Fires on failure. Check <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ctx.willRetry</code>
-		to know if the client will retry, or use <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ctx.attempt</code>
+		Fires on failure. Check <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>ctx.willRetry</code
+		>
+		to know if the client will retry, or use
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ctx.attempt</code>
 		to track retry progress.
 	</p>
 	<CodeBlock html={data.highlighted['onError']} />

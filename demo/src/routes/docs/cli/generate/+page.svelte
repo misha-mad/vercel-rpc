@@ -99,7 +99,9 @@
 				<tr>
 					<td class="px-4 py-1.5 font-mono text-xs"><code>--extension</code></td>
 					<td class="px-4 py-1.5">""</td>
-					<td class="px-4 py-1.5">Import extension, e.g. <code class="text-xs font-mono">".js"</code> for ESM</td>
+					<td class="px-4 py-1.5"
+						>Import extension, e.g. <code class="text-xs font-mono">".js"</code> for ESM</td
+					>
 				</tr>
 			</tbody>
 		</table>
@@ -121,7 +123,9 @@
 				<tr class="border-b border-border/50">
 					<td class="px-4 py-1.5 font-mono text-xs"><code>--preserve-docs</code></td>
 					<td class="px-4 py-1.5">false</td>
-					<td class="px-4 py-1.5">Forward Rust <code class="text-xs font-mono">///</code> as JSDoc</td>
+					<td class="px-4 py-1.5"
+						>Forward Rust <code class="text-xs font-mono">///</code> as JSDoc</td
+					>
 				</tr>
 				<tr class="border-b border-border/50">
 					<td class="px-4 py-1.5 font-mono text-xs"><code>--branded-newtypes</code></td>
@@ -131,7 +135,10 @@
 				<tr class="border-b border-border/50">
 					<td class="px-4 py-1.5 font-mono text-xs"><code>--fields</code></td>
 					<td class="px-4 py-1.5">preserve</td>
-					<td class="px-4 py-1.5"><code class="text-xs font-mono">preserve</code> or <code class="text-xs font-mono">camelCase</code></td>
+					<td class="px-4 py-1.5"
+						><code class="text-xs font-mono">preserve</code> or
+						<code class="text-xs font-mono">camelCase</code></td
+					>
 				</tr>
 				<tr class="border-b border-border/50">
 					<td class="px-4 py-1.5 font-mono text-xs"><code>--type-override</code></td>
@@ -141,7 +148,9 @@
 				<tr>
 					<td class="px-4 py-1.5 font-mono text-xs"><code>--bigint-type</code></td>
 					<td class="px-4 py-1.5">—</td>
-					<td class="px-4 py-1.5">Map integer type to <code class="text-xs font-mono">bigint</code> (repeatable)</td>
+					<td class="px-4 py-1.5"
+						>Map integer type to <code class="text-xs font-mono">bigint</code> (repeatable)</td
+					>
 				</tr>
 			</tbody>
 		</table>

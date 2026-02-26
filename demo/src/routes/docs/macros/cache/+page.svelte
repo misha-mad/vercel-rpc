@@ -57,8 +57,8 @@
 	<h2 class="text-xl font-semibold">Public vs Private</h2>
 	<p class="text-text-muted text-sm mb-2">
 		By default caches are public (shared on CDN). Prefix with
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">private,</code> for
-		user-specific data that should only be cached in the browser.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">private,</code> for user-specific
+		data that should only be cached in the browser.
 	</p>
 	<CodeBlock html={data.highlighted['private']} />
 

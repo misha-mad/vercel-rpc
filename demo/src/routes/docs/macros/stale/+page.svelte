@@ -11,11 +11,13 @@
 <div class="max-w-3xl space-y-8">
 	<h1 class="text-3xl font-bold font-mono">stale</h1>
 	<p class="text-text-muted leading-relaxed">
-		Adds <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">stale-while-revalidate</code>
-		to the <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cache-Control</code> header.
-		The CDN serves stale content while fetching a fresh response in the background. Requires
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">cache</code> — compile error without it.
-		Queries only.
+		Adds <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>stale-while-revalidate</code
+		>
+		to the <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cache-Control</code>
+		header. The CDN serves stale content while fetching a fresh response in the background. Requires
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">cache</code> — compile error without
+		it. Queries only.
 	</p>
 
 	<h2 class="text-xl font-semibold">Basic Usage</h2>

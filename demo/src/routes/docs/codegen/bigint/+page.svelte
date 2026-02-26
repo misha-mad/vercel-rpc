@@ -32,11 +32,14 @@
 
 	<h2 class="text-xl font-semibold">Why BigInt?</h2>
 	<p class="text-text-muted leading-relaxed text-sm">
-		JavaScript <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code> is a 64-bit
-		float (IEEE 754), which can only safely represent integers up to
+		JavaScript <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code> is a
+		64-bit float (IEEE 754), which can only safely represent integers up to
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">2<sup>53</sup> − 1</code>
 		(<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Number.MAX_SAFE_INTEGER</code>
-		= 9,007,199,254,740,991). Rust's <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i64</code>/<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>
+		= 9,007,199,254,740,991). Rust's
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i64</code>/<code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code
+		>
 		can exceed this range, causing silent precision loss. Using
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint</code> avoids this entirely.
 	</p>

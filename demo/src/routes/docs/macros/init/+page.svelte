@@ -13,8 +13,8 @@
 	<p class="text-text-muted leading-relaxed">
 		Run a function once at cold start. Can be side-effects only (logger, dotenv) or return shared
 		state (DB pool, HTTP client) injected as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&T</code> parameter.
-		Works with both queries and mutations.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&T</code> parameter. Works with both
+		queries and mutations.
 	</p>
 
 	<h2 class="text-xl font-semibold">Side-Effects Only</h2>
@@ -26,8 +26,8 @@
 	<h2 class="text-xl font-semibold">Shared State</h2>
 	<p class="text-text-muted text-sm mb-2">
 		When the init function returns a value, it's stored and injected as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&T</code> into the handler.
-		The init function runs once per cold start — the result is reused across requests.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&T</code> into the handler. The init
+		function runs once per cold start — the result is reused across requests.
 	</p>
 	<CodeBlock html={data.highlighted['sharedState']} />
 

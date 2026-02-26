@@ -13,7 +13,9 @@
 	<p class="text-text-muted leading-relaxed">
 		Queries are retried automatically on network errors or retryable HTTP status codes. Mutations
 		are <strong>never</strong> retried unless explicitly marked as
-		<a href="/docs/macros/idempotent" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">idempotent</code></a>.
+		<a href="/docs/macros/idempotent" class="text-accent-ts hover:underline"
+			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">idempotent</code></a
+		>.
 	</p>
 
 	<h2 class="text-xl font-semibold">RetryPolicy</h2>
@@ -24,8 +26,9 @@
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">retryOn</code>, up to
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">attempts</code> additional
 		tries. On each retry the full
-		<a href="/docs/client/hooks" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onRequest</code></a> hook runs again,
-		so dynamic headers (e.g. refreshed auth tokens) are re-evaluated.
+		<a href="/docs/client/hooks" class="text-accent-ts hover:underline"
+			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onRequest</code></a
+		> hook runs again, so dynamic headers (e.g. refreshed auth tokens) are re-evaluated.
 	</p>
 
 	<h2 class="text-xl font-semibold">Basic Usage</h2>
@@ -41,7 +44,9 @@
 	<p class="text-text-muted leading-relaxed text-sm">
 		By default, mutations are never retried — even with a retry policy configured. To opt a mutation
 		into retry, mark it as
-		<a href="/docs/macros/idempotent" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">idempotent</code></a>
+		<a href="/docs/macros/idempotent" class="text-accent-ts hover:underline"
+			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">idempotent</code></a
+		>
 		in the Rust macro. This signals that repeated calls produce the same result.
 	</p>
 	<CodeBlock html={data.highlighted['retryIdempotent']} />

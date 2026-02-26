@@ -44,7 +44,10 @@
 					>
 					<td class="px-4 py-2 text-text-muted"
 						>or <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint</code> via
-						<a href="/docs/codegen/bigint" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types</code></a></td
+						<a href="/docs/codegen/bigint" class="text-accent-ts hover:underline"
+							><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types</code
+							></a
+						></td
 					>
 				</tr>
 				<tr class="border-b border-border">
@@ -77,7 +80,8 @@
 						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T[]</code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
-						>also <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Array&lt;T&gt;</code
+						>also <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+							>Array&lt;T&gt;</code
 						> in generic positions</td
 					>
 				</tr>
@@ -153,10 +157,13 @@
 						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T</code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Ok(T)</code> unwrapped;
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Err(E)</code> serialized as
-						JSON and thrown as
-						<a href="/docs/error-handling" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a> (status 500)</td
+						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Ok(T)</code>
+						unwrapped;
+						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Err(E)</code>
+						serialized as JSON and thrown as
+						<a href="/docs/error-handling" class="text-accent-ts hover:underline"
+							><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a
+						> (status 500)</td
 					>
 				</tr>
 				<tr class="border-b border-border">
@@ -186,7 +193,11 @@
 							>{'{ A: T }'} | ...</code
 						></td
 					>
-					<td class="px-4 py-2 text-text-muted">see <a href="/docs/codegen/serde" class="text-accent-ts hover:underline">Serde Support</a> for tagging</td>
+					<td class="px-4 py-2 text-text-muted"
+						>see <a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
+							>Serde Support</a
+						> for tagging</td
+					>
 				</tr>
 				<tr>
 					<td class="px-4 py-2"
@@ -199,8 +210,13 @@
 						></td
 					>
 					<td class="px-4 py-2 text-text-muted"
-						>or branded with <a href="/docs/codegen/branded-newtypes" class="text-accent-ts hover:underline"><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>branded_newtypes</code></a></td
+						>or branded with <a
+							href="/docs/codegen/branded-newtypes"
+							class="text-accent-ts hover:underline"
+							><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+								>branded_newtypes</code
+							></a
+						></td
 					>
 				</tr>
 			</tbody>
