@@ -5,10 +5,6 @@
 
 	let { data } = $props();
 
-	// --- Hello (reactive query with string input) ---
-	let name = $state('World');
-	const hello = createQuery(rpc, 'hello', () => name);
-
 	// --- Time (void-input reactive query) ---
 	const time = createQuery(rpc, 'time');
 
@@ -77,56 +73,6 @@
 
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
-
-	<!-- Hello: Simple string query -->
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-2">Hello — Reactive String Query</h3>
-		<p class="text-text-muted text-sm mb-4">
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-				>createQuery(rpc, "hello", () => name)</code
-			> — auto-refetches as you type.
-		</p>
-		<div class="flex items-center gap-3 mb-3">
-			<input
-				type="text"
-				bind:value={name}
-				placeholder="Enter your name"
-				class="rounded-md border border-border bg-bg-code px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent-ts"
-			/>
-			<button
-				onclick={() => hello.refetch()}
-				disabled={hello.isLoading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>Refetch</button
-			>
-		</div>
-		{#if hello.isLoading && !hello.data}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-text-muted">Loading...</div>
-		{:else if hello.data}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-green-400">{hello.data}</div>
-		{/if}
-		{#if hello.isError}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-red-400">{hello.error?.message}</div>
-		{/if}
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => toggleCode('hello')}
-		>
-			{openCode['hello'] ? '▾ Hide' : '▸ Show'} Rust &amp; TypeScript
-		</button>
-		{#if openCode['hello']}
-			<div class="mt-3 space-y-3">
-				<a
-					href="https://github.com/misha-mad/metaxy/blob/main/demo/api/hello.rs"
-					target="_blank"
-					class="text-xs text-text-faint hover:text-accent-rust transition-colors mb-1 block"
-					>api/hello.rs</a
-				>
-				<CodeBlock html={data.highlighted['helloRust']} />
-				<CodeBlock html={data.highlighted['helloTs']} />
-			</div>
-		{/if}
-	</div>
 
 	<!-- Time: Void-input query with struct -->
 	<div class="rounded-lg border border-border bg-bg-soft p-6">

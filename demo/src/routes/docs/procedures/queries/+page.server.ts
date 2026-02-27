@@ -30,22 +30,6 @@ const user = createQuery(rpc, 'get_user', () => userId);
 // user.isError    — boolean
 // user.refetch()  — manual refetch`
 	},
-	helloRust: {
-		lang: 'rust',
-		code: `#[rpc_query]
-async fn hello(name: String) -> String {
-    format!("Hello, {} from Rust on Vercel!", name)
-}`
-	},
-	helloTs: {
-		lang: 'typescript',
-		code: `const hello = createQuery(rpc, "hello", () => name);
-
-hello.data       // string | undefined
-hello.isLoading  // boolean
-hello.isError    // boolean
-hello.refetch()  // manual refetch`
-	},
 	timeRust: {
 		lang: 'rust',
 		code: `#[derive(Serialize)]
