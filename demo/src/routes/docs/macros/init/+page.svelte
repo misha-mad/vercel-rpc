@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
@@ -31,7 +32,8 @@
 	}
 
 	$effect(() => {
-		if (initDemo.data) logCall(initDemo.data);
+		const d = initDemo.data;
+		if (d) untrack(() => logCall(d));
 	});
 
 	let openCode = $state(false);
