@@ -25,21 +25,43 @@ async fn get_profile() -> Profile { ... }
 #[rpc_query(cache = "1h")]
 async fn get_products() -> Vec<Product> { ... }`
 	},
-	withStale: {
-		lang: 'rust',
-		code: `// Cache 5 min + serve stale for up to 1 hour while revalidating
-#[rpc_query(cache = "5m", stale = "1h")]
-async fn get_feed() -> Vec<Post> { ... }`
-	},
 	combined: {
 		lang: 'rust',
 		code: `// Combine with other attributes
 #[rpc_query(cache = "1h", timeout = "5s", init = "setup")]
 async fn fast_cached(db: &PgPool) -> Stats { ... }
 
-// ❌ Compile error — mutations cannot be cached
+// Compile error — mutations cannot be cached
 // #[rpc_mutation(cache = "1h")]
 // async fn create_order(input: OrderInput) -> Order { ... }`
+	},
+	cachedTimeRust: {
+		lang: 'rust',
+		code: `#[rpc_query(cache = "30s")]
+async fn cached_time() -> CachedTimeResponse {
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap().as_secs();
+
+    CachedTimeResponse {
+        timestamp: now,
+        generated_at: format!("{}s since epoch", now),
+    }
+}`
+	},
+	cachedTimePrivateRust: {
+		lang: 'rust',
+		code: `#[rpc_query(cache = "private, 1m")]
+async fn cached_time_private() -> CachedTimePrivateResponse {
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap().as_secs();
+
+    CachedTimePrivateResponse {
+        timestamp: now,
+        generated_at: format!("{}s since epoch", now),
+    }
+}`
 	}
 };
 

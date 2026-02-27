@@ -56,6 +56,27 @@ async fn sync_profile(pool: &PgPool, input: ProfileInput) -> Profile { ... }
 // ❌ Compile error — idempotent is mutations only
 // #[rpc_query(idempotent)]
 // async fn get_data() -> Data { ... }`
+	},
+	idempotentDemoRust: {
+		lang: 'rust',
+		code: `static STORED_VALUE: AtomicU64 = AtomicU64::new(0);
+static CALL_COUNT: AtomicU64 = AtomicU64::new(0);
+
+#[derive(Serialize)]
+pub struct IdempotentDemoResponse {
+    pub previous: u64,
+    pub current: u64,
+    pub total_calls: u64,
+}
+
+/// Repeated calls with the same input produce the same result.
+#[rpc_mutation(idempotent)]
+async fn idempotent_demo(input: IdempotentDemoInput) -> IdempotentDemoResponse {
+    let previous = STORED_VALUE.swap(input.value, Ordering::Relaxed);
+    let total_calls = CALL_COUNT.fetch_add(1, Ordering::Relaxed) + 1;
+
+    IdempotentDemoResponse { previous, current: input.value, total_calls }
+}`
 	}
 };
 

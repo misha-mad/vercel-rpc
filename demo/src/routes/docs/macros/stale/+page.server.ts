@@ -16,7 +16,7 @@ async fn get_dashboard() -> Dashboard { ... }`
 	},
 	error: {
 		lang: 'rust',
-		code: `// ❌ Compile error — stale requires cache
+		code: `// Compile error — stale requires cache
 // #[rpc_query(stale = "1h")]
 // async fn bad() -> Data { ... }`
 	},
@@ -27,6 +27,20 @@ async fn get_dashboard() -> Dashboard { ... }`
 
 // cache = "private, 10m", stale = "30m" produces:
 // Cache-Control: private, max-age=600, stale-while-revalidate=1800`
+	},
+	cachedTimeStaleRust: {
+		lang: 'rust',
+		code: `#[rpc_query(cache = "10s", stale = "30s")]
+async fn cached_time_stale() -> CachedTimeStaleResponse {
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap().as_secs();
+
+    CachedTimeStaleResponse {
+        timestamp: now,
+        generated_at: format!("{}s since epoch", now),
+    }
+}`
 	}
 };
 

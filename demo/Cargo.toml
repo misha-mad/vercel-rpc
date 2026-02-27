@@ -7,6 +7,7 @@ publish = false
 [dependencies]
 metaxy = { path = "../crates/metaxy" }
 serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["time"] }
 
 [[bin]]
 name = "hello"
@@ -43,3 +44,27 @@ path = "api/types.rs"
 [[bin]]
 name = "secret"
 path = "api/secret.rs"
+
+[[bin]]
+name = "cached_time"
+path = "api/cached_time.rs"
+
+[[bin]]
+name = "cached_time_stale"
+path = "api/cached_time_stale.rs"
+
+[[bin]]
+name = "cached_time_private"
+path = "api/cached_time_private.rs"
+
+[[bin]]
+name = "init_demo"
+path = "api/init_demo.rs"
+
+[[bin]]
+name = "timeout_demo"
+path = "api/timeout_demo.rs"
+
+[[bin]]
+name = "idempotent_demo"
+path = "api/idempotent_demo.rs"
