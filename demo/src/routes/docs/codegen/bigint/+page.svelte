@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
-	import { createRpcClient } from '$lib/rpc-client';
+	import { type BigIntDemoResponse, type BigIntDemoValue, createRpcClient } from '$lib/rpc-client';
 	import { parse, parseNumberAndBigInt } from 'lossless-json';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 
@@ -11,8 +11,8 @@
 		deserialize: (text) => parse(text, undefined, parseNumberAndBigInt)
 	});
 
-	let defaultResult: import('$lib/rpc-types').BigIntDemoResponse | undefined = $state();
-	let losslessResult: Record<string, unknown>[] | undefined = $state();
+	let defaultResult: BigIntDemoResponse | undefined = $state();
+	let losslessResult: BigIntDemoValue[] | undefined = $state();
 	let loading = $state(false);
 
 	async function fetchDemo() {
@@ -23,7 +23,7 @@
 				losslessRpc.query('bigint_demo')
 			]);
 			defaultResult = def;
-			losslessResult = (lossless as unknown as { values: Record<string, unknown>[] }).values;
+			losslessResult = lossless.values;
 		} finally {
 			loading = false;
 		}
