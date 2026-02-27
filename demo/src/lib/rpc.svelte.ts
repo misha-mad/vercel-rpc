@@ -3,10 +3,10 @@
 
 import { type RpcClient, RpcError, type CallOptions } from "./rpc-client";
 
-import type { Procedures, EchoInput, EchoOutput, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole } from "./rpc-types";
+import type { Procedures, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole } from "./rpc-types";
 
 export { RpcError };
-export type { RpcClient, CallOptions, Procedures, EchoInput, EchoOutput, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole };
+export type { RpcClient, CallOptions, Procedures, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole };
 
 type QueryKey = keyof Procedures["queries"];
 type QueryInput<K extends QueryKey> = Procedures["queries"][K]["input"];
@@ -15,7 +15,7 @@ type MutationKey = keyof Procedures["mutations"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
-type VoidQueryKey = "secret" | "status" | "time";
+type VoidQueryKey = "cached_time" | "cached_time_private" | "cached_time_stale" | "secret" | "status" | "time";
 type NonVoidQueryKey = "hello" | "math" | "profile" | "stats" | "types";
 type NonVoidMutationKey = "echo";
 type MutationArgs<K extends MutationKey> = [input: MutationInput<K>];
@@ -116,8 +116,11 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }
 
-const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["secret", "status", "time"]);
+const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["cached_time", "cached_time_private", "cached_time_stale", "secret", "status", "time"]);
 
+export function createQuery<K extends "cached_time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "cached_time_private">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "cached_time_stale">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "secret">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "status">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
