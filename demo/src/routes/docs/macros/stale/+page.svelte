@@ -55,8 +55,7 @@
 	<h2 class="text-xl font-semibold">Requires cache</h2>
 	<p class="text-text-muted text-sm mb-2">
 		Using <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">stale</code> without
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">cache</code> is a compilation
-		error.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">cache</code> is a compilation error.
 	</p>
 	<CodeBlock html={data.highlighted['error']} />
 
@@ -75,15 +74,20 @@
 				onclick={refetch}
 				disabled={cachedTimeStale.isLoading}
 				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-			>Refetch</button>
+				>Refetch</button
+			>
 		</div>
 		{#if fetchLog.length > 0}
 			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
-				{#each fetchLog as entry, i}
+				{#each fetchLog as entry, i (i)}
 					<div class="flex gap-4">
 						<span class="text-text-faint">#{i + 1}</span>
-						<span class="text-text-muted">server: <span class="text-accent-rust">{entry.serverTs}</span></span>
-						<span class="text-text-muted">client: <span class="text-text-primary">{entry.clientTs}</span></span>
+						<span class="text-text-muted"
+							>server: <span class="text-accent-rust">{entry.serverTs}</span></span
+						>
+						<span class="text-text-muted"
+							>client: <span class="text-text-primary">{entry.clientTs}</span></span
+						>
 						{#if i > 0 && entry.serverTs === fetchLog[i - 1].serverTs}
 							<span class="text-green-400">cached</span>
 						{/if}
@@ -103,5 +107,4 @@
 			</div>
 		{/if}
 	</div>
-
 </div>
