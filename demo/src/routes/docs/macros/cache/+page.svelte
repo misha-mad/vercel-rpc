@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
@@ -35,10 +36,12 @@
 
 	// Log initial fetches
 	$effect(() => {
-		if (cachedTime.data) logFetch('public', cachedTime.data.timestamp);
+		const ts = cachedTime.data?.timestamp;
+		if (ts !== undefined) untrack(() => logFetch('public', ts));
 	});
 	$effect(() => {
-		if (cachedTimePrivate.data) logFetch('private', cachedTimePrivate.data.timestamp);
+		const ts = cachedTimePrivate.data?.timestamp;
+		if (ts !== undefined) untrack(() => logFetch('private', ts));
 	});
 
 	// --- Code toggle ---

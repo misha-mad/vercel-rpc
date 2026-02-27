@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
@@ -21,7 +22,8 @@
 	}
 
 	$effect(() => {
-		if (cachedTimeStale.data) logFetch(cachedTimeStale.data.timestamp);
+		const ts = cachedTimeStale.data?.timestamp;
+		if (ts !== undefined) untrack(() => logFetch(ts));
 	});
 
 	let openCode = $state(false);
