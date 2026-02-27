@@ -1,3 +1,24 @@
+<script lang="ts">
+	import { rpc } from '$lib/client';
+	import CodeBlock from '$lib/components/CodeBlock.svelte';
+
+	let { data } = $props();
+
+	let result: import('$lib/rpc-types').TypeShowcase | undefined = $state();
+	let loading = $state(false);
+
+	async function fetchTypes() {
+		loading = true;
+		try {
+			result = await rpc.query('types');
+		} finally {
+			loading = false;
+		}
+	}
+
+	let openCode = $state(false);
+</script>
+
 <svelte:head>
 	<title>Type Mappings — metaxy</title>
 </svelte:head>
@@ -221,5 +242,128 @@
 				</tr>
 			</tbody>
 		</table>
+	</div>
+
+	<!-- Try it -->
+	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<p class="text-text-muted text-sm">
+		A single struct with every mapping from the table above. Click Fetch to see live values.
+	</p>
+
+	<div class="rounded-lg border border-border bg-bg-soft p-6">
+		<div class="flex items-center gap-3 mb-4">
+			<button
+				onclick={fetchTypes}
+				disabled={loading}
+				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+				>Fetch</button
+			>
+			{#if loading}
+				<span class="text-sm text-text-muted">Loading...</span>
+			{/if}
+		</div>
+
+		{#if result}
+			<div class="overflow-x-auto rounded-md border border-border">
+				<table class="w-full text-xs font-mono">
+					<thead class="bg-bg-code text-text-faint">
+						<tr>
+							<th class="px-3 py-2 text-left">Rust type</th>
+							<th class="px-3 py-2 text-left">TS type</th>
+							<th class="px-3 py-2 text-left">Value</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">String</td>
+							<td class="px-3 py-2 text-text-muted">string</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.string_val)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">i32</td>
+							<td class="px-3 py-2 text-text-muted">number</td>
+							<td class="px-3 py-2 text-accent-ts">{result.integer}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">f64</td>
+							<td class="px-3 py-2 text-text-muted">number</td>
+							<td class="px-3 py-2 text-accent-ts">{result.float}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">bool</td>
+							<td class="px-3 py-2 text-text-muted">boolean</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.flag)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Vec&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.vec_items)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">HashSet&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.hash_set)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">BTreeSet&lt;i32&gt;</td>
+							<td class="px-3 py-2 text-text-muted">number[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.btree_set)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Option&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string | null</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.optional_present)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Option&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string | null</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.optional_absent)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">HashMap&lt;String, i32&gt;</td>
+							<td class="px-3 py-2 text-text-muted">Record&lt;string, number&gt;</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.hash_map)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">BTreeMap&lt;String, i32&gt;</td>
+							<td class="px-3 py-2 text-text-muted">Record&lt;string, number&gt;</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.btree_map)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Box&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.boxed)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Cow&lt;str&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.cow)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">(String, i32, bool)</td>
+							<td class="px-3 py-2 text-text-muted">[string, number, boolean]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.tuple)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">[i32; 3]</td>
+							<td class="px-3 py-2 text-text-muted">number[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.fixed_array)}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		{/if}
+
+		<button
+			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
+			onclick={() => (openCode = !openCode)}
+		>
+			{openCode ? '▾ Hide' : '▸ Show'} Rust
+		</button>
+		{#if openCode}
+			<div class="mt-3">
+				<CodeBlock html={data.highlighted['typesRust']} />
+			</div>
+		{/if}
 	</div>
 </div>

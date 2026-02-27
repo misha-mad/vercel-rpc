@@ -68,3 +68,7 @@ path = "api/timeout_demo.rs"
 [[bin]]
 name = "idempotent_demo"
 path = "api/idempotent_demo.rs"
+
+[[bin]]
+name = "bigint_demo"
+path = "api/bigint_demo.rs"
