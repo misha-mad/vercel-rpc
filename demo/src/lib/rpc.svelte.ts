@@ -15,8 +15,8 @@ type MutationKey = keyof Procedures["mutations"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
-type VoidQueryKey = "bigint_demo" | "cached_time" | "cached_time_private" | "cached_time_stale" | "secret" | "status" | "time" | "types";
-type NonVoidQueryKey = "hello" | "init_demo" | "math" | "profile" | "stats" | "timeout_demo";
+type VoidQueryKey = "bigint_demo" | "cached_time" | "cached_time_private" | "cached_time_stale" | "init_demo" | "secret" | "status" | "time" | "types";
+type NonVoidQueryKey = "hello" | "math" | "profile" | "stats" | "timeout_demo";
 type NonVoidMutationKey = "echo" | "idempotent_demo";
 type MutationArgs<K extends MutationKey> = [input: MutationInput<K>];
 
@@ -72,7 +72,7 @@ export interface QueryResult<K extends QueryKey> {
   /** True when placeholderData is being shown and no real fetch has completed yet. */
   readonly isPlaceholderData: boolean;
 
-  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
+  /** Manually trigger a refetch. Works even when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }
 
@@ -116,18 +116,18 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }
 
-const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "secret", "status", "time", "types"]);
+const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "init_demo", "secret", "status", "time", "types"]);
 
 export function createQuery<K extends "bigint_demo">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "cached_time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "cached_time_private">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "cached_time_stale">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "init_demo">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "secret">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "status">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "types">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
-export function createQuery<K extends "init_demo">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "math">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "profile">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "stats">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
@@ -256,13 +256,12 @@ export function createQuery<K extends QueryKey>(
     get isError() { return error !== undefined; },
     get isPlaceholderData() { return !hasFetched && data !== undefined; },
     refetch: async () => {
-      const enabled = resolveEnabled();
-      if (!enabled) return;
       generation++;
       const gen = generation;
       const localController = new AbortController();
       if (controller) controller.abort();
       controller = localController;
+      const enabled = resolveEnabled();
       setupInterval(enabled, resolveOptions()?.refetchInterval);
       await fetchData(inputFn?.(), localController.signal, gen);
     },

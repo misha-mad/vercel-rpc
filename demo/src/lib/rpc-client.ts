@@ -202,7 +202,7 @@ type QueryOutput<K extends QueryKey> = Procedures["queries"][K]["output"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
-const VOID_QUERIES: Set<string> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "secret", "status", "time", "types"]);
+const VOID_QUERIES: Set<string> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "init_demo", "secret", "status", "time", "types"]);
 
 export interface RpcClient {
   /** Return a set of u64 values at precision boundaries. */
@@ -217,6 +217,8 @@ export interface RpcClient {
   /** Returns server time, cached 10s + stale for 30s while revalidating. */
   query(key: "cached_time_stale"): Promise<CachedTimeStaleResponse>;
   query(key: "cached_time_stale", options: CallOptions): Promise<CachedTimeStaleResponse>;
+  query(key: "init_demo"): Promise<InitDemoResponse>;
+  query(key: "init_demo", options: CallOptions): Promise<InitDemoResponse>;
   /**
    * Access a protected secret.
    * Requires a valid Bearer token in the Authorization header.
@@ -238,8 +240,6 @@ export interface RpcClient {
    */
   query(key: "hello", input: string): Promise<string>;
   query(key: "hello", input: string, options: CallOptions): Promise<string>;
-  query(key: "init_demo", input: AppState): Promise<InitDemoResponse>;
-  query(key: "init_demo", input: AppState, options: CallOptions): Promise<InitDemoResponse>;
   /** Perform a math operation. Returns an error on division by zero. */
   query(key: "math", input: MathInput): Promise<MathResult>;
   query(key: "math", input: MathInput, options: CallOptions): Promise<MathResult>;

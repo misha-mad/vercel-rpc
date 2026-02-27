@@ -23,7 +23,7 @@
 				losslessRpc.query('bigint_demo')
 			]);
 			defaultResult = def;
-			losslessResult = (lossless as any).values;
+			losslessResult = (lossless as unknown as { values: Record<string, unknown>[] }).values;
 		} finally {
 			loading = false;
 		}
