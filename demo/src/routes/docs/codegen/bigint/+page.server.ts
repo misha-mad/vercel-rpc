@@ -50,6 +50,21 @@ async fn bigint_demo() -> BigIntDemoResponse {
     ];
     // exact: val.to_string(), as_number: *val
 }`
+	},
+	losslessClient: {
+		lang: 'typescript',
+		code: `import { parse, parseNumberAndBigInt } from 'lossless-json';
+
+const client = createRpcClient({
+  baseUrl: '/api',
+  deserialize: (text) =>
+    parse(text, undefined, parseNumberAndBigInt),
+});
+
+// Safe integers stay as number, large ones become BigInt
+const res = await client.query('bigint_demo');
+typeof res.values[0].as_number; // "number"  (42)
+typeof res.values[3].as_number; // "bigint"  (u64::MAX)`
 	}
 };
 

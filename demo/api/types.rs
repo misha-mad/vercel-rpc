@@ -75,7 +75,7 @@ async fn types() -> TypeShowcase {
     TypeShowcase {
         string_val: "hello".to_string(),
         integer: 42,
-        float: 3.14,
+        float: 2.718,
         flag: true,
         vec_items: vec!["one".into(), "two".into(), "three".into()],
         hash_set,

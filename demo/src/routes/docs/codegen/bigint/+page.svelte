@@ -1,23 +1,36 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
+	import { createRpcClient } from '$lib/rpc-client';
+	import { parse, parseNumberAndBigInt } from 'lossless-json';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 
 	let { data } = $props();
 
-	let result: import('$lib/rpc-types').BigIntDemoResponse | undefined = $state();
+	const losslessRpc = createRpcClient({
+		baseUrl: '/api',
+		deserialize: (text) => parse(text, undefined, parseNumberAndBigInt)
+	});
+
+	let defaultResult: import('$lib/rpc-types').BigIntDemoResponse | undefined = $state();
+	let losslessResult: Record<string, unknown>[] | undefined = $state();
 	let loading = $state(false);
 
 	async function fetchDemo() {
 		loading = true;
 		try {
-			result = await rpc.query('bigint_demo');
+			const [def, lossless] = await Promise.all([
+				rpc.query('bigint_demo'),
+				losslessRpc.query('bigint_demo')
+			]);
+			defaultResult = def;
+			losslessResult = (lossless as any).values;
 		} finally {
 			loading = false;
 		}
 	}
 
-	function hasLoss(num: number, str: string): boolean {
-		return String(num) !== str;
+	function hasLoss(val: number | bigint, exact: string): boolean {
+		return String(val) !== exact;
 	}
 
 	let openCode = $state(false);
@@ -49,6 +62,15 @@
 		<CodeBlock html={data.highlighted['bigintTs']} />
 	</div>
 
+	<h2 class="text-xl font-semibold">Custom deserializer</h2>
+	<p class="text-text-muted leading-relaxed text-sm">
+		The generated client accepts a
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">deserialize</code> option. Plug
+		in a BigInt-aware JSON parser so large numbers arrive as native
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BigInt</code> at runtime:
+	</p>
+	<CodeBlock html={data.highlighted['losslessClient']} />
+
 	<h2 class="text-xl font-semibold">Why BigInt?</h2>
 	<p class="text-text-muted leading-relaxed text-sm">
 		JavaScript <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code> is a
@@ -78,19 +100,17 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		The server returns each value as a <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code
-		>
-		(mapped to <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code>) and a
-		string. The <strong>BigInt</strong> column uses
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BigInt(str)</code> to
-		reconstruct the exact value — this is what a
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">deserialize</code> option with BigInt-aware
-		JSON parsing would give you.
+		Both clients call the same endpoint. The default client uses
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">JSON.parse</code> which
+		silently loses precision on large integers. The lossless client plugs
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">lossless-json</code> into the
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">deserialize</code> option —
+		large numbers arrive as native
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BigInt</code>.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-3">number vs BigInt</h3>
+		<h3 class="text-lg font-semibold mb-3">JSON.parse vs lossless-json</h3>
 		<div class="flex items-center gap-3 mb-4">
 			<button
 				onclick={fetchDemo}
@@ -103,7 +123,7 @@
 			{/if}
 		</div>
 
-		{#if result}
+		{#if defaultResult && losslessResult}
 			<div class="overflow-x-auto rounded-md border border-border">
 				<table class="w-full text-xs font-mono">
 					<thead class="bg-bg-code text-text-faint">
@@ -111,21 +131,21 @@
 							<th class="px-3 py-2 text-left">Label</th>
 							<th class="px-3 py-2 text-left">Server (exact)</th>
 							<th class="px-3 py-2 text-left">
-								<code>number</code>
-								<span class="font-normal text-text-faint">(JSON.parse)</span>
+								<code>JSON.parse</code>
 							</th>
 							<th class="px-3 py-2 text-left"></th>
 							<th class="px-3 py-2 text-left">
-								<code>BigInt</code>
-								<span class="font-normal text-text-faint">(from string)</span>
+								<code>lossless-json</code>
 							</th>
 							<th class="px-3 py-2 text-left"></th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each result.values as row, i (i)}
+						{#each defaultResult.values as row, i (i)}
 							{@const lost = hasLoss(row.as_number, row.exact)}
-							{@const bi = BigInt(row.exact)}
+							{@const losslessVal = losslessResult[i]?.as_number}
+							{@const losslessStr = String(losslessVal)}
+							{@const losslessLost = losslessStr !== row.exact}
 							<tr class="border-t border-border/50">
 								<td class="px-3 py-2 text-text-muted">{row.label}</td>
 								<td class="px-3 py-2 text-accent-rust">{row.exact}</td>
@@ -135,21 +155,37 @@
 											class="text-green-400">ok</span
 										>{/if}</td
 								>
-								<td class="px-3 py-2 text-accent-ts">{bi.toString()}</td>
-								<td class="px-3 py-2 text-green-400">ok</td>
+								<td class="px-3 py-2 text-accent-ts">{losslessStr}</td>
+								<td class="px-3 py-2"
+									>{#if losslessLost}<span class="text-red-400">lost</span>{:else}<span
+											class="text-green-400">ok</span
+										>{/if}</td
+								>
 							</tr>
 						{/each}
 					</tbody>
 				</table>
 			</div>
-			<p class="text-text-faint text-xs mt-2">
-				The client supports a custom
-				<code class="bg-bg-code px-1 py-0.5 rounded">deserialize</code> option — plug in a
-				BigInt-aware JSON parser (e.g.
-				<code class="bg-bg-code px-1 py-0.5 rounded">lossless-json</code>) and
-				<code class="bg-bg-code px-1 py-0.5 rounded">bigint_types</code> fields will carry exact values
-				at runtime.
-			</p>
+			<div class="mt-3 space-y-1">
+				<p class="text-text-faint text-xs">
+					<code class="bg-bg-code px-1 py-0.5 rounded">typeof</code> of
+					<code class="bg-bg-code px-1 py-0.5 rounded">as_number</code>: JSON.parse &rarr;
+					<code class="bg-bg-code px-1 py-0.5 rounded"
+						>{typeof defaultResult.values[0]?.as_number}</code
+					>, lossless-json &rarr;
+					<code class="bg-bg-code px-1 py-0.5 rounded">{typeof losslessResult[0]?.as_number}</code>
+					/
+					<code class="bg-bg-code px-1 py-0.5 rounded"
+						>{typeof losslessResult[losslessResult.length - 1]?.as_number}</code
+					>
+				</p>
+				<p class="text-text-faint text-xs">
+					Plug any BigInt-aware parser into the client's
+					<code class="bg-bg-code px-1 py-0.5 rounded">deserialize</code> option and
+					<code class="bg-bg-code px-1 py-0.5 rounded">bigint_types</code> fields carry exact values at
+					runtime.
+				</p>
+			</div>
 		{/if}
 
 		<button
