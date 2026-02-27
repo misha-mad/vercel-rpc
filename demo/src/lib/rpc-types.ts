@@ -115,17 +115,23 @@ export interface TimeoutDemoResponse {
   timeout_ms: number;
 }
 
-/**
- * Showcases expanded type mappings: sets, smart pointers, and Cow.
- * 
- * All wrapper types serialize transparently — `Box<T>` and `Cow<T>` become `T`,
- * while `HashSet<T>` and `BTreeSet<T>` become `T[]`.
- */
+/** Showcases every Rust → TypeScript type mapping in a single struct. */
 export interface TypeShowcase {
-  tags: string[];
-  sorted_ids: number[];
-  boxed_label: string;
-  cow_message: string;
+  string_val: string;
+  integer: number;
+  float: number;
+  flag: boolean;
+  vec_items: string[];
+  hash_set: string[];
+  btree_set: number[];
+  optional_present: string | null;
+  optional_absent: string | null;
+  hash_map: Record<string, number>;
+  btree_map: Record<string, number>;
+  boxed: string;
+  cow: string;
+  tuple: [string, number, boolean];
+  fixed_array: number[];
 }
 
 /**
@@ -198,14 +204,8 @@ export type Procedures = {
     /** Returns the current server time as a Unix timestamp. */
     time: { input: void; output: TimeResponse };
     timeout_demo: { input: TimeoutDemoInput; output: TimeoutDemoResponse };
-    /**
-     * Return a type showcase demonstrating expanded type mappings.
-     * 
-     * Accepts a category name and returns a `TypeShowcase` struct using
-     * `HashSet`, `BTreeSet`, `Box`, and `Cow` — all mapped to their
-     * natural TypeScript equivalents.
-     */
-    types: { input: string; output: TypeShowcase };
+    /** Return a showcase of every supported type mapping. */
+    types: { input: void; output: TypeShowcase };
   };
   mutations: {
     /** Echo a message back, optionally transforming it to uppercase. */

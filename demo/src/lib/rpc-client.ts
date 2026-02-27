@@ -202,7 +202,7 @@ type QueryOutput<K extends QueryKey> = Procedures["queries"][K]["output"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
-const VOID_QUERIES: Set<string> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "init_demo", "secret", "status", "time"]);
+const VOID_QUERIES: Set<string> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "init_demo", "secret", "status", "time", "types"]);
 
 export interface RpcClient {
   /** Return a set of u64 values at precision boundaries. */
@@ -231,6 +231,9 @@ export interface RpcClient {
   /** Returns the current server time as a Unix timestamp. */
   query(key: "time"): Promise<TimeResponse>;
   query(key: "time", options: CallOptions): Promise<TimeResponse>;
+  /** Return a showcase of every supported type mapping. */
+  query(key: "types"): Promise<TypeShowcase>;
+  query(key: "types", options: CallOptions): Promise<TypeShowcase>;
   /**
    * Greet a user by name.
    * Returns a personalized greeting string.
@@ -253,15 +256,6 @@ export interface RpcClient {
   query(key: "stats", input: number[], options: CallOptions): Promise<Stats>;
   query(key: "timeout_demo", input: TimeoutDemoInput): Promise<TimeoutDemoResponse>;
   query(key: "timeout_demo", input: TimeoutDemoInput, options: CallOptions): Promise<TimeoutDemoResponse>;
-  /**
-   * Return a type showcase demonstrating expanded type mappings.
-   * 
-   * Accepts a category name and returns a `TypeShowcase` struct using
-   * `HashSet`, `BTreeSet`, `Box`, and `Cow` — all mapped to their
-   * natural TypeScript equivalents.
-   */
-  query(key: "types", input: string): Promise<TypeShowcase>;
-  query(key: "types", input: string, options: CallOptions): Promise<TypeShowcase>;
 
   /** Echo a message back, optionally transforming it to uppercase. */
   mutate(key: "echo", input: EchoInput): Promise<EchoOutput>;

@@ -6,12 +6,11 @@
 
 	let result: import('$lib/rpc-types').TypeShowcase | undefined = $state();
 	let loading = $state(false);
-	let category = $state('demo');
 
 	async function fetchTypes() {
 		loading = true;
 		try {
-			result = await rpc.query('types', category);
+			result = await rpc.query('types');
 		} finally {
 			loading = false;
 		}
@@ -248,24 +247,11 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		Call a real lambda that returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-			>HashSet</code
-		>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BTreeSet</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Box</code>, and
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cow</code> — all transparently mapped
-		to plain TypeScript types.
+		A single struct with every mapping from the table above. Click Fetch to see live values.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-3">Wrapper Type Showcase</h3>
 		<div class="flex items-center gap-3 mb-4">
-			<input
-				type="text"
-				bind:value={category}
-				class="rounded-md border border-border bg-bg-code px-3 py-1.5 text-sm font-mono text-text-primary w-40"
-				placeholder="category"
-			/>
 			<button
 				onclick={fetchTypes}
 				disabled={loading}
@@ -278,23 +264,93 @@
 		</div>
 
 		{#if result}
-			<div class="rounded-md bg-bg-code p-4 text-xs font-mono space-y-3 overflow-x-auto">
-				<div>
-					<span class="text-text-faint">HashSet&lt;String&gt; → string[]</span>
-					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.tags)}</div>
-				</div>
-				<div>
-					<span class="text-text-faint">BTreeSet&lt;i32&gt; → number[] (sorted)</span>
-					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.sorted_ids)}</div>
-				</div>
-				<div>
-					<span class="text-text-faint">Box&lt;String&gt; → string</span>
-					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.boxed_label)}</div>
-				</div>
-				<div>
-					<span class="text-text-faint">Cow&lt;str&gt; → string</span>
-					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.cow_message)}</div>
-				</div>
+			<div class="overflow-x-auto rounded-md border border-border">
+				<table class="w-full text-xs font-mono">
+					<thead class="bg-bg-code text-text-faint">
+						<tr>
+							<th class="px-3 py-2 text-left">Rust type</th>
+							<th class="px-3 py-2 text-left">TS type</th>
+							<th class="px-3 py-2 text-left">Value</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">String</td>
+							<td class="px-3 py-2 text-text-muted">string</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.string_val)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">i32</td>
+							<td class="px-3 py-2 text-text-muted">number</td>
+							<td class="px-3 py-2 text-accent-ts">{result.integer}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">f64</td>
+							<td class="px-3 py-2 text-text-muted">number</td>
+							<td class="px-3 py-2 text-accent-ts">{result.float}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">bool</td>
+							<td class="px-3 py-2 text-text-muted">boolean</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.flag)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Vec&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.vec_items)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">HashSet&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.hash_set)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">BTreeSet&lt;i32&gt;</td>
+							<td class="px-3 py-2 text-text-muted">number[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.btree_set)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Option&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string | null</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.optional_present)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Option&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string | null</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.optional_absent)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">HashMap&lt;String, i32&gt;</td>
+							<td class="px-3 py-2 text-text-muted">Record&lt;string, number&gt;</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.hash_map)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">BTreeMap&lt;String, i32&gt;</td>
+							<td class="px-3 py-2 text-text-muted">Record&lt;string, number&gt;</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.btree_map)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Box&lt;String&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.boxed)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">Cow&lt;str&gt;</td>
+							<td class="px-3 py-2 text-text-muted">string</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.cow)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">(String, i32, bool)</td>
+							<td class="px-3 py-2 text-text-muted">[string, number, boolean]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.tuple)}</td>
+						</tr>
+						<tr class="border-t border-border/50">
+							<td class="px-3 py-2 text-text-muted">[i32; 3]</td>
+							<td class="px-3 py-2 text-text-muted">number[]</td>
+							<td class="px-3 py-2 text-accent-ts">{JSON.stringify(result.fixed_array)}</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		{/if}
 

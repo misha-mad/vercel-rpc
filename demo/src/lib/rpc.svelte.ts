@@ -15,8 +15,8 @@ type MutationKey = keyof Procedures["mutations"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
-type VoidQueryKey = "bigint_demo" | "cached_time" | "cached_time_private" | "cached_time_stale" | "init_demo" | "secret" | "status" | "time";
-type NonVoidQueryKey = "hello" | "math" | "profile" | "stats" | "timeout_demo" | "types";
+type VoidQueryKey = "bigint_demo" | "cached_time" | "cached_time_private" | "cached_time_stale" | "init_demo" | "secret" | "status" | "time" | "types";
+type NonVoidQueryKey = "hello" | "math" | "profile" | "stats" | "timeout_demo";
 type NonVoidMutationKey = "echo" | "idempotent_demo";
 type MutationArgs<K extends MutationKey> = [input: MutationInput<K>];
 
@@ -116,7 +116,7 @@ export interface MutationResult<K extends MutationKey> {
   reset: () => void;
 }
 
-const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "init_demo", "secret", "status", "time"]);
+const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "init_demo", "secret", "status", "time", "types"]);
 
 export function createQuery<K extends "bigint_demo">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "cached_time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
@@ -126,12 +126,12 @@ export function createQuery<K extends "init_demo">(client: RpcClient, key: K, op
 export function createQuery<K extends "secret">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "status">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "types">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "math">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "profile">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "stats">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "timeout_demo">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
-export function createQuery<K extends "types">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends QueryKey>(
   client: RpcClient,
   ...args: unknown[]
