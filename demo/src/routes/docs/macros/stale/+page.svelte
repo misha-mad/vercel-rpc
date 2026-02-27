@@ -5,10 +5,14 @@
 
 	let { data } = $props();
 
-	let fetchLog: { serverTs: number; clientTs: number }[] = $state([]);
+	let fetchLog: { serverTs: number; clientTs: number; cached: boolean }[] = $state([]);
 
 	function logFetch(serverTs: number) {
-		fetchLog = [...fetchLog.slice(-4), { serverTs, clientTs: Math.floor(Date.now() / 1000) }];
+		const prev = fetchLog.at(-1);
+		fetchLog = [
+			...fetchLog.slice(-4),
+			{ serverTs, clientTs: Math.floor(Date.now() / 1000), cached: prev?.serverTs === serverTs }
+		];
 	}
 
 	const cachedTimeStale = createQuery(rpc, 'cached_time_stale', {
@@ -83,7 +87,7 @@
 						<span class="text-text-muted"
 							>client: <span class="text-text-primary">{entry.clientTs}</span></span
 						>
-						{#if i > 0 && entry.serverTs === fetchLog[i - 1].serverTs}
+						{#if entry.cached}
 							<span class="text-green-400">cached</span>
 						{/if}
 					</div>

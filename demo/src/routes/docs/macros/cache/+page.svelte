@@ -5,15 +5,16 @@
 
 	let { data } = $props();
 
-	let fetchLog: Record<string, { serverTs: number; clientTs: number }[]> = $state({
+	let fetchLog: Record<string, { serverTs: number; clientTs: number; cached: boolean }[]> = $state({
 		public: [],
 		private: []
 	});
 
 	function logFetch(key: 'public' | 'private', serverTs: number) {
+		const prev = fetchLog[key].at(-1);
 		fetchLog[key] = [
 			...fetchLog[key].slice(-4),
-			{ serverTs, clientTs: Math.floor(Date.now() / 1000) }
+			{ serverTs, clientTs: Math.floor(Date.now() / 1000), cached: prev?.serverTs === serverTs }
 		];
 	}
 
@@ -136,7 +137,7 @@
 						<span class="text-text-muted"
 							>client: <span class="text-text-primary">{entry.clientTs}</span></span
 						>
-						{#if i > 0 && entry.serverTs === fetchLog['public'][i - 1].serverTs}
+						{#if entry.cached}
 							<span class="text-green-400">cached</span>
 						{/if}
 					</div>
@@ -179,7 +180,7 @@
 						<span class="text-text-muted"
 							>client: <span class="text-text-primary">{entry.clientTs}</span></span
 						>
-						{#if i > 0 && entry.serverTs === fetchLog['private'][i - 1].serverTs}
+						{#if entry.cached}
 							<span class="text-green-400">cached</span>
 						{/if}
 					</div>

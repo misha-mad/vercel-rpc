@@ -5,19 +5,25 @@
 
 	let { data } = $props();
 
-	let callLog: { coldStartAt: number; initMs: number; reqCount: number; now: number }[] = $state(
-		[]
-	);
+	let callLog: {
+		coldStartAt: number;
+		initMs: number;
+		reqCount: number;
+		now: number;
+		sameInstance: boolean | null;
+	}[] = $state([]);
 
 	const initDemo = createQuery(rpc, 'init_demo', {
 		onSuccess: (d) => {
+			const prev = callLog.at(-1);
 			callLog = [
 				...callLog.slice(-4),
 				{
 					coldStartAt: d.cold_start_at,
 					initMs: d.init_duration_ms,
 					reqCount: d.request_count,
-					now: d.now
+					now: d.now,
+					sameInstance: prev ? prev.coldStartAt === d.cold_start_at : null
 				}
 			];
 		}
@@ -91,9 +97,9 @@
 						<span class="text-text-muted"
 							>req: <span class="text-text-primary">{entry.reqCount}</span></span
 						>
-						{#if i > 0 && entry.coldStartAt === callLog[i - 1].coldStartAt}
+						{#if entry.sameInstance === true}
 							<span class="text-green-400">same instance</span>
-						{:else if i > 0}
+						{:else if entry.sameInstance === false}
 							<span class="text-yellow-400">new cold start</span>
 						{/if}
 					</div>
