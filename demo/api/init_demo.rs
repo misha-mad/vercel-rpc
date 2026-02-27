@@ -3,6 +3,7 @@ use serde::Serialize;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Instant, SystemTime};
 
+#[derive(Debug)]
 pub struct AppState {
     pub cold_start_at: u64,
     pub init_duration_ms: u64,
