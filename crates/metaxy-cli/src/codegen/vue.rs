@@ -46,7 +46,7 @@ const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends Q
   /** True when the most recent fetch failed. */
   readonly isError: ComputedRef<boolean>;
 
-  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
+  /** Manually trigger a refetch. Works even when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }"#;
 
@@ -215,13 +215,12 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     isSuccess,
     isError,
     refetch: async () => {
-      const enabled = resolveEnabled();
-      if (!enabled) return;
       generation++;
       const gen = generation;
       const localController = new AbortController();
       if (controller) controller.abort();
       controller = localController;
+      const enabled = resolveEnabled();
       setupInterval(enabled, resolveOptions()?.refetchInterval);
       await fetchData(inputFn?.(), localController.signal, gen);
     },

@@ -255,13 +255,12 @@ export function createQuery<K extends QueryKey>(
     get isError() { return error !== undefined; },
     get isPlaceholderData() { return !hasFetched && data !== undefined; },
     refetch: async () => {
-      const enabled = resolveEnabled();
-      if (!enabled) return;
       generation++;
       const gen = generation;
       const localController = new AbortController();
       if (controller) controller.abort();
       controller = localController;
+      const enabled = resolveEnabled();
       setupInterval(enabled, resolveOptions()?.refetchInterval);
       await fetchData(inputFn?.(), localController.signal, gen);
     },

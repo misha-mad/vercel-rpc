@@ -46,7 +46,7 @@ const QUERY_RESULT_INTERFACE: &str = r#"export interface QueryResult<K extends Q
   /** True when the most recent fetch failed. */
   readonly isError: boolean;
 
-  /** Manually trigger a refetch. No-op when `enabled` is false. */
+  /** Manually trigger a refetch. Works even when `enabled` is false. */
   refetch: () => Promise<void>;
 }"#;
 
@@ -204,7 +204,6 @@ const USE_QUERY_IMPL: &str = r#"export function useQuery<K extends QueryKey>(
     isSuccess: hasFetched,
     isError: error !== undefined,
     refetch: async () => {
-      if (!resolveEnabled()) return;
       generationRef.current++;
       const gen = generationRef.current;
       const localController = new AbortController();

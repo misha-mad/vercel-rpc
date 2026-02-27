@@ -54,7 +54,7 @@ export interface QueryResult<K extends QueryKey> {
   /** True when placeholderData is being shown and no real fetch has completed yet. */
   readonly isPlaceholderData: boolean;
 
-  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
+  /** Manually trigger a refetch. Works even when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }"#;
 
@@ -222,13 +222,12 @@ const CREATE_QUERY_IMPL: &str = r#"export function createQuery<K extends QueryKe
     get isError() { return error !== undefined; },
     get isPlaceholderData() { return !hasFetched && data !== undefined; },
     refetch: async () => {
-      const enabled = resolveEnabled();
-      if (!enabled) return;
       generation++;
       const gen = generation;
       const localController = new AbortController();
       if (controller) controller.abort();
       controller = localController;
+      const enabled = resolveEnabled();
       setupInterval(enabled, resolveOptions()?.refetchInterval);
       await fetchData(inputFn?.(), localController.signal, gen);
     },
