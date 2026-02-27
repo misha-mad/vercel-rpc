@@ -1,7 +1,7 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: string }> = {
+const codeBlocks: Record<string, { code: string; lang: 'typescript' | 'rust' }> = {
 	staticHeaders: {
 		lang: 'typescript',
 		code: `const rpc = createRpcClient({

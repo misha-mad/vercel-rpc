@@ -14,10 +14,10 @@
 		loading = true;
 		result = undefined;
 		error = undefined;
-		const headers = withToken ? { Authorization: 'Bearer secret-token-123' } : {};
+		const headers: Record<string, string> = withToken ? { Authorization: 'Bearer secret-token-123' } : {};
 		usedHeaders = headers;
 		try {
-			result = await rpc.query('secret', undefined, { headers });
+			result = await rpc.query('secret', { headers });
 		} catch (e) {
 			error = e instanceof RpcError ? `${e.status}: ${e.message}` : String(e);
 		} finally {
