@@ -32,6 +32,23 @@ export interface EchoOutput {
   length: number;
 }
 
+export interface IdempotentDemoInput {
+  value: number;
+}
+
+export interface IdempotentDemoResponse {
+  previous: number;
+  current: number;
+  total_calls: number;
+}
+
+export interface InitDemoResponse {
+  cold_start_at: number;
+  init_duration_ms: number;
+  request_count: number;
+  now: number;
+}
+
 /** Input for a math calculation. */
 export interface MathInput {
   a: number;
@@ -67,6 +84,16 @@ export interface Stats {
 export interface TimeResponse {
   timestamp: number;
   message: string;
+}
+
+export interface TimeoutDemoInput {
+  sleep_ms: number;
+}
+
+export interface TimeoutDemoResponse {
+  requested_ms: number;
+  actual_ms: number;
+  timeout_ms: number;
 }
 
 /**
@@ -128,6 +155,7 @@ export type Procedures = {
      * Returns a personalized greeting string.
      */
     hello: { input: string; output: string };
+    init_demo: { input: AppState; output: InitDemoResponse };
     /** Perform a math operation. Returns an error on division by zero. */
     math: { input: MathInput; output: MathResult };
     /**
@@ -148,6 +176,7 @@ export type Procedures = {
     status: { input: void; output: ServiceStatus };
     /** Returns the current server time as a Unix timestamp. */
     time: { input: void; output: TimeResponse };
+    timeout_demo: { input: TimeoutDemoInput; output: TimeoutDemoResponse };
     /**
      * Return a type showcase demonstrating expanded type mappings.
      * 
@@ -160,5 +189,10 @@ export type Procedures = {
   mutations: {
     /** Echo a message back, optionally transforming it to uppercase. */
     echo: { input: EchoInput; output: EchoOutput };
+    /**
+     * Idempotent upsert: sets the stored value. Repeated calls with the same
+     * input produce the same result, making it safe to retry on failure.
+     */
+    idempotent_demo: { input: IdempotentDemoInput; output: IdempotentDemoResponse };
   };
 };

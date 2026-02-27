@@ -3,10 +3,10 @@
 
 import { type RpcClient, RpcError, type CallOptions } from "./rpc-client";
 
-import type { Procedures, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole } from "./rpc-types";
+import type { Procedures, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole } from "./rpc-types";
 
 export { RpcError };
-export type { RpcClient, CallOptions, Procedures, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole };
+export type { RpcClient, CallOptions, Procedures, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole };
 
 type QueryKey = keyof Procedures["queries"];
 type QueryInput<K extends QueryKey> = Procedures["queries"][K]["input"];
@@ -16,8 +16,8 @@ type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
 
 type VoidQueryKey = "cached_time" | "cached_time_private" | "cached_time_stale" | "secret" | "status" | "time";
-type NonVoidQueryKey = "hello" | "math" | "profile" | "stats" | "types";
-type NonVoidMutationKey = "echo";
+type NonVoidQueryKey = "hello" | "init_demo" | "math" | "profile" | "stats" | "timeout_demo" | "types";
+type NonVoidMutationKey = "echo" | "idempotent_demo";
 type MutationArgs<K extends MutationKey> = [input: MutationInput<K>];
 
 export interface QueryOptions<K extends QueryKey> {
@@ -125,9 +125,11 @@ export function createQuery<K extends "secret">(client: RpcClient, key: K, optio
 export function createQuery<K extends "status">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "time">(client: RpcClient, key: K, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "hello">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "init_demo">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "math">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "profile">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "stats">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
+export function createQuery<K extends "timeout_demo">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends "types">(client: RpcClient, key: K, input: () => QueryInput<K>, options?: QueryOptions<K> | (() => QueryOptions<K>)): QueryResult<K>;
 export function createQuery<K extends QueryKey>(
   client: RpcClient,

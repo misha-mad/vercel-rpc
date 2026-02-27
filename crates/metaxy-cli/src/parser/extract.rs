@@ -185,6 +185,10 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
         if is_headers_type(&pat.ty) {
             return None;
         }
+        // Skip reference parameters — these are init-injected state (&T).
+        if matches!(&*pat.ty, syn::Type::Reference(_)) {
+            return None;
+        }
         Some(extract_rust_type(&pat.ty))
     });
 
