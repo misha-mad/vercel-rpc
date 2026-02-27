@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
-	import { createQuery, RpcError } from '$lib/rpc.svelte';
+	import { RpcError } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 
 	let { data } = $props();
 
-	let sleepMs = $state(1000);
-
-	const demo = createQuery(rpc, 'timeout_demo', () => ({ sleep_ms: sleepMs }), {
-		enabled: false
-	});
+	let loading = $state(false);
 
 	let callLog: {
 		sleepMs: number;
@@ -19,29 +15,18 @@
 	}[] = $state([]);
 
 	async function run(ms: number) {
-		sleepMs = ms;
+		loading = true;
 		try {
-			await demo.refetch();
-			if (demo.data) {
-				callLog = [
-					...callLog.slice(-4),
-					{
-						sleepMs: ms,
-						actualMs: demo.data.actual_ms,
-						status: 'ok'
-					}
-				];
-			}
+			const result = await rpc.query('timeout_demo', { sleep_ms: ms });
+			callLog = [
+				...callLog.slice(-4),
+				{ sleepMs: ms, actualMs: result.actual_ms, status: 'ok' }
+			];
 		} catch (e) {
 			if (e instanceof RpcError && e.status === 504) {
 				callLog = [
 					...callLog.slice(-4),
-					{
-						sleepMs: ms,
-						actualMs: null,
-						status: 'timeout',
-						error: '504 Gateway Timeout'
-					}
+					{ sleepMs: ms, actualMs: null, status: 'timeout', error: '504 Gateway Timeout' }
 				];
 			} else {
 				callLog = [
@@ -54,6 +39,8 @@
 					}
 				];
 			}
+		} finally {
+			loading = false;
 		}
 	}
 
@@ -105,24 +92,24 @@
 		<div class="flex items-center gap-2 mb-3 flex-wrap">
 			<button
 				onclick={() => run(500)}
-				disabled={demo.isLoading}
+				disabled={loading}
 				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
 				>500ms</button
 			>
 			<button
 				onclick={() => run(2000)}
-				disabled={demo.isLoading}
+				disabled={loading}
 				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
 				>2s</button
 			>
 			<button
 				onclick={() => run(4000)}
-				disabled={demo.isLoading}
+				disabled={loading}
 				class="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
 				>4s (timeout!)</button
 			>
 		</div>
-		{#if demo.isLoading}
+		{#if loading}
 			<div class="text-xs text-text-faint mb-2">waiting for response...</div>
 		{/if}
 		{#if callLog.length > 0}
