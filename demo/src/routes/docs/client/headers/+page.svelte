@@ -14,7 +14,9 @@
 		loading = true;
 		result = undefined;
 		error = undefined;
-		const headers: Record<string, string> = withToken ? { Authorization: 'Bearer secret-token-123' } : {};
+		const headers: Record<string, string> = withToken
+			? { Authorization: 'Bearer secret-token-123' }
+			: {};
 		usedHeaders = headers;
 		try {
 			result = await rpc.query('secret', { headers });

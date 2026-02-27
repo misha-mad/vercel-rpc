@@ -4,7 +4,9 @@
 
 	let { data } = $props();
 
-	let clientResult: { authenticated: boolean; message: string; cookie_value: string | null } | undefined = $state();
+	let clientResult:
+		| { authenticated: boolean; message: string; cookie_value: string | null }
+		| undefined = $state();
 	let loading = $state(false);
 
 	async function fetchFromClient() {
@@ -68,20 +70,29 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		The server checks for a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">session</code> cookie.
-		SSR <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">event.fetch</code> forwards it automatically;
-		browser <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">fetch</code> does not (on Vercel, cross-origin).
+		The server checks for a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>session</code
+		>
+		cookie. SSR <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">event.fetch</code>
+		forwards it automatically; browser
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">fetch</code> does not (on Vercel,
+		cross-origin).
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6 space-y-4">
 		<div>
 			<h3 class="text-lg font-semibold mb-1">SSR Result</h3>
-			<p class="text-text-muted text-xs mb-2">Called during server load with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">event.fetch</code></p>
+			<p class="text-text-muted text-xs mb-2">
+				Called during server load with <code
+					class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">event.fetch</code
+				>
+			</p>
 			<div class="rounded-md bg-bg-code p-3 text-xs font-mono">
 				{#if data.ssrResult}
 					{@const ssr = data.ssrResult as { authenticated: boolean; message: string }}
 					<span class={ssr.authenticated ? 'text-green-400' : 'text-red-400'}>
-						{ssr.authenticated ? '✓' : '✗'} {ssr.message}
+						{ssr.authenticated ? '✓' : '✗'}
+						{ssr.message}
 					</span>
 				{/if}
 			</div>
@@ -89,7 +100,11 @@
 
 		<div>
 			<h3 class="text-lg font-semibold mb-1">Client Result</h3>
-			<p class="text-text-muted text-xs mb-2">Called from browser with default <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">globalThis.fetch</code></p>
+			<p class="text-text-muted text-xs mb-2">
+				Called from browser with default <code
+					class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">globalThis.fetch</code
+				>
+			</p>
 			<div class="flex items-center gap-2 mb-2 flex-wrap">
 				<button
 					onclick={fetchFromClient}
@@ -111,7 +126,8 @@
 			{#if clientResult}
 				<div class="rounded-md bg-bg-code p-3 text-xs font-mono">
 					<span class={clientResult.authenticated ? 'text-green-400' : 'text-red-400'}>
-						{clientResult.authenticated ? '✓' : '✗'} {clientResult.message}
+						{clientResult.authenticated ? '✓' : '✗'}
+						{clientResult.message}
 					</span>
 				</div>
 			{/if}

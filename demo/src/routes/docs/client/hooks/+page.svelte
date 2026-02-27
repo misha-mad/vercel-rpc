@@ -18,15 +18,27 @@
 			baseUrl: '/api',
 			retry: { attempts: 2, delay: 300 },
 			onRequest: (ctx) => {
-				log.push({ hook: 'onRequest', detail: `procedure="${ctx.procedure}" url="${ctx.url}"`, ts: Date.now() - startTs });
+				log.push({
+					hook: 'onRequest',
+					detail: `procedure="${ctx.procedure}" url="${ctx.url}"`,
+					ts: Date.now() - startTs
+				});
 				hookLog = [...log];
 			},
 			onResponse: (ctx) => {
-				log.push({ hook: 'onResponse', detail: `status=200 duration=${ctx.duration}ms data=${JSON.stringify(ctx.data).slice(0, 80)}`, ts: Date.now() - startTs });
+				log.push({
+					hook: 'onResponse',
+					detail: `status=200 duration=${ctx.duration}ms data=${JSON.stringify(ctx.data).slice(0, 80)}`,
+					ts: Date.now() - startTs
+				});
 				hookLog = [...log];
 			},
 			onError: (ctx) => {
-				log.push({ hook: 'onError', detail: `attempt=${ctx.attempt} willRetry=${ctx.willRetry} error="${ctx.error instanceof RpcError ? ctx.error.message : ctx.error}"`, ts: Date.now() - startTs });
+				log.push({
+					hook: 'onError',
+					detail: `attempt=${ctx.attempt} willRetry=${ctx.willRetry} error="${ctx.error instanceof RpcError ? ctx.error.message : ctx.error}"`,
+					ts: Date.now() - startTs
+				});
 				hookLog = [...log];
 			}
 		});

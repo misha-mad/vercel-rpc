@@ -12,15 +12,13 @@
 	async function fireCalls(dedupe: boolean) {
 		loading = true;
 		dedupResult = undefined;
-		const client = dedupe
-			? rpc
-			: createRpcClient({ baseUrl: '/api', dedupe: false });
+		const client = dedupe ? rpc : createRpcClient({ baseUrl: '/api', dedupe: false });
 
 		const N = 5;
 		const promises = Array.from({ length: N }, () => client.query('dedup_demo'));
 		const results = await Promise.all(promises);
 
-		const requestNumbers = results.map(r => r.request_number);
+		const requestNumbers = results.map((r) => r.request_number);
 		const unique = new Set(requestNumbers);
 
 		dedupResult = {
@@ -70,8 +68,8 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		Fire 5 identical queries concurrently. With dedup enabled, only 1 HTTP request is made.
-		The server sleeps 500ms and increments a counter on each real request.
+		Fire 5 identical queries concurrently. With dedup enabled, only 1 HTTP request is made. The
+		server sleeps 500ms and increments a counter on each real request.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">

@@ -14,18 +14,24 @@
 		const client = createRpcClient({ baseUrl: '/api', timeout: clientTimeoutMs });
 		try {
 			const res = await client.query('timeout_demo', { sleep_ms: serverDelayMs });
-			callLog = [...callLog.slice(-4), {
-				label: `delay=${serverDelayMs}ms, timeout=${clientTimeoutMs}ms`,
-				status: 'ok',
-				detail: `200 OK — actual ${res.actual_ms}ms`
-			}];
+			callLog = [
+				...callLog.slice(-4),
+				{
+					label: `delay=${serverDelayMs}ms, timeout=${clientTimeoutMs}ms`,
+					status: 'ok',
+					detail: `200 OK — actual ${res.actual_ms}ms`
+				}
+			];
 		} catch (e) {
 			const isAbort = e instanceof DOMException && e.name === 'AbortError';
-			callLog = [...callLog.slice(-4), {
-				label: `delay=${serverDelayMs}ms, timeout=${clientTimeoutMs}ms`,
-				status: isAbort ? 'abort' : 'error',
-				detail: isAbort ? 'AbortError: client timeout exceeded' : String(e)
-			}];
+			callLog = [
+				...callLog.slice(-4),
+				{
+					label: `delay=${serverDelayMs}ms, timeout=${clientTimeoutMs}ms`,
+					status: isAbort ? 'abort' : 'error',
+					detail: isAbort ? 'AbortError: client timeout exceeded' : String(e)
+				}
+			];
 		} finally {
 			loading = false;
 		}
@@ -36,21 +42,31 @@
 		abortController = new AbortController();
 		const client = createRpcClient({ baseUrl: '/api' });
 		try {
-			const res = await client.query('timeout_demo', { sleep_ms: 10000 }, {
-				signal: abortController.signal
-			});
-			callLog = [...callLog.slice(-4), {
-				label: 'manual abort (10s delay)',
-				status: 'ok',
-				detail: `200 OK — actual ${res.actual_ms}ms`
-			}];
+			const res = await client.query(
+				'timeout_demo',
+				{ sleep_ms: 10000 },
+				{
+					signal: abortController.signal
+				}
+			);
+			callLog = [
+				...callLog.slice(-4),
+				{
+					label: 'manual abort (10s delay)',
+					status: 'ok',
+					detail: `200 OK — actual ${res.actual_ms}ms`
+				}
+			];
 		} catch (e) {
 			const isAbort = e instanceof DOMException && e.name === 'AbortError';
-			callLog = [...callLog.slice(-4), {
-				label: 'manual abort (10s delay)',
-				status: isAbort ? 'abort' : 'error',
-				detail: isAbort ? 'AbortError: manually cancelled' : String(e)
-			}];
+			callLog = [
+				...callLog.slice(-4),
+				{
+					label: 'manual abort (10s delay)',
+					status: isAbort ? 'abort' : 'error',
+					detail: isAbort ? 'AbortError: manually cancelled' : String(e)
+				}
+			];
 		} finally {
 			loading = false;
 			abortController = undefined;
@@ -110,7 +126,8 @@
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
 		The server sleeps for the requested duration. Client-side timeout fires an
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AbortError</code> before the server responds.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AbortError</code> before the server
+		responds.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
@@ -134,7 +151,9 @@
 		</div>
 
 		<h3 class="text-lg font-semibold mb-1">Manual Abort</h3>
-		<p class="text-text-muted text-xs mb-3">Start a 10s request, then cancel it with AbortController.</p>
+		<p class="text-text-muted text-xs mb-3">
+			Start a 10s request, then cancel it with AbortController.
+		</p>
 		<div class="flex items-center gap-2 mb-4">
 			{#if abortController}
 				<button

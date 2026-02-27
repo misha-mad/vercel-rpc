@@ -72,8 +72,10 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		Same endpoint, two clients. The default uses <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">JSON.parse</code>,
-		the custom one uses <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">lossless-json</code>
+		Same endpoint, two clients. The default uses <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">JSON.parse</code
+		>, the custom one uses
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">lossless-json</code>
 		via the <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">deserialize</code> option.
 	</p>
 
@@ -111,9 +113,17 @@
 							<tr class="border-t border-border/50">
 								<td class="px-3 py-2 text-text-muted">{row.label}</td>
 								<td class="px-3 py-2 text-accent-rust">{row.exact}</td>
-								<td class="px-3 py-2" class:text-red-400={defaultLost} class:text-green-400={!defaultLost}>{row.as_number}</td>
+								<td
+									class="px-3 py-2"
+									class:text-red-400={defaultLost}
+									class:text-green-400={!defaultLost}>{row.as_number}</td
+								>
 								<td class="px-3 py-2 text-text-faint">{typeof row.as_number}</td>
-								<td class="px-3 py-2" class:text-red-400={losslessLost} class:text-green-400={!losslessLost}>{String(losslessVal)}</td>
+								<td
+									class="px-3 py-2"
+									class:text-red-400={losslessLost}
+									class:text-green-400={!losslessLost}>{String(losslessVal)}</td
+								>
 								<td class="px-3 py-2 text-text-faint">{typeof losslessVal}</td>
 							</tr>
 						{/each}

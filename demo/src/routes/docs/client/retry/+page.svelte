@@ -4,7 +4,12 @@
 
 	let { data } = $props();
 
-	type LogEntry = { attempt: number; status: 'pending' | 'fail' | 'success'; detail: string; ts: number };
+	type LogEntry = {
+		attempt: number;
+		status: 'pending' | 'fail' | 'success';
+		detail: string;
+		ts: number;
+	};
 	let retryLog: LogEntry[] = $state([]);
 	let loading = $state(false);
 	let failCount = $state(2);
@@ -20,9 +25,9 @@
 			retry: { attempts: 3, delay: 500 },
 			onRequest: (ctx) => {
 				log.push({
-					attempt: log.filter(e => e.status !== 'pending').length,
+					attempt: log.filter((e) => e.status !== 'pending').length,
 					status: 'pending',
-					detail: `onRequest → attempt ${log.filter(e => e.status !== 'pending').length}`,
+					detail: `onRequest → attempt ${log.filter((e) => e.status !== 'pending').length}`,
 					ts: Date.now() - startTs
 				});
 				retryLog = [...log];
@@ -38,7 +43,7 @@
 			},
 			onResponse: (ctx) => {
 				log.push({
-					attempt: log.filter(e => e.status === 'fail').length,
+					attempt: log.filter((e) => e.status === 'fail').length,
 					status: 'success',
 					detail: `onResponse → 200 OK (${ctx.duration}ms)`,
 					ts: Date.now() - startTs
@@ -109,15 +114,18 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		The server fails the first N calls, then succeeds. The client retries up to 3 times with 500ms delay.
-		Lifecycle hooks log every step.
+		The server fails the first N calls, then succeeds. The client retries up to 3 times with 500ms
+		delay. Lifecycle hooks log every step.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
 		<div class="flex items-center gap-3 mb-4">
 			<label class="text-sm text-text-muted">
 				Fail first
-				<select bind:value={failCount} class="ml-1 rounded bg-bg-code px-2 py-1 text-xs font-mono text-text-primary">
+				<select
+					bind:value={failCount}
+					class="ml-1 rounded bg-bg-code px-2 py-1 text-xs font-mono text-text-primary"
+				>
 					<option value={1}>1</option>
 					<option value={2}>2</option>
 					<option value={3}>3</option>
