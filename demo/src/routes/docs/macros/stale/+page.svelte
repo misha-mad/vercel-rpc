@@ -1,29 +1,23 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 
 	let { data } = $props();
 
-	const cachedTimeStale = createQuery(rpc, 'cached_time_stale');
-
 	let fetchLog: { serverTs: number; clientTs: number }[] = $state([]);
 
-	function logFetch(serverTs: number | undefined) {
-		if (serverTs !== undefined) {
-			fetchLog = [...fetchLog.slice(-4), { serverTs, clientTs: Math.floor(Date.now() / 1000) }];
-		}
+	function logFetch(serverTs: number) {
+		fetchLog = [...fetchLog.slice(-4), { serverTs, clientTs: Math.floor(Date.now() / 1000) }];
 	}
+
+	const cachedTimeStale = createQuery(rpc, 'cached_time_stale', {
+		onSuccess: (d) => logFetch(d.timestamp)
+	});
 
 	async function refetch() {
 		await cachedTimeStale.refetch();
 	}
-
-	$effect(() => {
-		const ts = cachedTimeStale.data?.timestamp;
-		if (ts !== undefined) untrack(() => logFetch(ts));
-	});
 
 	let openCode = $state(false);
 </script>

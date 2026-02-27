@@ -1,19 +1,16 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 
 	let { data } = $props();
 
-	const initDemo = createQuery(rpc, 'init_demo');
-
 	let callLog: { coldStartAt: number; initMs: number; reqCount: number; now: number }[] = $state(
 		[]
 	);
 
-	function logCall(d: typeof initDemo.data) {
-		if (d) {
+	const initDemo = createQuery(rpc, 'init_demo', {
+		onSuccess: (d) => {
 			callLog = [
 				...callLog.slice(-4),
 				{
@@ -24,16 +21,11 @@
 				}
 			];
 		}
-	}
+	});
 
 	async function refetch() {
 		await initDemo.refetch();
 	}
-
-	$effect(() => {
-		const d = initDemo.data;
-		if (d) untrack(() => logCall(d));
-	});
 
 	let openCode = $state(false);
 </script>

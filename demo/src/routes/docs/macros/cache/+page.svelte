@@ -1,28 +1,29 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 
 	let { data } = $props();
 
-	// --- Cached time demos ---
-	const cachedTime = createQuery(rpc, 'cached_time');
-	const cachedTimePrivate = createQuery(rpc, 'cached_time_private');
-
 	let fetchLog: Record<string, { serverTs: number; clientTs: number }[]> = $state({
 		public: [],
 		private: []
 	});
 
-	function logFetch(key: 'public' | 'private', serverTs: number | undefined) {
-		if (serverTs !== undefined) {
-			fetchLog[key] = [
-				...fetchLog[key].slice(-4),
-				{ serverTs, clientTs: Math.floor(Date.now() / 1000) }
-			];
-		}
+	function logFetch(key: 'public' | 'private', serverTs: number) {
+		fetchLog[key] = [
+			...fetchLog[key].slice(-4),
+			{ serverTs, clientTs: Math.floor(Date.now() / 1000) }
+		];
 	}
+
+	// --- Cached time demos ---
+	const cachedTime = createQuery(rpc, 'cached_time', {
+		onSuccess: (d) => logFetch('public', d.timestamp)
+	});
+	const cachedTimePrivate = createQuery(rpc, 'cached_time_private', {
+		onSuccess: (d) => logFetch('private', d.timestamp)
+	});
 
 	async function refetchPublic() {
 		await cachedTime.refetch();
@@ -31,16 +32,6 @@
 	async function refetchPrivate() {
 		await cachedTimePrivate.refetch();
 	}
-
-	// Log initial fetches
-	$effect(() => {
-		const ts = cachedTime.data?.timestamp;
-		if (ts !== undefined) untrack(() => logFetch('public', ts));
-	});
-	$effect(() => {
-		const ts = cachedTimePrivate.data?.timestamp;
-		if (ts !== undefined) untrack(() => logFetch('private', ts));
-	});
 
 	// --- Code toggle ---
 	let openCode: Record<string, boolean> = $state({});
