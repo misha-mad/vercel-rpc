@@ -78,21 +78,19 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		The struct carries each value as both
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>
-		(<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">as_number: number</code>) and
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u128</code>
-		(<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">as_bigint: bigint</code>
-		via
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types = ["u128"]</code
-		>). Compare the two columns to see where
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code>
-		silently loses precision while
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint</code> stays exact.
+		The server returns each value as a <code
+			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code
+		>
+		(mapped to <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code>) and a
+		string. The <strong>BigInt</strong> column uses
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BigInt(str)</code> to
+		reconstruct the exact value — this is what a
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">deserialize</code> option with BigInt-aware
+		JSON parsing would give you.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-3">number vs bigint</h3>
+		<h3 class="text-lg font-semibold mb-3">number vs BigInt</h3>
 		<div class="flex items-center gap-3 mb-4">
 			<button
 				onclick={fetchDemo}
@@ -114,12 +112,12 @@
 							<th class="px-3 py-2 text-left">Server (exact)</th>
 							<th class="px-3 py-2 text-left">
 								<code>number</code>
-								<span class="font-normal text-text-faint">(u64)</span>
+								<span class="font-normal text-text-faint">(JSON.parse)</span>
 							</th>
 							<th class="px-3 py-2 text-left"></th>
 							<th class="px-3 py-2 text-left">
-								<code>bigint</code>
-								<span class="font-normal text-text-faint">(u128)</span>
+								<code>BigInt</code>
+								<span class="font-normal text-text-faint">(from string)</span>
 							</th>
 							<th class="px-3 py-2 text-left"></th>
 						</tr>
@@ -127,6 +125,7 @@
 					<tbody>
 						{#each result.values as row, i (i)}
 							{@const lost = hasLoss(row.as_number, row.exact)}
+							{@const bi = BigInt(row.exact)}
 							<tr class="border-t border-border/50">
 								<td class="px-3 py-2 text-text-muted">{row.label}</td>
 								<td class="px-3 py-2 text-accent-rust">{row.exact}</td>
@@ -136,13 +135,21 @@
 											class="text-green-400">ok</span
 										>{/if}</td
 								>
-								<td class="px-3 py-2 text-accent-ts">{row.as_bigint.toString()}</td>
+								<td class="px-3 py-2 text-accent-ts">{bi.toString()}</td>
 								<td class="px-3 py-2 text-green-400">ok</td>
 							</tr>
 						{/each}
 					</tbody>
 				</table>
 			</div>
+			<p class="text-text-faint text-xs mt-2">
+				The client supports a custom
+				<code class="bg-bg-code px-1 py-0.5 rounded">deserialize</code> option — plug in a
+				BigInt-aware JSON parser (e.g.
+				<code class="bg-bg-code px-1 py-0.5 rounded">lossless-json</code>) and
+				<code class="bg-bg-code px-1 py-0.5 rounded">bigint_types</code> fields will carry exact values
+				at runtime.
+			</p>
 		{/if}
 
 		<button

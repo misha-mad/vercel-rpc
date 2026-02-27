@@ -10,4 +10,3 @@ svelte = "src/lib/rpc.svelte.ts"
 
 [codegen]
 preserve_docs = true
-bigint_types = ["u128"]

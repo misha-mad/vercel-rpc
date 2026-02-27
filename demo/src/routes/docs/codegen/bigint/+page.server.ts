@@ -36,14 +36,8 @@ export interface Stats {
 		code: `#[derive(Serialize)]
 pub struct BigIntDemoValue {
     pub label: String,
-    pub exact: String,
-    pub as_number: u64,   // → number (default)
-    pub as_bigint: u128,  // → bigint (via bigint_types)
-}
-
-#[derive(Serialize)]
-pub struct BigIntDemoResponse {
-    pub values: Vec<BigIntDemoValue>,
+    pub exact: String,      // always-correct string
+    pub as_number: u64,     // → number (may lose precision)
 }
 
 #[rpc_query]
@@ -54,15 +48,7 @@ async fn bigint_demo() -> BigIntDemoResponse {
         ("MAX_SAFE + 2", 9_007_199_254_740_993),
         ("u64::MAX", u64::MAX),
     ];
-
-    BigIntDemoResponse {
-        values: cases.iter().map(|(label, val)| BigIntDemoValue {
-            label: label.to_string(),
-            exact: val.to_string(),
-            as_number: *val,
-            as_bigint: *val as u128,
-        }).collect(),
-    }
+    // exact: val.to_string(), as_number: *val
 }`
 	}
 };
