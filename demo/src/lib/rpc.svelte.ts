@@ -3,10 +3,10 @@
 
 import { type RpcClient, RpcError, type CallOptions } from "./rpc-client";
 
-import type { Procedures, BigIntDemoResponse, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole } from "./rpc-types";
+import type { Procedures, BigIntDemoResponse, BigIntDemoValue, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole } from "./rpc-types";
 
 export { RpcError };
-export type { RpcClient, CallOptions, Procedures, BigIntDemoResponse, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole };
+export type { RpcClient, CallOptions, Procedures, BigIntDemoResponse, BigIntDemoValue, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, ServiceStatus, Stats, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, UserProfile, EventKind, HealthStatus, Operation, UserRole };
 
 type QueryKey = keyof Procedures["queries"];
 type QueryInput<K extends QueryKey> = Procedures["queries"][K]["input"];

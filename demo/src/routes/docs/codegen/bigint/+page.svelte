@@ -20,17 +20,6 @@
 		return String(num) !== str;
 	}
 
-	let rows = $derived(
-		result
-			? [
-					{ label: 'small (42)', str: result.small_str, num: result.small },
-					{ label: 'MAX_SAFE_INTEGER', str: result.max_safe_str, num: result.max_safe },
-					{ label: 'MAX_SAFE + 2', str: result.above_safe_str, num: result.above_safe },
-					{ label: 'u64::MAX', str: result.u64_max_str, num: result.u64_max }
-				]
-			: []
-	);
-
 	let openCode = $state(false);
 </script>
 
@@ -89,21 +78,21 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		The server returns each <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-			>u64</code
-		>
-		value twice: as a numeric field (parsed by
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">JSON.parse</code>
-		into <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code>) and as a
-		string. The <strong>BigInt</strong> column reconstructs the value via
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BigInt(str)</code> — this is
-		what
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types</code> would give you
-		automatically.
+		The struct carries each value as both
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>
+		(<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">as_number: number</code>) and
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u128</code>
+		(<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">as_bigint: bigint</code>
+		via
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types = ["u128"]</code
+		>). Compare the two columns to see where
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code>
+		silently loses precision while
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint</code> stays exact.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-3">number vs BigInt</h3>
+		<h3 class="text-lg font-semibold mb-3">number vs bigint</h3>
 		<div class="flex items-center gap-3 mb-4">
 			<button
 				onclick={fetchDemo}
@@ -123,26 +112,31 @@
 						<tr>
 							<th class="px-3 py-2 text-left">Label</th>
 							<th class="px-3 py-2 text-left">Server (exact)</th>
-							<th class="px-3 py-2 text-left">JS number</th>
+							<th class="px-3 py-2 text-left">
+								<code>number</code>
+								<span class="font-normal text-text-faint">(u64)</span>
+							</th>
 							<th class="px-3 py-2 text-left"></th>
-							<th class="px-3 py-2 text-left">BigInt</th>
+							<th class="px-3 py-2 text-left">
+								<code>bigint</code>
+								<span class="font-normal text-text-faint">(u128)</span>
+							</th>
 							<th class="px-3 py-2 text-left"></th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each rows as row, i (i)}
-							{@const lost = hasLoss(row.num, row.str)}
-							{@const bi = BigInt(row.str)}
+						{#each result.values as row, i (i)}
+							{@const lost = hasLoss(row.as_number, row.exact)}
 							<tr class="border-t border-border/50">
 								<td class="px-3 py-2 text-text-muted">{row.label}</td>
-								<td class="px-3 py-2 text-accent-rust">{row.str}</td>
-								<td class="px-3 py-2 text-accent-ts">{row.num}</td>
+								<td class="px-3 py-2 text-accent-rust">{row.exact}</td>
+								<td class="px-3 py-2 text-accent-ts">{row.as_number}</td>
 								<td class="px-3 py-2"
 									>{#if lost}<span class="text-red-400">lost</span>{:else}<span
 											class="text-green-400">ok</span
 										>{/if}</td
 								>
-								<td class="px-3 py-2 text-accent-ts">{bi.toString()}</td>
+								<td class="px-3 py-2 text-accent-ts">{row.as_bigint.toString()}</td>
 								<td class="px-3 py-2 text-green-400">ok</td>
 							</tr>
 						{/each}

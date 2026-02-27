@@ -2,21 +2,22 @@
 // Re-run `metaxy generate` or use `metaxy watch` to regenerate.
 
 /**
- * Demonstrates precision loss when large `u64` values are mapped to JS `number`.
+ * Demonstrates `number` vs `bigint` precision for large integers.
  * 
- * Returns several `u64` values alongside their string representations.
- * Compare the numeric fields (which may lose precision in JavaScript)
- * with the string fields (always exact) to see the difference.
+ * Each row carries the same value as both `u64` (`number`) and
+ * `u128` (`bigint`). Compare them to see where `number` loses
+ * precision and `bigint` stays exact.
  */
 export interface BigIntDemoResponse {
-  small: number;
-  small_str: string;
-  max_safe: number;
-  max_safe_str: string;
-  above_safe: number;
-  above_safe_str: string;
-  u64_max: number;
-  u64_max_str: string;
+  values: BigIntDemoValue[];
+}
+
+/** A single row comparing `number` (u64) vs `bigint` (u128) for the same value. */
+export interface BigIntDemoValue {
+  label: string;
+  exact: string;
+  as_number: number;
+  as_bigint: bigint;
 }
 
 /** Server timestamp with private (browser-only) cache. */
@@ -162,13 +163,7 @@ export type UserRole = "admin" | "power_user" | "anonymous";
 
 export type Procedures = {
   queries: {
-    /**
-     * Return several `u64` values to demonstrate BigInt precision boundaries.
-     * 
-     * The string fields always carry the exact decimal representation,
-     * while the numeric fields may silently lose precision when parsed
-     * by JavaScript's `JSON.parse` (which uses IEEE 754 `number`).
-     */
+    /** Return a set of u64 values at precision boundaries. */
     bigint_demo: { input: void; output: BigIntDemoResponse };
     /** Returns server time, cached on CDN for 30 seconds. */
     cached_time: { input: void; output: CachedTimeResponse };
