@@ -36,19 +36,26 @@ export interface Stats {
 		code: `#[derive(Serialize)]
 pub struct BigIntDemoValue {
     pub label: String,
-    pub exact: String,      // always-correct string
-    pub as_number: u64,     // → number (may lose precision)
+    pub exact: String,  // exact decimal string
+    pub as_number: u64, // → number (may lose precision)
 }
 
 #[rpc_query]
 async fn bigint_demo() -> BigIntDemoResponse {
     let cases: &[(&str, u64)] = &[
         ("small (42)", 42),
-        ("MAX_SAFE_INTEGER", 9_007_199_254_740_991),
-        ("MAX_SAFE + 2", 9_007_199_254_740_993),
-        ("u64::MAX", u64::MAX),
+        ("MAX_SAFE_INTEGER", 9_007_199_254_740_991), // 2^53 - 1
+        ("MAX_SAFE + 2", 9_007_199_254_740_993),     // 2^53 + 1
+        ("u64::MAX", u64::MAX),                      // 2^64 - 1
     ];
-    // exact: val.to_string(), as_number: *val
+
+    BigIntDemoResponse {
+        values: cases.iter().map(|(label, val)| BigIntDemoValue {
+            label: label.to_string(),
+            exact: val.to_string(),
+            as_number: *val,
+        }).collect(),
+    }
 }`
 	},
 	losslessClient: {
