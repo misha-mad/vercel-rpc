@@ -248,10 +248,13 @@
 	<!-- Try it -->
 	<h2 class="text-2xl font-bold mt-12">Try it</h2>
 	<p class="text-text-muted text-sm">
-		Call a real lambda that returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">HashSet</code>,
+		Call a real lambda that returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
+			>HashSet</code
+		>,
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BTreeSet</code>,
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Box</code>, and
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cow</code> — all transparently mapped to plain TypeScript types.
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cow</code> — all transparently mapped
+		to plain TypeScript types.
 	</p>
 
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
@@ -267,7 +270,8 @@
 				onclick={fetchTypes}
 				disabled={loading}
 				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-			>Fetch</button>
+				>Fetch</button
+			>
 			{#if loading}
 				<span class="text-sm text-text-muted">Loading...</span>
 			{/if}

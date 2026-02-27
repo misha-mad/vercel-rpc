@@ -82,7 +82,8 @@
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types</code> — so
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code> maps to
 		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code>. The server
-		returns each value as both a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>
+		returns each value as both a
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>
 		field and a string field. Compare them to see where precision is lost.
 	</p>
 
@@ -93,7 +94,8 @@
 				onclick={fetchDemo}
 				disabled={loading}
 				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-			>Fetch u64 values</button>
+				>Fetch u64 values</button
+			>
 			{#if loading}
 				<span class="text-sm text-text-muted">Loading...</span>
 			{/if}
@@ -121,25 +123,39 @@
 							<td class="px-3 py-2 text-text-muted">MAX_SAFE_INTEGER</td>
 							<td class="px-3 py-2 text-accent-rust">{result.max_safe_str}</td>
 							<td class="px-3 py-2 text-accent-ts">{result.max_safe}</td>
-							<td class="px-3 py-2">{#if hasLoss(result.max_safe, result.max_safe_str)}<span class="text-red-400">precision lost!</span>{:else}<span class="text-green-400">ok</span>{/if}</td>
+							<td class="px-3 py-2"
+								>{#if hasLoss(result.max_safe, result.max_safe_str)}<span class="text-red-400"
+										>precision lost!</span
+									>{:else}<span class="text-green-400">ok</span>{/if}</td
+							>
 						</tr>
 						<tr class="border-t border-border/50">
 							<td class="px-3 py-2 text-text-muted">MAX_SAFE + 2</td>
 							<td class="px-3 py-2 text-accent-rust">{result.above_safe_str}</td>
 							<td class="px-3 py-2 text-accent-ts">{result.above_safe}</td>
-							<td class="px-3 py-2">{#if hasLoss(result.above_safe, result.above_safe_str)}<span class="text-red-400">precision lost!</span>{:else}<span class="text-green-400">ok</span>{/if}</td>
+							<td class="px-3 py-2"
+								>{#if hasLoss(result.above_safe, result.above_safe_str)}<span class="text-red-400"
+										>precision lost!</span
+									>{:else}<span class="text-green-400">ok</span>{/if}</td
+							>
 						</tr>
 						<tr class="border-t border-border/50">
 							<td class="px-3 py-2 text-text-muted">u64::MAX</td>
 							<td class="px-3 py-2 text-accent-rust">{result.u64_max_str}</td>
 							<td class="px-3 py-2 text-accent-ts">{result.u64_max}</td>
-							<td class="px-3 py-2">{#if hasLoss(result.u64_max, result.u64_max_str)}<span class="text-red-400">precision lost!</span>{:else}<span class="text-green-400">ok</span>{/if}</td>
+							<td class="px-3 py-2"
+								>{#if hasLoss(result.u64_max, result.u64_max_str)}<span class="text-red-400"
+										>precision lost!</span
+									>{:else}<span class="text-green-400">ok</span>{/if}</td
+							>
 						</tr>
 					</tbody>
 				</table>
 			</div>
 			<p class="text-text-faint text-xs mt-2">
-				With <code class="bg-bg-code px-1 py-0.5 rounded">bigint_types = ["u64"]</code> in your config, the "JS number" column would use <code class="bg-bg-code px-1 py-0.5 rounded">bigint</code> and match exactly.
+				With <code class="bg-bg-code px-1 py-0.5 rounded">bigint_types = ["u64"]</code> in your
+				config, the "JS number" column would use
+				<code class="bg-bg-code px-1 py-0.5 rounded">bigint</code> and match exactly.
 			</p>
 		{/if}
 
