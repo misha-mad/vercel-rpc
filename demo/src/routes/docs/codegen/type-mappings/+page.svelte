@@ -1,3 +1,25 @@
+<script lang="ts">
+	import { rpc } from '$lib/client';
+	import CodeBlock from '$lib/components/CodeBlock.svelte';
+
+	let { data } = $props();
+
+	let result: import('$lib/rpc-types').TypeShowcase | undefined = $state();
+	let loading = $state(false);
+	let category = $state('demo');
+
+	async function fetchTypes() {
+		loading = true;
+		try {
+			result = await rpc.query('types', category);
+		} finally {
+			loading = false;
+		}
+	}
+
+	let openCode = $state(false);
+</script>
+
 <svelte:head>
 	<title>Type Mappings — metaxy</title>
 </svelte:head>
@@ -221,5 +243,67 @@
 				</tr>
 			</tbody>
 		</table>
+	</div>
+
+	<!-- Try it -->
+	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<p class="text-text-muted text-sm">
+		Call a real lambda that returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">HashSet</code>,
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BTreeSet</code>,
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Box</code>, and
+		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cow</code> — all transparently mapped to plain TypeScript types.
+	</p>
+
+	<div class="rounded-lg border border-border bg-bg-soft p-6">
+		<h3 class="text-lg font-semibold mb-3">Wrapper Type Showcase</h3>
+		<div class="flex items-center gap-3 mb-4">
+			<input
+				type="text"
+				bind:value={category}
+				class="rounded-md border border-border bg-bg-code px-3 py-1.5 text-sm font-mono text-text-primary w-40"
+				placeholder="category"
+			/>
+			<button
+				onclick={fetchTypes}
+				disabled={loading}
+				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+			>Fetch</button>
+			{#if loading}
+				<span class="text-sm text-text-muted">Loading...</span>
+			{/if}
+		</div>
+
+		{#if result}
+			<div class="rounded-md bg-bg-code p-4 text-xs font-mono space-y-3 overflow-x-auto">
+				<div>
+					<span class="text-text-faint">HashSet&lt;String&gt; → string[]</span>
+					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.tags)}</div>
+				</div>
+				<div>
+					<span class="text-text-faint">BTreeSet&lt;i32&gt; → number[] (sorted)</span>
+					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.sorted_ids)}</div>
+				</div>
+				<div>
+					<span class="text-text-faint">Box&lt;String&gt; → string</span>
+					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.boxed_label)}</div>
+				</div>
+				<div>
+					<span class="text-text-faint">Cow&lt;str&gt; → string</span>
+					<div class="text-accent-ts mt-0.5">{JSON.stringify(result.cow_message)}</div>
+				</div>
+			</div>
+		{/if}
+
+		<button
+			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
+			onclick={() => (openCode = !openCode)}
+		>
+			{openCode ? '▾ Hide' : '▸ Show'} Rust
+		</button>
+		{#if openCode}
+			<div class="mt-3">
+				<CodeBlock html={data.highlighted['typesRust']} />
+			</div>
+		{/if}
 	</div>
 </div>
