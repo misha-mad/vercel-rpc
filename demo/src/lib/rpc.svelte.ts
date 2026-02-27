@@ -72,7 +72,7 @@ export interface QueryResult<K extends QueryKey> {
   /** True when placeholderData is being shown and no real fetch has completed yet. */
   readonly isPlaceholderData: boolean;
 
-  /** Manually trigger a refetch. No-op when `enabled` is false. Resets the polling interval. */
+  /** Manually trigger a refetch. Works even when `enabled` is false. Resets the polling interval. */
   refetch: () => Promise<void>;
 }
 
