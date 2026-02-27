@@ -26,12 +26,10 @@
 
 	async function refetchPublic() {
 		await cachedTime.refetch();
-		logFetch('public', cachedTime.data?.timestamp);
 	}
 
 	async function refetchPrivate() {
 		await cachedTimePrivate.refetch();
-		logFetch('private', cachedTimePrivate.data?.timestamp);
 	}
 
 	// Log initial fetches

@@ -28,7 +28,6 @@
 
 	async function refetch() {
 		await initDemo.refetch();
-		logCall(initDemo.data);
 	}
 
 	$effect(() => {

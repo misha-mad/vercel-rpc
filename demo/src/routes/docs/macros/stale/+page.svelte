@@ -18,7 +18,6 @@
 
 	async function refetch() {
 		await cachedTimeStale.refetch();
-		logFetch(cachedTimeStale.data?.timestamp);
 	}
 
 	$effect(() => {
