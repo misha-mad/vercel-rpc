@@ -7,16 +7,14 @@
 
 	// --- Cached time demos ---
 	const cachedTime = createQuery(rpc, 'cached_time');
-	const cachedTimeStale = createQuery(rpc, 'cached_time_stale');
 	const cachedTimePrivate = createQuery(rpc, 'cached_time_private');
 
 	let fetchLog: Record<string, { serverTs: number; clientTs: number }[]> = $state({
 		public: [],
-		stale: [],
 		private: []
 	});
 
-	function logFetch(key: 'public' | 'stale' | 'private', serverTs: number | undefined) {
+	function logFetch(key: 'public' | 'private', serverTs: number | undefined) {
 		if (serverTs !== undefined) {
 			fetchLog[key] = [...fetchLog[key].slice(-4), { serverTs, clientTs: Math.floor(Date.now() / 1000) }];
 		}
@@ -27,11 +25,6 @@
 		logFetch('public', cachedTime.data?.timestamp);
 	}
 
-	async function refetchStale() {
-		await cachedTimeStale.refetch();
-		logFetch('stale', cachedTimeStale.data?.timestamp);
-	}
-
 	async function refetchPrivate() {
 		await cachedTimePrivate.refetch();
 		logFetch('private', cachedTimePrivate.data?.timestamp);
@@ -40,9 +33,6 @@
 	// Log initial fetches
 	$effect(() => {
 		if (cachedTime.data) logFetch('public', cachedTime.data.timestamp);
-	});
-	$effect(() => {
-		if (cachedTimeStale.data) logFetch('stale', cachedTimeStale.data.timestamp);
 	});
 	$effect(() => {
 		if (cachedTimePrivate.data) logFetch('private', cachedTimePrivate.data.timestamp);
@@ -113,13 +103,6 @@
 	</p>
 	<CodeBlock html={data.highlighted['private']} />
 
-	<h2 class="text-xl font-semibold">With stale-while-revalidate</h2>
-	<p class="text-text-muted text-sm mb-2">
-		Combine with <a href="/docs/macros/stale" class="text-accent-ts hover:underline">stale</a>
-		to serve stale content while fetching fresh data in the background.
-	</p>
-	<CodeBlock html={data.highlighted['withStale']} />
-
 	<h2 class="text-xl font-semibold">Combining Attributes</h2>
 	<CodeBlock html={data.highlighted['combined']} />
 
@@ -173,46 +156,6 @@
 		{/if}
 	</div>
 
-	<!-- Stale: 10s cache + 30s stale -->
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-1">Stale-While-Revalidate — 10s + 30s</h3>
-		<p class="text-text-muted text-xs mb-3 font-mono">
-			Cache-Control: public, max-age=0, s-maxage=10, stale-while-revalidate=30
-		</p>
-		<div class="flex items-center gap-3 mb-3">
-			<button
-				onclick={refetchStale}
-				disabled={cachedTimeStale.isLoading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-			>Refetch</button>
-		</div>
-		{#if fetchLog['stale'].length > 0}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
-				{#each fetchLog['stale'] as entry, i}
-					<div class="flex gap-4">
-						<span class="text-text-faint">#{i + 1}</span>
-						<span class="text-text-muted">server: <span class="text-accent-rust">{entry.serverTs}</span></span>
-						<span class="text-text-muted">client: <span class="text-text-primary">{entry.clientTs}</span></span>
-						{#if i > 0 && entry.serverTs === fetchLog['stale'][i - 1].serverTs}
-							<span class="text-green-400">cached</span>
-						{/if}
-					</div>
-				{/each}
-			</div>
-		{/if}
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => toggleCode('cachedTimeStale')}
-		>
-			{openCode['cachedTimeStale'] ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode['cachedTimeStale']}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['cachedTimeStaleRust']} />
-			</div>
-		{/if}
-	</div>
-
 	<!-- Private: browser-only 1m -->
 	<div class="rounded-lg border border-border bg-bg-soft p-6">
 		<h3 class="text-lg font-semibold mb-1">Private — Browser Cache 1m</h3>
@@ -253,7 +196,4 @@
 		{/if}
 	</div>
 
-	<p class="text-text-faint text-xs italic">
-		Caching is active on the Vercel deployment. In local dev, headers are set but there is no CDN layer.
-	</p>
 </div>

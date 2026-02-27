@@ -25,12 +25,6 @@ async fn get_profile() -> Profile { ... }
 #[rpc_query(cache = "1h")]
 async fn get_products() -> Vec<Product> { ... }`
 	},
-	withStale: {
-		lang: 'rust',
-		code: `// Cache 5 min + serve stale for up to 1 hour while revalidating
-#[rpc_query(cache = "5m", stale = "1h")]
-async fn get_feed() -> Vec<Post> { ... }`
-	},
 	combined: {
 		lang: 'rust',
 		code: `// Combine with other attributes
@@ -50,20 +44,6 @@ async fn cached_time() -> CachedTimeResponse {
         .unwrap().as_secs();
 
     CachedTimeResponse {
-        timestamp: now,
-        generated_at: format!("{}s since epoch", now),
-    }
-}`
-	},
-	cachedTimeStaleRust: {
-		lang: 'rust',
-		code: `#[rpc_query(cache = "10s", stale = "30s")]
-async fn cached_time_stale() -> CachedTimeStaleResponse {
-    let now = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap().as_secs();
-
-    CachedTimeStaleResponse {
         timestamp: now,
         generated_at: format!("{}s since epoch", now),
     }
