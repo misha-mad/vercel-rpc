@@ -128,16 +128,16 @@
 				<table class="w-full text-xs font-mono">
 					<thead class="bg-bg-code text-text-faint">
 						<tr>
-							<th class="px-3 py-2 text-left">Label</th>
-							<th class="px-3 py-2 text-left">Server (exact)</th>
-							<th class="px-3 py-2 text-left">
+							<th class="px-1.5 py-2 text-left">Label</th>
+							<th class="px-1.5 py-2 text-left">Server (exact)</th>
+							<th class="px-1.5 py-2 text-left">
 								<code>JSON.parse</code>
 							</th>
-							<th class="px-3 py-2 text-left"></th>
-							<th class="px-3 py-2 text-left">
+							<th class="px-1.5 py-2 text-left"></th>
+							<th class="px-1.5 py-2 text-left">
 								<code>lossless-json</code>
 							</th>
-							<th class="px-3 py-2 text-left"></th>
+							<th class="px-1.5 py-2 text-left"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -147,16 +147,16 @@
 							{@const losslessStr = String(losslessVal)}
 							{@const losslessLost = losslessStr !== row.exact}
 							<tr class="border-t border-border/50">
-								<td class="px-3 py-2 text-text-muted">{row.label}</td>
-								<td class="px-3 py-2 text-accent-rust">{row.exact}</td>
-								<td class="px-3 py-2 text-accent-ts">{row.as_number}</td>
-								<td class="px-3 py-2"
+								<td class="px-1.5 py-2 text-text-muted">{row.label}</td>
+								<td class="px-1.5 py-2 text-accent-rust">{row.exact}</td>
+								<td class="px-1.5 py-2 text-accent-ts">{row.as_number}</td>
+								<td class="px-1.5 py-2"
 									>{#if lost}<span class="text-red-400">lost</span>{:else}<span
 											class="text-green-400">ok</span
 										>{/if}</td
 								>
-								<td class="px-3 py-2 text-accent-ts">{losslessStr}</td>
-								<td class="px-3 py-2"
+								<td class="px-1.5 py-2 text-accent-ts">{losslessStr}</td>
+								<td class="px-1.5 py-2"
 									>{#if losslessLost}<span class="text-red-400">lost</span>{:else}<span
 											class="text-green-400">ok</span
 										>{/if}</td
