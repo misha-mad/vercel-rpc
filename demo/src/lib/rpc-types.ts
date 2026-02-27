@@ -155,7 +155,7 @@ export type Procedures = {
      * Returns a personalized greeting string.
      */
     hello: { input: string; output: string };
-    init_demo: { input: AppState; output: InitDemoResponse };
+    init_demo: { input: void; output: InitDemoResponse };
     /** Perform a math operation. Returns an error on division by zero. */
     math: { input: MathInput; output: MathResult };
     /**
