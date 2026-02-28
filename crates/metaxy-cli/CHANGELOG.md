@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/misha-mad/metaxy/compare/metaxy-cli-v0.4.0...metaxy-cli-v0.4.1) - 2026-02-28
+
+### Added
+
+- add demo lambdas for init, timeout, and idempotent macro pages
+
+### Fixed
+
+- *(metaxy-cli)* allow refetch() to work when enabled is false
+
+### Other
+
+- *(metaxy-cli)* update snapshots for refetch() codegen change
+- trim crate READMEs, link to documentation site
+
 ## [0.4.0](https://github.com/misha-mad/metaxy/compare/metaxy-cli-v0.3.0...metaxy-cli-v0.4.0) - 2026-02-24
 
 ### Added
