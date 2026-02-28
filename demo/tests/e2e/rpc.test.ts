@@ -93,22 +93,21 @@ test.describe('API endpoints — direct HTTP', () => {
 	});
 
 	test('GET /api/types returns type showcase', async ({ request }) => {
-		const input = encodeURIComponent(JSON.stringify('e2e'));
-		const res = await request.get(`/api/types?input=${input}`);
+		const res = await request.get('/api/types');
 		expect(res.ok()).toBe(true);
 		const json = await res.json();
 		const data = json.result.data;
 		// HashSet<String> → string[]
-		expect(Array.isArray(data.tags)).toBe(true);
-		expect(data.tags).toContain('rust');
-		expect(data.tags).toContain('typescript');
-		expect(data.tags).toContain('rpc');
+		expect(Array.isArray(data.hash_set)).toBe(true);
+		expect(data.hash_set).toContain('rust');
+		expect(data.hash_set).toContain('typescript');
+		expect(data.hash_set).toContain('rpc');
 		// BTreeSet<i32> → number[] (sorted)
-		expect(data.sorted_ids).toEqual([1, 2, 3]);
+		expect(data.btree_set).toEqual([1, 2, 3]);
 		// Box<String> → string
-		expect(data.boxed_label).toBe('Category: e2e');
+		expect(data.boxed).toBe('boxed value');
 		// Cow<str> → string
-		expect(data.cow_message).toBe('Hello from Cow — serialized as a plain string!');
+		expect(data.cow).toBe('borrowed cow');
 	});
 
 	test('GET /api/secret without token returns error', async ({ request }) => {
