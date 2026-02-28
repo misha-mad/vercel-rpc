@@ -16,7 +16,7 @@
 
 		const client = createRpcClient({
 			baseUrl: '/api',
-			retry: { attempts: 2, delay: 300 },
+			retry: { attempts: 2, delay: 300, retryOn: [400, 500, 502, 503] },
 			onRequest: (ctx) => {
 				log.push({
 					hook: 'onRequest',

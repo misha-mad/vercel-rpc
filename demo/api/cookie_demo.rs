@@ -28,7 +28,8 @@ async fn cookie_demo(headers: Headers) -> CookieDemoResponse {
         },
         None => CookieDemoResponse {
             authenticated: false,
-            message: "No session cookie found — client fetch does not forward server cookies".into(),
+            message: "No session cookie found — client fetch does not forward server cookies"
+                .into(),
             cookie_value: None,
         },
     }

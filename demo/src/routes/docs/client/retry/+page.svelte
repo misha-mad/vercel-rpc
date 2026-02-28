@@ -22,7 +22,7 @@
 
 		const client = createRpcClient({
 			baseUrl: '/api',
-			retry: { attempts: 3, delay: 500 },
+			retry: { attempts: 3, delay: 500, retryOn: [400, 500, 502, 503] },
 			onRequest: () => {
 				log.push({
 					attempt: log.filter((e) => e.status !== 'pending').length,
