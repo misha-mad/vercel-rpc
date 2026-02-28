@@ -11,9 +11,15 @@
 
 	async function runClientTimeout(serverDelayMs: number, clientTimeoutMs: number) {
 		loading = true;
-		const client = createRpcClient({ baseUrl: '/api', timeout: clientTimeoutMs });
+		const client = createRpcClient({ baseUrl: '/api' });
 		try {
-			const res = await client.query('timeout_demo', { sleep_ms: serverDelayMs });
+			const res = await client.query(
+				'timeout_demo',
+				{ sleep_ms: serverDelayMs },
+				{
+					timeout: clientTimeoutMs
+				}
+			);
 			callLog = [
 				...callLog.slice(-4),
 				{
