@@ -26,18 +26,6 @@ name = "math"
 path = "api/math.rs"
 
 [[bin]]
-name = "stats"
-path = "api/stats.rs"
-
-[[bin]]
-name = "status"
-path = "api/status.rs"
-
-[[bin]]
-name = "profile"
-path = "api/profile.rs"
-
-[[bin]]
 name = "types"
 path = "api/types.rs"
 
@@ -72,10 +60,6 @@ path = "api/idempotent_demo.rs"
 [[bin]]
 name = "bigint_demo"
 path = "api/bigint_demo.rs"
-
-[[bin]]
-name = "retry_demo"
-path = "api/retry_demo.rs"
 
 [[bin]]
 name = "dedup_demo"
