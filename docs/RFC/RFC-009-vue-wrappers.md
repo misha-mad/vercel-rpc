@@ -1,4 +1,4 @@
-# RFC-9: Vue 3 Reactive Wrappers
+# RFC-009: Vue 3 Reactive Wrappers
 
 - **Status:** Implemented
 - **Topic:** Generated Vue 3 composables for queries and mutations

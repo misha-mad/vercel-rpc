@@ -1,4 +1,4 @@
-# RFC-12: Idempotent Mutations via `idempotent` Attribute
+# RFC-012: Idempotent Mutations via `idempotent` Attribute
 
 - **Status:** Proposed
 - **Topic:** Safe client-side retries for mutations

@@ -6,11 +6,11 @@ This document outlines the planned features and improvements for metaxy, organiz
 
 ### ~~Configuration File (`metaxy.config.toml`)~~ ✅
 
-> Implemented in [RFC-2](./RFC/RFC-2.md). Full config file with CLI flag parity.
+> Implemented in [RFC-002](./RFC/RFC-002-config-file.md). Full config file with CLI flag parity.
 
 ### ~~Serde Attribute Support~~ ✅
 
-> Implemented in [RFC-3](./RFC/RFC-3.md). Supports `rename_all`, `rename`, `skip`/`skip_serializing`, and `default` on structs, enums, fields, and variants.
+> Implemented in [RFC-003](./RFC/RFC-003-serde-support.md). Supports `rename_all`, `rename`, `skip`/`skip_serializing`, and `default` on structs, enums, fields, and variants.
 
 ### ~~Expanded Primitive and Wrapper Types~~ ✅
 
@@ -26,15 +26,15 @@ This document outlines the planned features and improvements for metaxy, organiz
 
 ### ~~`RpcClientConfig` — extended options~~ ✅
 
-> Implemented in [RFC-4](./RFC/RFC-4.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/metaxy/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/metaxy/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/metaxy/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/metaxy/pull/49).
+> Implemented in [RFC-004](./RFC/RFC-004-extended-client-config.md). Lifecycle hooks (`onRequest`, `onResponse`, `onError`) in [PR #46](https://github.com/misha-mad/metaxy/pull/46), retry policy and timeout in [PR #47](https://github.com/misha-mad/metaxy/pull/47), custom serialize/deserialize in [PR #48](https://github.com/misha-mad/metaxy/pull/48), and abort signal in [PR #49](https://github.com/misha-mad/metaxy/pull/49).
 
-### ~~Per-Call Options~~ ✅ → [RFC-5](./RFC/RFC-5.md)
+### ~~Per-Call Options~~ ✅ → [RFC-005](./RFC/RFC-005-per-call-options.md)
 
-> Implemented in RFC-5. Every `query()` and `mutate()` overload accepts an optional trailing `CallOptions` argument with per-request `signal`, `headers`, and `timeout` overrides.
+> Implemented in RFC-005. Every `query()` and `mutate()` overload accepts an optional trailing `CallOptions` argument with per-request `signal`, `headers`, and `timeout` overrides.
 
-### ~~Request Deduplication~~ ✅ → [RFC-6](./RFC/RFC-6.md)
+### ~~Request Deduplication~~ ✅ → [RFC-006](./RFC/RFC-006-request-deduplication.md)
 
-> Implemented in RFC-6. Identical in-flight queries are automatically deduplicated via an `inflight` Map. Callers share the same promise; per-caller `AbortSignal` is wrapped independently. Mutations are never deduplicated. Controlled by `dedupe` option at both config and per-call level (defaults to `true`).
+> Implemented in RFC-006. Identical in-flight queries are automatically deduplicated via an `inflight` Map. Callers share the same promise; per-caller `AbortSignal` is wrapped independently. Mutations are never deduplicated. Controlled by `dedupe` option at both config and per-call level (defaults to `true`).
 
 ### ~~JSDoc from Doc-Comments~~ ✅
 
@@ -44,19 +44,19 @@ This document outlines the planned features and improvements for metaxy, organiz
 
 ## Phase 3 — Developer Experience
 
-### ~~Framework Reactive Wrappers (Svelte 5, React)~~ ✅ → [RFC-7](./RFC/RFC-7.md), [RFC-8](./RFC/RFC-8.md)
+### ~~Framework Reactive Wrappers (Svelte 5, React)~~ ✅ → [RFC-007](./RFC/RFC-007-framework-wrappers.md), [RFC-008](./RFC/RFC-008-react-wrappers.md)
 
-> **Svelte 5** — Implemented in RFC-7. Optional reactive wrapper file (`rpc.svelte.ts`) with `createQuery` and `createMutation` helpers that wrap `RpcClient` with `$state` / `$effect` runes. Opt-in via `output.svelte` config field or `--svelte-output` CLI flag.
+> **Svelte 5** — Implemented in RFC-007. Optional reactive wrapper file (`rpc.svelte.ts`) with `createQuery` and `createMutation` helpers that wrap `RpcClient` with `$state` / `$effect` runes. Opt-in via `output.svelte` config field or `--svelte-output` CLI flag.
 >
-> **React** — Implemented in RFC-8. Optional hook file (`rpc.react.ts`) with `useQuery` and `useMutation` hooks that wrap `RpcClient` with `useState` / `useEffect`. Opt-in via `output.react` config field or `--react-output` CLI flag.
+> **React** — Implemented in RFC-008. Optional hook file (`rpc.react.ts`) with `useQuery` and `useMutation` hooks that wrap `RpcClient` with `useState` / `useEffect`. Opt-in via `output.react` config field or `--react-output` CLI flag.
 
-### ~~Framework Reactive Wrappers (Vue 3)~~ ✅ → [RFC-9](./RFC/RFC-9.md)
+### ~~Framework Reactive Wrappers (Vue 3)~~ ✅ → [RFC-009](./RFC/RFC-009-vue-wrappers.md)
 
-> **Vue 3** — Implemented in RFC-9. Optional composable file (`rpc.vue.ts`) with `useQuery` and `useMutation` using Vue 3 Composition API (`ref`, `computed`, `watch`, `onScopeDispose`). Opt-in via `output.vue` config field or `--vue-output` CLI flag.
+> **Vue 3** — Implemented in RFC-009. Optional composable file (`rpc.vue.ts`) with `useQuery` and `useMutation` using Vue 3 Composition API (`ref`, `computed`, `watch`, `onScopeDispose`). Opt-in via `output.vue` config field or `--vue-output` CLI flag.
 
-### ~~Framework Reactive Wrappers (SolidJS)~~ ✅ → [RFC-10](./RFC/RFC-10.md)
+### ~~Framework Reactive Wrappers (SolidJS)~~ ✅ → [RFC-010](./RFC/RFC-010-solidjs-wrappers.md)
 
-> **SolidJS** — Implemented in RFC-10. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
+> **SolidJS** — Implemented in RFC-010. Optional primitives file (`rpc.solid.ts`) with `createQuery` and `createMutation` using Solid reactivity (`createSignal`, `createEffect`, `createMemo`, `onCleanup`, `batch`). Opt-in via `output.solid` config field or `--solid-output` CLI flag.
 
 ### ~~Reactive Options for Framework Wrappers~~ ✅
 
@@ -136,7 +136,7 @@ async fn get_profile() -> Profile { ... }
 // → Cache-Control: private, max-age=600
 ```
 
-#### ~~Cold-Start Initialization via `init`~~ ✅ → [RFC-11](./RFC/RFC-11.md)
+#### ~~Cold-Start Initialization via `init`~~ ✅ → [RFC-011](./RFC/RFC-011-cold-start-init.md)
 
 > Implemented via `init` attribute on `#[rpc_query]` / `#[rpc_mutation]`. The init function runs once at cold start and can return shared state stored in a `OnceLock`, injected into the handler as a `&T` parameter. Supports side-effects only (logger, dotenv) and state injection (DB pool, HTTP client). Compatible with `cache` on queries. Mutations support `init` but not `cache`.
 
@@ -152,7 +152,7 @@ async fn slow_report(input: ReportParams) -> Report { ... }
 async fn long_import(input: ImportData) -> ImportResult { ... }
 ```
 
-#### ~~Idempotent Mutations~~ ✅ → [RFC-12](./RFC/RFC-12.md)
+#### ~~Idempotent Mutations~~ ✅ → [RFC-012](./RFC/RFC-012-idempotent-mutations.md)
 
 > Implemented via `idempotent` bare flag on `#[rpc_mutation]`. The generated client emits an `IDEMPOTENT_MUTATIONS` set and only retries mutations explicitly marked idempotent, while queries (GET) are always retryable. Prevents accidental duplicate side effects when retry is configured.
 

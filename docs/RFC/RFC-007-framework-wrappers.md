@@ -1,4 +1,4 @@
-# RFC-7: Framework Reactive Wrappers
+# RFC-007: Framework Reactive Wrappers
 
 - **Status:** Implemented
 - **Topic:** Generated Svelte 5 reactive wrappers for queries and mutations
@@ -650,11 +650,11 @@ if let Some(svelte_path) = &config.output.svelte {
 
 ## 11. Interactions with Existing Features
 
-### 11.1 Request Deduplication (RFC-6)
+### 11.1 Request Deduplication (RFC-006)
 
 `createQuery` calls `client.query()` which already deduplicates. Multiple components calling `createQuery` with the same key and input share a single HTTP request automatically.
 
-### 11.2 Per-Call Options (RFC-5)
+### 11.2 Per-Call Options (RFC-005)
 
 `QueryOptions.callOptions` and `MutationOptions.callOptions` are forwarded directly to `client.query()` / `client.mutate()`. This allows per-wrapper `headers`, `timeout`, and `signal` overrides.
 

@@ -1,4 +1,4 @@
-# RFC-1: Vercel-RPC
+# RFC-001: Vercel-RPC
 
 - **Status:** Implemented
 - **Author:** OSS Maintainer / Lead Architect

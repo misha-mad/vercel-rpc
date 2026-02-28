@@ -1,4 +1,4 @@
-# RFC-8: React Reactive Wrappers
+# RFC-008: React Reactive Wrappers
 
 - **Status:** Implemented
 - **Topic:** Generated React hooks for queries and mutations
@@ -745,11 +745,11 @@ Register the new CLI flag:
 
 ## 11. Interactions with Existing Features
 
-### 11.1 Request Deduplication (RFC-6)
+### 11.1 Request Deduplication (RFC-006)
 
 `useQuery` calls `client.query()` which already deduplicates. Multiple components calling `useQuery` with the same key and input share a single HTTP request automatically.
 
-### 11.2 Per-Call Options (RFC-5)
+### 11.2 Per-Call Options (RFC-005)
 
 `QueryOptions.callOptions` and `MutationOptions.callOptions` are forwarded directly to `client.query()` / `client.mutate()`. This allows per-hook `headers`, `timeout`, and `signal` overrides.
 

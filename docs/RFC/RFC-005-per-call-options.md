@@ -1,4 +1,4 @@
-# RFC-5: Per-Call Options
+# RFC-005: Per-Call Options
 
 - **Status:** Implemented
 - **Topic:** Optional per-call `signal`, `headers`, and `timeout` for `query()` and `mutate()`
@@ -10,7 +10,7 @@ Add an optional trailing `CallOptions` argument to every `query()` and `mutate()
 
 ## 2. Motivation
 
-`RpcClientConfig` (RFC-4) sets global defaults for the entire client — timeout, headers, abort signal, etc. But real applications need per-call granularity:
+`RpcClientConfig` (RFC-004) sets global defaults for the entire client — timeout, headers, abort signal, etc. But real applications need per-call granularity:
 
 | Scenario                                                | Global config insufficient because…             |
 |---------------------------------------------------------|-------------------------------------------------|

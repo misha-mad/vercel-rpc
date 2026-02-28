@@ -1,4 +1,4 @@
-# RFC-11: Cold-Start Initialization via `init` Attribute
+# RFC-011: Cold-Start Initialization via `init` Attribute
 
 - **Status:** Proposed
 - **Topic:** Handler initialization and shared state injection

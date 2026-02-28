@@ -1,4 +1,4 @@
-# RFC-6: Request Deduplication
+# RFC-006: Request Deduplication
 
 - **Status:** Implemented
 - **Topic:** Automatic deduplication of identical in-flight queries
@@ -332,17 +332,17 @@ Update existing client snapshots to reflect:
 
 ## 13. Interactions with Existing Features
 
-### 13.1 Per-Call Options (RFC-5)
+### 13.1 Per-Call Options (RFC-005)
 
 - `CallOptions.headers` and `CallOptions.timeout` on the **first** caller are used for the shared request. Subsequent callers' headers/timeout are ignored (they piggyback on the in-flight promise).
 - `CallOptions.signal` on subsequent callers is respected via `wrapWithSignal` — each caller can independently cancel their participation.
 - `CallOptions.dedupe` provides per-call opt-out.
 
-### 13.2 Retry Policy (RFC-4)
+### 13.2 Retry Policy (RFC-004)
 
 Retry logic lives inside `rpcFetch` and is unaffected. If the first attempt fails and retries are configured, all deduplicated callers wait for the full retry sequence. The promise in the `inflight` map represents the final settled result (after all retries).
 
-### 13.3 Lifecycle Hooks (RFC-4)
+### 13.3 Lifecycle Hooks (RFC-004)
 
 `onRequest`, `onResponse`, and `onError` hooks fire once per actual HTTP request, not once per deduplicated caller. This is correct — hooks observe real network activity.
 

@@ -1,4 +1,4 @@
-# RFC-10: SolidJS Reactive Wrappers
+# RFC-010: SolidJS Reactive Wrappers
 
 - **Status:** Implemented
 - **Topic:** Generated SolidJS primitives for queries and mutations

@@ -1,4 +1,4 @@
-# RFC-2: Configuration File (`metaxy.config.toml`)
+# RFC-002: Configuration File (`metaxy.config.toml`)
 
 - **Status:** Implemented
 - **Topic:** Project-level configuration file for rpc-cli

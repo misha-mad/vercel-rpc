@@ -1,4 +1,4 @@
-# RFC-3: Serde Attribute Support
+# RFC-003: Serde Attribute Support
 
 - **Status:** Implemented
 - **Topic:** Parse serde attributes for accurate TypeScript codegen
