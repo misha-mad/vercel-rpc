@@ -26,7 +26,7 @@
 					: { baseUrl: '/api' }
 			);
 			secretResult = await client.query('secret');
-		} catch (e) {
+		} catch (e: unknown) {
 			if (e instanceof RpcError) {
 				const data = e.data as { error?: { message?: string } } | undefined;
 				secretError = data?.error?.message ?? e.message;

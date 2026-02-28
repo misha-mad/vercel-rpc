@@ -20,7 +20,7 @@
 		loading = true;
 		try {
 			clientResult = await rpc.query('cookie_demo');
-		} catch (e) {
+		} catch (e: unknown) {
 			clientResult = { authenticated: false, message: String(e), cookie_value: null };
 		} finally {
 			loading = false;

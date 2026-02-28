@@ -26,7 +26,7 @@
 		try {
 			const result = await rpc.query('timeout_demo', { sleep_ms: ms });
 			callLog = [...callLog.slice(-4), { sleepMs: ms, actualMs: result.actual_ms, status: 'ok' }];
-		} catch (e) {
+		} catch (e: unknown) {
 			if (e instanceof RpcError && e.status === 504) {
 				callLog = [
 					...callLog.slice(-4),

@@ -27,7 +27,7 @@
 		usedHeaders = headers;
 		try {
 			result = await rpc.query('secret', { headers });
-		} catch (e) {
+		} catch (e: unknown) {
 			error = e instanceof RpcError ? `${e.status}: ${e.message}` : String(e);
 		} finally {
 			loading = false;

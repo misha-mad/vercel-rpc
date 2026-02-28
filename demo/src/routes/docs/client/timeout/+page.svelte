@@ -35,7 +35,7 @@
 					detail: `200 OK — actual ${res.actual_ms}ms`
 				}
 			];
-		} catch (e) {
+		} catch (e: unknown) {
 			const isAbort = e instanceof DOMException && e.name === 'AbortError';
 			callLog = [
 				...callLog.slice(-4),
@@ -70,7 +70,7 @@
 					detail: `200 OK — actual ${res.actual_ms}ms`
 				}
 			];
-		} catch (e) {
+		} catch (e: unknown) {
 			const isAbort = e instanceof DOMException && e.name === 'AbortError';
 			callLog = [
 				...callLog.slice(-4),
