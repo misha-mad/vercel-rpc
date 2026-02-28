@@ -26,11 +26,9 @@
 	<p class="text-text-muted leading-relaxed text-sm">
 		A request is retried when a network error occurs or the response status is in
 		<Code>retryOn</Code>, up to
-		<Code>attempts</Code> additional
-		tries. On each retry the full
-		<a href="/docs/client/hooks" class="text-accent-ts hover:underline"
-			><Code>onRequest</Code></a
-		> hook runs again, so dynamic headers (e.g. refreshed auth tokens) are re-evaluated.
+		<Code>attempts</Code> additional tries. On each retry the full
+		<a href="/docs/client/hooks" class="text-accent-ts hover:underline"><Code>onRequest</Code></a> hook
+		runs again, so dynamic headers (e.g. refreshed auth tokens) are re-evaluated.
 	</p>
 
 	<SectionHeading>Basic Usage</SectionHeading>

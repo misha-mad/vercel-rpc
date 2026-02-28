@@ -44,8 +44,8 @@
 
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Custom Fetch">
-		Override the <Code>fetch</Code> function
-		used by the client. Useful for SSR (SvelteKit's platform fetch) and testing (mock fetch).
+		Override the <Code>fetch</Code> function used by the client. Useful for SSR (SvelteKit's platform
+		fetch) and testing (mock fetch).
 	</PageHeader>
 
 	<SectionHeading>Default</SectionHeading>
@@ -73,8 +73,7 @@
 		The server checks for a <Code>session</Code>
 		cookie. SSR <Code>event.fetch</Code>
 		forwards it automatically; browser
-		<Code>fetch</Code> does not (on Vercel,
-		cross-origin).
+		<Code>fetch</Code> does not (on Vercel, cross-origin).
 	</p>
 
 	<DemoCard>

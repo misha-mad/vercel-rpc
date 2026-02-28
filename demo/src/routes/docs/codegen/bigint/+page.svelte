@@ -48,8 +48,7 @@
 	<PageHeader title="BigInt Mapping">
 		By default all integer types map to
 		<Code>number</Code>. Use
-		<Code>bigint_types</Code> to map
-		large integer types to
+		<Code>bigint_types</Code> to map large integer types to
 		<Code>bigint</Code> instead.
 	</PageHeader>
 
@@ -68,16 +67,15 @@
 	<SectionHeading>Custom deserializer</SectionHeading>
 	<p class="text-text-muted leading-relaxed text-sm">
 		The generated client accepts a
-		<Code>deserialize</Code> option. Plug
-		in a BigInt-aware JSON parser so large numbers arrive as native
+		<Code>deserialize</Code> option. Plug in a BigInt-aware JSON parser so large numbers arrive as native
 		<Code>BigInt</Code> at runtime:
 	</p>
 	<CodeBlock html={data.highlighted['losslessClient']} />
 
 	<SectionHeading>Why BigInt?</SectionHeading>
 	<p class="text-text-muted leading-relaxed text-sm">
-		JavaScript <Code>number</Code> is a
-		64-bit float (IEEE 754), which can only safely represent integers up to
+		JavaScript <Code>number</Code> is a 64-bit float (IEEE 754), which can only safely represent integers
+		up to
 		<Code>2<sup>53</sup> − 1</Code>
 		(<Code>Number.MAX_SAFE_INTEGER</Code>
 		= 9,007,199,254,740,991). Rust's
@@ -102,11 +100,9 @@
 	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
 		Both clients call the same endpoint. The default client uses
-		<Code>JSON.parse</Code> which
-		silently loses precision on large integers. The lossless client plugs
+		<Code>JSON.parse</Code> which silently loses precision on large integers. The lossless client plugs
 		<Code>lossless-json</Code> into the
-		<Code>deserialize</Code> option —
-		large numbers arrive as native
+		<Code>deserialize</Code> option — large numbers arrive as native
 		<Code>BigInt</Code>.
 	</p>
 

@@ -69,8 +69,7 @@
 	<!-- Try it -->
 	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
-		The <Code>secret</Code> endpoint requires
-		a Bearer token. Try with and without it.
+		The <Code>secret</Code> endpoint requires a Bearer token. Try with and without it.
 	</p>
 
 	<DemoCard>

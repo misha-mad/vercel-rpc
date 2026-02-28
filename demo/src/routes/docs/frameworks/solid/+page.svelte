@@ -14,9 +14,8 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="SolidJS">
 		Fine-grained reactive primitives using <Code>createSignal</Code>, <Code>createEffect</Code>,
-		<Code>createMemo</Code>. Input is a
-		getter <Code>() => value</Code>.
-		Returns signal accessors — call them to read:
+		<Code>createMemo</Code>. Input is a getter <Code>() => value</Code>. Returns signal accessors —
+		call them to read:
 		<Code>data()</Code>.
 	</PageHeader>
 

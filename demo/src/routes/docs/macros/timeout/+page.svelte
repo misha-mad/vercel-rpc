@@ -56,9 +56,9 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="timeout" mono>
 		Server-side timeout via
-		<Code>tokio::time::timeout</Code>.
-		Returns HTTP 504 if exceeded. Also forwarded to the TypeScript client as the default timeout for
-		that procedure. Works with both queries and mutations.
+		<Code>tokio::time::timeout</Code>. Returns HTTP 504 if exceeded. Also forwarded to the
+		TypeScript client as the default timeout for that procedure. Works with both queries and
+		mutations.
 	</PageHeader>
 
 	<SectionHeading>Basic Usage</SectionHeading>
@@ -71,9 +71,8 @@
 	<p class="text-text-muted text-sm mb-2">
 		When the handler exceeds the timeout, the future is cancelled and the server returns 504. The
 		TypeScript client receives an
-		<a href="/docs/error-handling" class="text-accent-ts hover:underline"
-			><Code>RpcError</Code></a
-		> with status 504.
+		<a href="/docs/error-handling" class="text-accent-ts hover:underline"><Code>RpcError</Code></a> with
+		status 504.
 	</p>
 	<CodeBlock html={data.highlighted['behavior']} />
 
@@ -84,8 +83,8 @@
 	<SectionHeading level="large">Try it</SectionHeading>
 	<DemoCard title="Server-Side Timeout">
 		<p class="text-text-muted text-sm mb-3">
-			This handler has a <Code>timeout = "3s"</Code> — it sleeps for the requested duration. Try a short sleep to see a successful response, then try
-			exceeding 3 seconds to trigger a 504.
+			This handler has a <Code>timeout = "3s"</Code> — it sleeps for the requested duration. Try a short
+			sleep to see a successful response, then try exceeding 3 seconds to trigger a 504.
 		</p>
 		<div class="flex items-center gap-2 mb-3 flex-wrap">
 			<Button onclick={() => run(500)} disabled={loading}>500ms</Button>

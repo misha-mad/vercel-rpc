@@ -12,7 +12,9 @@
 
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Branded Newtypes">
-		Single-field tuple structs (newtypes) become type aliases by default. Enable <Code>branded_newtypes</Code>
+		Single-field tuple structs (newtypes) become type aliases by default. Enable <Code
+			>branded_newtypes</Code
+		>
 		for nominal type safety — preventing accidental mixing of structurally identical types like
 		<Code>UserId</Code>
 		and <Code>OrderId</Code>.

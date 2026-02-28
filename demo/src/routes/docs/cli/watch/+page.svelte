@@ -13,11 +13,9 @@
 
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="metaxy watch" mono>
-		Same as <Code>generate</Code> but
-		watches for <Code>.rs</Code> file
-		changes and regenerates automatically. Accepts all
-		<Code>generate</Code> flags plus the watch-specific
-		flags below.
+		Same as <Code>generate</Code> but watches for <Code>.rs</Code> file changes and regenerates automatically.
+		Accepts all
+		<Code>generate</Code> flags plus the watch-specific flags below.
 	</PageHeader>
 
 	<SectionHeading>Usage</SectionHeading>
@@ -52,8 +50,7 @@
 	<CodeBlock html={data.highlighted['examples']} />
 
 	<p class="text-text-muted text-sm">
-		All <Code>generate</Code> flags
-		(input, output, codegen) work with
+		All <Code>generate</Code> flags (input, output, codegen) work with
 		<Code>watch</Code>
 		as well. See
 		<a href="/docs/cli/generate" class="text-accent-ts hover:underline">metaxy generate</a>

@@ -14,11 +14,9 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Svelte 5">
 		Rune-based reactive wrappers using <Code>$state</Code>
-		and <Code>$effect</Code>. Input is a
-		getter <Code>() => Input</Code> for
-		reactive dependency tracking. Generated as
-		<Code>.svelte.ts</Code> (required for rune
-		syntax).
+		and <Code>$effect</Code>. Input is a getter <Code>() => Input</Code> for reactive dependency tracking.
+		Generated as
+		<Code>.svelte.ts</Code> (required for rune syntax).
 	</PageHeader>
 
 	<SectionHeading level="large">Setup</SectionHeading>

@@ -28,10 +28,8 @@
 
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Mutations">
-		Use <Code>#[rpc_mutation]</Code> for
-		write operations (create, update, delete). Unlike queries, mutations are triggered explicitly
-		via <Code>.mutate()</Code> — they don't
-		auto-refetch.
+		Use <Code>#[rpc_mutation]</Code> for write operations (create, update, delete). Unlike queries, mutations
+		are triggered explicitly via <Code>.mutate()</Code> — they don't auto-refetch.
 	</PageHeader>
 
 	<!-- Code examples -->
@@ -46,9 +44,7 @@
 	<p class="text-text-muted text-sm">
 		Mutations can take no input (void) or return <Code>Result&lt;T, E&gt;</Code>
 		for typed error handling. Errors are propagated as
-		<a href="/docs/error-handling" class="text-accent-ts hover:underline"
-			><Code>RpcError</Code></a
-		>
+		<a href="/docs/error-handling" class="text-accent-ts hover:underline"><Code>RpcError</Code></a>
 		on the client side.
 	</p>
 	<CodeBlock html={data.highlighted['voidRust']} />
@@ -56,10 +52,8 @@
 	<!-- Per-Call Options -->
 	<SectionHeading>Per-Call Options</SectionHeading>
 	<p class="text-text-muted text-sm">
-		Every <Code>mutate()</Code> call
-		accepts an optional trailing
-		<Code>CallOptions</Code> object to override
-		client-level defaults.
+		Every <Code>mutate()</Code> call accepts an optional trailing
+		<Code>CallOptions</Code> object to override client-level defaults.
 	</p>
 	<CodeBlock html={data.highlighted['callOptionsType']} />
 	<CodeBlock html={data.highlighted['callOptionsMutation']} />
@@ -68,7 +62,10 @@
 	<SectionHeading level="large">Try it</SectionHeading>
 
 	<!-- Echo: mutation with struct input/output -->
-	<DemoCard title="Echo — Struct Mutation" subtitle="Send a message, optionally uppercase it. Demonstrates createMutation with struct input/output.">
+	<DemoCard
+		title="Echo — Struct Mutation"
+		subtitle="Send a message, optionally uppercase it. Demonstrates createMutation with struct input/output."
+	>
 		<div class="flex flex-wrap items-center gap-3 mb-3">
 			<input
 				type="text"

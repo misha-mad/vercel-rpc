@@ -50,25 +50,21 @@
 				>
 				<tbody class="text-text-muted">
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>dir</Code></td
-						><td class="py-1.5 pr-4">string</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">"api"</code></td
+						><td class="py-1.5 pr-4"><Code>dir</Code></td><td class="py-1.5 pr-4">string</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">"api"</code></td
 						><td class="py-1.5">Root directory with Rust source files</td></tr
 					>
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>include</Code></td
-						><td class="py-1.5 pr-4">string[]</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">["**/*.rs"]</code></td
-						><td class="py-1.5">Glob patterns to include</td></tr
+						><td class="py-1.5 pr-4"><Code>include</Code></td><td class="py-1.5 pr-4">string[]</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">["**/*.rs"]</code></td><td
+							class="py-1.5">Glob patterns to include</td
+						></tr
 					>
 					<tr
-						><td class="py-1.5 pr-4"
-							><Code>exclude</Code></td
-						><td class="py-1.5 pr-4">string[]</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">[]</code></td
-						><td class="py-1.5">Glob patterns to exclude</td></tr
+						><td class="py-1.5 pr-4"><Code>exclude</Code></td><td class="py-1.5 pr-4">string[]</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">[]</code></td><td
+							class="py-1.5">Glob patterns to exclude</td
+						></tr
 					>
 				</tbody>
 			</table>
@@ -94,45 +90,33 @@
 				>
 				<tbody class="text-text-muted">
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>types</Code></td
-						><td class="py-1.5 pr-4">string</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">"src/lib/rpc-types.ts"</code></td
+						><td class="py-1.5 pr-4"><Code>types</Code></td><td class="py-1.5 pr-4">string</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">"src/lib/rpc-types.ts"</code></td
 						><td class="py-1.5">Generated TypeScript types</td></tr
 					>
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>client</Code></td
-						><td class="py-1.5 pr-4">string</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">"src/lib/rpc-client.ts"</code></td
+						><td class="py-1.5 pr-4"><Code>client</Code></td><td class="py-1.5 pr-4">string</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">"src/lib/rpc-client.ts"</code></td
 						><td class="py-1.5">Generated RPC client</td></tr
 					>
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>svelte</Code></td
-						><td class="py-1.5 pr-4">string?</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">—</code></td
+						><td class="py-1.5 pr-4"><Code>svelte</Code></td><td class="py-1.5 pr-4">string?</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">—</code></td
 						><td class="py-1.5">Svelte 5 reactive wrapper (opt-in)</td></tr
 					>
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>react</Code></td
-						><td class="py-1.5 pr-4">string?</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">—</code></td
+						><td class="py-1.5 pr-4"><Code>react</Code></td><td class="py-1.5 pr-4">string?</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">—</code></td
 						><td class="py-1.5">React hooks wrapper (opt-in)</td></tr
 					>
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>vue</Code></td
-						><td class="py-1.5 pr-4">string?</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">—</code></td
+						><td class="py-1.5 pr-4"><Code>vue</Code></td><td class="py-1.5 pr-4">string?</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">—</code></td
 						><td class="py-1.5">Vue 3 composable wrapper (opt-in)</td></tr
 					>
 					<tr
-						><td class="py-1.5 pr-4"
-							><Code>solid</Code></td
-						><td class="py-1.5 pr-4">string?</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">—</code></td
+						><td class="py-1.5 pr-4"><Code>solid</Code></td><td class="py-1.5 pr-4">string?</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">—</code></td
 						><td class="py-1.5">SolidJS wrapper (opt-in)</td></tr
 					>
 				</tbody>
@@ -150,18 +134,15 @@
 				>
 				<tbody class="text-text-muted">
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>types_path</Code></td
-						><td class="py-1.5 pr-4">string</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">"./rpc-types"</code></td
-						><td class="py-1.5">Import path for the types module</td></tr
+						><td class="py-1.5 pr-4"><Code>types_path</Code></td><td class="py-1.5 pr-4">string</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">"./rpc-types"</code></td><td
+							class="py-1.5">Import path for the types module</td
+						></tr
 					>
 					<tr
-						><td class="py-1.5 pr-4"
-							><Code>extension</Code></td
-						><td class="py-1.5 pr-4">string</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">""</code></td
-						><td class="py-1.5"
+						><td class="py-1.5 pr-4"><Code>extension</Code></td><td class="py-1.5 pr-4">string</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">""</code></td><td
+							class="py-1.5"
 							>File extension for imports, e.g. <code class="text-xs font-mono">".js"</code> for ESM</td
 						></tr
 					>
@@ -189,33 +170,29 @@
 				>
 				<tbody class="text-text-muted">
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>preserve_docs</Code></td
-						><td class="py-1.5 pr-4">bool</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">false</code></td
-						><td class="py-1.5"
+						><td class="py-1.5 pr-4"><Code>preserve_docs</Code></td><td class="py-1.5 pr-4">bool</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">false</code></td><td
+							class="py-1.5"
 							><a href="/docs/codegen/doc-comments" class="text-accent-ts hover:underline"
 								>Forward Rust doc comments as JSDoc</a
 							></td
 						></tr
 					>
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>branded_newtypes</Code></td
-						><td class="py-1.5 pr-4">bool</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">false</code></td
-						><td class="py-1.5"
+						><td class="py-1.5 pr-4"><Code>branded_newtypes</Code></td><td class="py-1.5 pr-4"
+							>bool</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">false</code></td><td
+							class="py-1.5"
 							><a href="/docs/codegen/branded-newtypes" class="text-accent-ts hover:underline"
 								>Emit nominal (branded) types for Rust newtypes</a
 							></td
 						></tr
 					>
 					<tr
-						><td class="py-1.5 pr-4"
-							><Code>bigint_types</Code></td
-						><td class="py-1.5 pr-4">string[]</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">[]</code></td
-						><td class="py-1.5"
+						><td class="py-1.5 pr-4"><Code>bigint_types</Code></td><td class="py-1.5 pr-4"
+							>string[]</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">[]</code></td><td
+							class="py-1.5"
 							><a href="/docs/codegen/bigint" class="text-accent-ts hover:underline"
 								>Rust types mapped to <code class="text-xs font-mono">bigint</code></a
 							>, e.g.
@@ -237,10 +214,8 @@
 				>
 				<tbody class="text-text-muted">
 					<tr
-						><td class="py-1.5 pr-4"
-							><Code>fields</Code></td
-						><td class="py-1.5 pr-4">string</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">"preserve"</code></td
+						><td class="py-1.5 pr-4"><Code>fields</Code></td><td class="py-1.5 pr-4">string</td><td
+							class="py-1.5 pr-4"><code class="text-xs font-mono">"preserve"</code></td
 						><td class="py-1.5"
 							><a href="/docs/codegen/field-naming" class="text-accent-ts hover:underline"
 								><code class="text-xs font-mono">"preserve"</code> keeps snake_case,
@@ -282,19 +257,16 @@
 				>
 				<tbody class="text-text-muted">
 					<tr class="border-b border-border/50"
-						><td class="py-1.5 pr-4"
-							><Code>debounce_ms</Code></td
-						><td class="py-1.5 pr-4">number</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">200</code></td
-						><td class="py-1.5">Milliseconds to wait after a file change before regenerating</td
+						><td class="py-1.5 pr-4"><Code>debounce_ms</Code></td><td class="py-1.5 pr-4">number</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">200</code></td><td
+							class="py-1.5">Milliseconds to wait after a file change before regenerating</td
 						></tr
 					>
 					<tr
-						><td class="py-1.5 pr-4"
-							><Code>clear_screen</Code></td
-						><td class="py-1.5 pr-4">bool</td><td class="py-1.5 pr-4"
-							><code class="text-xs font-mono">false</code></td
-						><td class="py-1.5">Clear terminal before each regeneration</td></tr
+						><td class="py-1.5 pr-4"><Code>clear_screen</Code></td><td class="py-1.5 pr-4">bool</td
+						><td class="py-1.5 pr-4"><code class="text-xs font-mono">false</code></td><td
+							class="py-1.5">Clear terminal before each regeneration</td
+						></tr
 					>
 				</tbody>
 			</table>

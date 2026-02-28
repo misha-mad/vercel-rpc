@@ -16,8 +16,7 @@
 		By default field names are emitted as-is. Set
 		<Code>camelCase</Code> to convert
 		<Code>snake_case</Code> fields to
-		<Code>camelCase</Code> in the generated
-		TypeScript.
+		<Code>camelCase</Code> in the generated TypeScript.
 	</PageHeader>
 
 	<div class="space-y-3">
@@ -46,9 +45,7 @@
 			><Code>serde(rename)</Code></a
 		>
 		&gt; container
-		<a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
-			><Code>rename_all</Code></a
-		>
+		<a href="/docs/codegen/serde" class="text-accent-ts hover:underline"><Code>rename_all</Code></a>
 		&gt;
 		<Code>codegen.naming.fields</Code>
 		&gt; original name.

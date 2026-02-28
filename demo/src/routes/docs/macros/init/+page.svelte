@@ -49,8 +49,7 @@
 	<PageHeader title="init" mono>
 		Run a function once at cold start. Can be side-effects only (logger, dotenv) or return shared
 		state (DB pool, HTTP client) injected as
-		<Code>&T</Code> parameter. Works with both
-		queries and mutations.
+		<Code>&T</Code> parameter. Works with both queries and mutations.
 	</PageHeader>
 
 	<SectionHeading>Side-Effects Only</SectionHeading>
@@ -62,8 +61,8 @@
 	<SectionHeading>Shared State</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		When the init function returns a value, it's stored and injected as
-		<Code>&T</Code> into the handler. The init
-		function runs once per cold start — the result is reused across requests.
+		<Code>&T</Code> into the handler. The init function runs once per cold start — the result is reused
+		across requests.
 	</p>
 	<CodeBlock html={data.highlighted['sharedState']} />
 
@@ -77,9 +76,9 @@
 	<SectionHeading level="large">Try it</SectionHeading>
 	<DemoCard title="Cold Start &amp; Shared State">
 		<p class="text-text-muted text-sm mb-3">
-			The <Code>setup()</Code> function runs
-			once at cold start, measuring its own duration. Subsequent requests reuse the same state — watch
-			the request count increment while cold start time stays the same.
+			The <Code>setup()</Code> function runs once at cold start, measuring its own duration. Subsequent
+			requests reuse the same state — watch the request count increment while cold start time stays the
+			same.
 		</p>
 		<div class="flex items-center gap-3 mb-3">
 			<Button onclick={refetch} disabled={initDemo.isLoading}>Refetch</Button>

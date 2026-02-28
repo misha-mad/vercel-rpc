@@ -14,9 +14,9 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Vue 3">
 		Composition API composables using <Code>ref</Code>, <Code>watch</Code>,
-		<Code>computed</Code>. Input is a
-		getter <Code>() => value</Code>.
-		Returns <Code>Ref&lt;T&gt;</Code> properties.
+		<Code>computed</Code>. Input is a getter <Code>() => value</Code>. Returns <Code
+			>Ref&lt;T&gt;</Code
+		> properties.
 	</PageHeader>
 
 	<SectionHeading level="large">Setup</SectionHeading>

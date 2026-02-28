@@ -14,8 +14,7 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="React">
 		Hook-based wrappers using <Code>useState</Code>
-		/ <Code>useEffect</Code>. Input is a
-		plain value (not a getter) — dependencies tracked via
+		/ <Code>useEffect</Code>. Input is a plain value (not a getter) — dependencies tracked via
 		<Code>JSON.stringify</Code>.
 	</PageHeader>
 

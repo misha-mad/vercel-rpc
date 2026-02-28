@@ -132,8 +132,7 @@
 	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
 		The server sleeps for the requested duration. Client-side timeout fires an
-		<Code>AbortError</Code> before the server
-		responds.
+		<Code>AbortError</Code> before the server responds.
 	</p>
 
 	<DemoCard title="Client Timeout">
@@ -141,7 +140,9 @@
 			Server delay 1s, client timeout 2s (OK) vs server delay 1s, client timeout 300ms (abort).
 		</p>
 		<div class="flex items-center gap-2 mb-4 flex-wrap">
-			<Button onclick={() => runClientTimeout(1000, 2000)} disabled={loading}>1s delay, 2s timeout</Button>
+			<Button onclick={() => runClientTimeout(1000, 2000)} disabled={loading}
+				>1s delay, 2s timeout</Button
+			>
 			<button
 				onclick={() => runClientTimeout(1000, 300)}
 				disabled={loading}

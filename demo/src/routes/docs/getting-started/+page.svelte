@@ -85,8 +85,7 @@
 		<li>
 			Annotate Rust functions with <a
 				href="/docs/procedures/queries"
-				class="text-accent-ts hover:underline"
-				><Code>#[rpc_query]</Code></a
+				class="text-accent-ts hover:underline"><Code>#[rpc_query]</Code></a
 			>
 			or
 			<a href="/docs/procedures/mutations" class="text-accent-ts hover:underline"

@@ -14,9 +14,8 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Doc Comments">
 		Forward Rust
-		<Code>///</Code> doc comments as JSDoc
-		in the generated TypeScript — giving you editor tooltips and inline documentation on the TypeScript
-		side.
+		<Code>///</Code> doc comments as JSDoc in the generated TypeScript — giving you editor tooltips and
+		inline documentation on the TypeScript side.
 	</PageHeader>
 
 	<div class="space-y-3">

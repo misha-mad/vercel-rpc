@@ -23,10 +23,8 @@
 
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Queries">
-		Use <Code>#[rpc_query]</Code> for
-		read-only operations. Wrap them with
-		<Code>createQuery</Code> in Svelte for
-		reactive, auto-refetching data.
+		Use <Code>#[rpc_query]</Code> for read-only operations. Wrap them with
+		<Code>createQuery</Code> in Svelte for reactive, auto-refetching data.
 	</PageHeader>
 
 	<!-- Code examples -->
@@ -39,10 +37,8 @@
 	<!-- Per-Call Options -->
 	<SectionHeading>Per-Call Options</SectionHeading>
 	<p class="text-text-muted text-sm">
-		Every <Code>query()</Code> call
-		accepts an optional trailing
-		<Code>CallOptions</Code> object to override
-		client-level defaults.
+		Every <Code>query()</Code> call accepts an optional trailing
+		<Code>CallOptions</Code> object to override client-level defaults.
 	</p>
 	<CodeBlock html={data.highlighted['callOptionsType']} />
 	<CodeBlock html={data.highlighted['callOptionsUsage']} />

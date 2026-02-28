@@ -65,40 +65,38 @@
 				<CodeBlock html={data.highlighted['typeSafetyTs']} />
 			</div>
 		{/snippet}
-		Define a Rust struct once — the CLI generates matching TypeScript interfaces. Rename a field,
-		and your frontend won't compile until it's updated. No more <Code>any</Code>, no runtime surprises.
+		Define a Rust struct once — the CLI generates matching TypeScript interfaces. Rename a field, and
+		your frontend won't compile until it's updated. No more <Code>any</Code>, no runtime surprises.
 	</FeatureRow>
 
 	<!-- 2: Auto-generated client -->
 	<FeatureRow title="Auto-generated client" reverse>
 		{#snippet code()}<CodeBlock html={data.highlighted['autoClient']} />{/snippet}
 		A fully typed <Code>rpc.query()</Code> /
-		<Code>rpc.mutate()</Code> client with autocomplete
-		for every procedure. Input and output types are inferred from your Rust code.
+		<Code>rpc.mutate()</Code> client with autocomplete for every procedure. Input and output types are
+		inferred from your Rust code.
 	</FeatureRow>
 
 	<!-- 3: Watch mode -->
 	<FeatureRow title="Watch mode">
 		{#snippet code()}<CodeBlock html={data.highlighted['watchMode']} />{/snippet}
-		Save a <Code>.rs</Code> file and types regenerate
-		instantly. Runs alongside your dev server so the frontend always has the latest types without manual
-		steps.
+		Save a <Code>.rs</Code> file and types regenerate instantly. Runs alongside your dev server so the
+		frontend always has the latest types without manual steps.
 	</FeatureRow>
 
 	<!-- 4: Macro-driven -->
 	<FeatureRow title="Macro-driven" reverse>
 		{#snippet code()}<CodeBlock html={data.highlighted['macroDriven']} />{/snippet}
 		Annotate with <Code>#[rpc_query]</Code> or
-		<Code>#[rpc_mutation]</Code> and get CORS, input
-		parsing, JSON serialization, error handling, and HTTP method validation — all generated at compile
-		time.
+		<Code>#[rpc_mutation]</Code> and get CORS, input parsing, JSON serialization, error handling, and
+		HTTP method validation — all generated at compile time.
 	</FeatureRow>
 
 	<!-- 5: Init & state injection -->
 	<FeatureRow title="Init & state injection">
 		{#snippet code()}<CodeBlock html={data.highlighted['initState']} />{/snippet}
-		Set up database pools, HTTP clients, or loggers once at cold start. The macro injects shared
-		state as <Code>&T</Code> into your handler automatically.
+		Set up database pools, HTTP clients, or loggers once at cold start. The macro injects shared state
+		as <Code>&T</Code> into your handler automatically.
 	</FeatureRow>
 
 	<!-- 6: Serde support -->
@@ -106,17 +104,15 @@
 		{#snippet code()}<CodeBlock html={data.highlighted['serde']} />{/snippet}
 		<Code>rename_all</Code>,
 		<Code>skip</Code>,
-		<Code>flatten</Code>, and all four enum
-		tagging strategies — the codegen reads your serde attributes and generates TypeScript that
-		matches the actual JSON output.
+		<Code>flatten</Code>, and all four enum tagging strategies — the codegen reads your serde
+		attributes and generates TypeScript that matches the actual JSON output.
 	</FeatureRow>
 
 	<!-- 7: Edge caching -->
 	<FeatureRow title="Edge caching">
 		{#snippet code()}<CodeBlock html={data.highlighted['edgeCache']} />{/snippet}
-		Add <Code>cache = "1h"</Code> and the macro
-		generates <Code>Cache-Control</Code> headers. On
-		Vercel, this enables CDN caching with zero infrastructure changes.
+		Add <Code>cache = "1h"</Code> and the macro generates <Code>Cache-Control</Code> headers. On Vercel,
+		this enables CDN caching with zero infrastructure changes.
 	</FeatureRow>
 
 	<!-- 8: Vercel-native -->
@@ -131,14 +127,14 @@
 	<!-- 9: 4 framework wrappers -->
 	<FeatureRow title="4 framework wrappers">
 		{#snippet code()}<CodeBlock html={data.highlighted['frameworks']} />{/snippet}
-		Opt-in reactive wrappers for Svelte 5, React, Vue 3, and SolidJS. Auto-refetching queries,
-		mutation lifecycle callbacks — generated alongside the base client.
+		Opt-in reactive wrappers for Svelte 5, React, Vue 3, and SolidJS. Auto-refetching queries, mutation
+		lifecycle callbacks — generated alongside the base client.
 	</FeatureRow>
 
 	<!-- 10: Rich client -->
 	<FeatureRow title="Rich client" reverse>
 		{#snippet code()}<CodeBlock html={data.highlighted['richClient']} />{/snippet}
-		Retry with backoff, per-request timeout, AbortSignal support, request deduplication, lifecycle
-		hooks, async headers — all configurable globally or per-call.
+		Retry with backoff, per-request timeout, AbortSignal support, request deduplication, lifecycle hooks,
+		async headers — all configurable globally or per-call.
 	</FeatureRow>
 </section>

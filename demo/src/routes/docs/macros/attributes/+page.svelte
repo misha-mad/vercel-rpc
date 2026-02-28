@@ -10,8 +10,8 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Macro Attributes">
 		<Code>#[rpc_query]</Code> and
-		<Code>#[rpc_mutation]</Code> accept optional
-		attributes that control caching, initialization, timeouts, and retry behavior.
+		<Code>#[rpc_mutation]</Code> accept optional attributes that control caching, initialization, timeouts,
+		and retry behavior.
 	</PageHeader>
 
 	<div class="overflow-x-auto rounded-lg border border-border">

@@ -43,8 +43,7 @@
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="Serialization">
 		Override <Code>serialize</Code> and
-		<Code>deserialize</Code> to use a custom
-		serialization format instead of plain JSON.
+		<Code>deserialize</Code> to use a custom serialization format instead of plain JSON.
 	</PageHeader>
 
 	<SectionHeading>Default</SectionHeading>
@@ -60,8 +59,7 @@
 		to support <Code>Date</Code>,
 		<Code>BigInt</Code>,
 		<Code>Map</Code>,
-		<Code>Set</Code> and other types not natively
-		supported by JSON.
+		<Code>Set</Code> and other types not natively supported by JSON.
 	</p>
 	<CodeBlock html={data.highlighted['customSerialization']} />
 

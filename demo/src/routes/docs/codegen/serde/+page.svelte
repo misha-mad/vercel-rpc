@@ -21,7 +21,9 @@
 	<section class="space-y-4">
 		<SectionHeading level="large">rename_all</SectionHeading>
 		<p class="text-text-muted text-sm">
-			Apply a naming convention to all fields or variants. Supported: <Code>camelCase</Code>, <Code>snake_case</Code>,
+			Apply a naming convention to all fields or variants. Supported: <Code>camelCase</Code>, <Code
+				>snake_case</Code
+			>,
 			<Code>PascalCase</Code>,
 			<Code>SCREAMING_SNAKE_CASE</Code>,
 			<Code>kebab-case</Code>,

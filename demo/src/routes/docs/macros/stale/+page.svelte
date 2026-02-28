@@ -40,8 +40,7 @@
 		Adds <Code>stale-while-revalidate</Code>
 		to the <Code>Cache-Control</Code>
 		header. The CDN serves stale content while fetching a fresh response in the background. Requires
-		<Code>cache</Code> — compilation error
-		without it. Queries only.
+		<Code>cache</Code> — compilation error without it. Queries only.
 	</PageHeader>
 
 	<SectionHeading>Basic Usage</SectionHeading>

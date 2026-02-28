@@ -36,14 +36,14 @@
 		matches both the fully-qualified
 		<Code>chrono::DateTime&lt;Utc&gt;</Code>
 		and the imported
-		<Code>DateTime&lt;Utc&gt;</Code>. If
-		you use fully-qualified paths in your Rust source, exact full-path matching takes priority.
+		<Code>DateTime&lt;Utc&gt;</Code>. If you use fully-qualified paths in your Rust source, exact
+		full-path matching takes priority.
 	</p>
 	<p class="text-text-muted leading-relaxed text-sm">
 		Overrides are applied before code generation — every occurrence of the matched type (including
 		inside
 		<Code>Vec&lt;T&gt;</Code>,
-		<Code>Option&lt;T&gt;</Code>, etc.)
-		is replaced with the specified TypeScript type, and generic parameters are stripped.
+		<Code>Option&lt;T&gt;</Code>, etc.) is replaced with the specified TypeScript type, and generic
+		parameters are stripped.
 	</p>
 </div>

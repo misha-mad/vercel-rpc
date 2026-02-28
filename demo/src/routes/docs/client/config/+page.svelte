@@ -25,14 +25,11 @@
 
 	<SectionHeading level="large">Lifecycle hook types</SectionHeading>
 	<p class="text-text-muted text-sm">
-		<Code>onRequest</Code> fires before
-		the fetch — you can mutate
+		<Code>onRequest</Code> fires before the fetch — you can mutate
 		<Code>ctx.headers</Code>.
-		<Code>onResponse</Code> fires after a
-		successful response.
-		<Code>onError</Code> fires on failure
-		— check <Code>ctx.willRetry</Code> to know
-		if the client will retry.
+		<Code>onResponse</Code> fires after a successful response.
+		<Code>onError</Code> fires on failure — check <Code>ctx.willRetry</Code> to know if the client will
+		retry.
 	</p>
 	<CodeBlock html={data.highlighted['hooksTypes']} large />
 </div>

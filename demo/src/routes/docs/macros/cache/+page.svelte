@@ -48,8 +48,8 @@
 
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="cache" mono>
-		Add <Code>Cache-Control</Code> headers
-		to successful responses. Queries only — mutations cannot be cached (compilation error).
+		Add <Code>Cache-Control</Code> headers to successful responses. Queries only — mutations cannot be
+		cached (compilation error).
 	</PageHeader>
 
 	<SectionHeading>Basic Usage</SectionHeading>
@@ -94,8 +94,7 @@
 	<SectionHeading>Public vs Private</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		By default caches are public (shared on CDN). Prefix with
-		<Code>private,</Code> for user-specific
-		data that should only be cached in the browser.
+		<Code>private,</Code> for user-specific data that should only be cached in the browser.
 	</p>
 	<CodeBlock html={data.highlighted['private']} />
 

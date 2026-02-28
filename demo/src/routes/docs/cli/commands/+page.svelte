@@ -13,10 +13,8 @@
 
 <div class="max-w-3xl space-y-8">
 	<PageHeader title="CLI">
-		The <Code>metaxy</Code> CLI scans
-		Rust source files, parses types via
-		<Code>syn</Code>, and generates
-		TypeScript types and a typed client.
+		The <Code>metaxy</Code> CLI scans Rust source files, parses types via
+		<Code>syn</Code>, and generates TypeScript types and a typed client.
 	</PageHeader>
 
 	<SectionHeading>Install</SectionHeading>
