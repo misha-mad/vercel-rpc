@@ -1,5 +1,8 @@
 <script lang="ts">
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,27 +12,26 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Config</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="Config">
 		The generated client accepts a config object with options for headers, retry, timeout, lifecycle
 		hooks, and more.
-	</p>
+	</PageHeader>
 
-	<h2 class="text-2xl font-semibold">Basic</h2>
+	<SectionHeading level="large">Basic</SectionHeading>
 	<CodeBlock html={data.highlighted['basicConfig']} large />
 
-	<h2 class="text-2xl font-semibold">Full options</h2>
+	<SectionHeading level="large">Full options</SectionHeading>
 	<CodeBlock html={data.highlighted['fullConfig']} large />
 
-	<h2 class="text-2xl font-semibold">Lifecycle hook types</h2>
+	<SectionHeading level="large">Lifecycle hook types</SectionHeading>
 	<p class="text-text-muted text-sm">
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onRequest</code> fires before
+		<Code>onRequest</Code> fires before
 		the fetch — you can mutate
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ctx.headers</code>.
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onResponse</code> fires after a
+		<Code>ctx.headers</Code>.
+		<Code>onResponse</Code> fires after a
 		successful response.
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onError</code> fires on failure
-		— check <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ctx.willRetry</code> to know
+		<Code>onError</Code> fires on failure
+		— check <Code>ctx.willRetry</Code> to know
 		if the client will retry.
 	</p>
 	<CodeBlock html={data.highlighted['hooksTypes']} large />

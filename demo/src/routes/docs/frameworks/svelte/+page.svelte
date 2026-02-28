@@ -1,5 +1,8 @@
 <script lang="ts">
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,28 +12,25 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Svelte 5</h1>
-	<p class="text-text-muted leading-relaxed">
-		Rune-based reactive wrappers using <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">$state</code
-		>
-		and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">$effect</code>. Input is a
-		getter <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">() => Input</code> for
+	<PageHeader title="Svelte 5">
+		Rune-based reactive wrappers using <Code>$state</Code>
+		and <Code>$effect</Code>. Input is a
+		getter <Code>() => Input</Code> for
 		reactive dependency tracking. Generated as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.svelte.ts</code> (required for rune
+		<Code>.svelte.ts</Code> (required for rune
 		syntax).
-	</p>
+	</PageHeader>
 
-	<h2 class="text-2xl font-semibold">Setup</h2>
+	<SectionHeading level="large">Setup</SectionHeading>
 	<div class="space-y-3">
 		<CodeBlock html={data.highlighted['setupToml']} />
 		<p class="text-text-faint text-xs">or via CLI</p>
 		<CodeBlock html={data.highlighted['setupCli']} />
 	</div>
 
-	<h2 class="text-2xl font-semibold">createQuery</h2>
+	<SectionHeading level="large">createQuery</SectionHeading>
 	<CodeBlock html={data.highlighted['query']} large />
 
-	<h2 class="text-2xl font-semibold">createMutation</h2>
+	<SectionHeading level="large">createMutation</SectionHeading>
 	<CodeBlock html={data.highlighted['mutation']} large />
 </div>

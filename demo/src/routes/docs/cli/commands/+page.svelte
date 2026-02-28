@@ -1,5 +1,8 @@
 <script lang="ts">
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,18 +12,17 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">CLI</h1>
-	<p class="text-text-muted leading-relaxed">
-		The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">metaxy</code> CLI scans
+	<PageHeader title="CLI">
+		The <Code>metaxy</Code> CLI scans
 		Rust source files, parses types via
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">syn</code>, and generates
+		<Code>syn</Code>, and generates
 		TypeScript types and a typed client.
-	</p>
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Install</h2>
+	<SectionHeading>Install</SectionHeading>
 	<CodeBlock html={data.highlighted['install']} />
 
-	<h2 class="text-xl font-semibold">Commands</h2>
+	<SectionHeading>Commands</SectionHeading>
 	<CodeBlock html={data.highlighted['usage']} />
 
 	<div class="overflow-x-auto rounded-lg border border-border">
@@ -60,7 +62,7 @@
 		</table>
 	</div>
 
-	<h2 class="text-xl font-semibold">Global Flags</h2>
+	<SectionHeading>Global Flags</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">Available on all commands.</p>
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm">
