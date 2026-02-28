@@ -50,26 +50,43 @@ metaxy/
 │   ├── api/                      # Rust lambdas (each file = one endpoint)
 │   │   ├── hello.rs              #   GET  /api/hello?input="name"
 │   │   ├── time.rs               #   GET  /api/time
-│   │   ├── status.rs             #   GET  /api/status
 │   │   ├── math.rs               #   GET  /api/math?input={a,b,op}
-│   │   ├── stats.rs              #   GET  /api/stats?input=[numbers]
 │   │   ├── types.rs              #   GET  /api/types (expanded type mappings demo)
-│   │   ├── secret.rs             #   GET  /api/secret (Headers demo)
+│   │   ├── secret.rs             #   GET  /api/secret (headers demo)
 │   │   ├── echo.rs               #   POST /api/echo (mutation)
-│   │   └── profile.rs            #   GET  /api/profile?input=id (serde attrs demo)
+│   │   ├── bigint_demo.rs        #   GET  /api/bigint_demo (BigInt types)
+│   │   ├── cached_time.rs        #   GET  /api/cached_time (server-side caching)
+│   │   ├── cached_time_private.rs #  GET  /api/cached_time_private (private cache)
+│   │   ├── cached_time_stale.rs  #   GET  /api/cached_time_stale (stale-while-revalidate)
+│   │   ├── cookie_demo.rs        #   GET  /api/cookie_demo (custom fetch / cookies)
+│   │   ├── dedup_demo.rs         #   GET  /api/dedup_demo (request deduplication)
+│   │   ├── idempotent_demo.rs    #   POST /api/idempotent_demo (idempotent mutation)
+│   │   ├── init_demo.rs          #   GET  /api/init_demo (cold-start init)
+│   │   └── timeout_demo.rs       #   GET  /api/timeout_demo (timeout / abort)
 │   ├── Cargo.toml                # Rust package for demo lambdas
 │   ├── metaxy.config.toml        # CLI config file
 │   ├── src/
 │   │   ├── app.d.ts              # SvelteKit type declarations
+│   │   ├── app.css               # Global styles (Tailwind)
 │   │   ├── lib/
 │   │   │   ├── rpc-types.ts      # ← auto-generated types
 │   │   │   ├── rpc-client.ts     # ← auto-generated client
 │   │   │   ├── rpc.svelte.ts     # ← auto-generated Svelte 5 wrappers
 │   │   │   ├── client.ts         #   RPC client instance (manual)
-│   │   │   ├── highlight.server.ts  # Shiki syntax highlighting (SSR)
+│   │   │   ├── highlight.server.ts  # Shiki syntax highlighting (build-time)
+│   │   │   ├── images/
+│   │   │   │   └── github.svg    #   GitHub logo for header
 │   │   │   └── components/
-│   │   │       └── CodeBlock.svelte  # Code block component
-│   │   └── routes/               # SvelteKit pages (docs site)
+│   │   │       ├── CodeBlock.svelte      # Syntax-highlighted code block
+│   │   │       ├── Code.svelte           # Inline code badge
+│   │   │       ├── Button.svelte         # Primary action button (ts/rust variants)
+│   │   │       ├── DemoCard.svelte       # Interactive demo container
+│   │   │       ├── CollapsibleCode.svelte # Show/hide code toggle
+│   │   │       ├── OutputBox.svelte      # Result display (neutral/success/error)
+│   │   │       ├── PageHeader.svelte     # Page h1 + lead paragraph
+│   │   │       ├── SectionHeading.svelte # Section h2 (normal/large)
+│   │   │       └── FeatureRow.svelte     # Landing page code+text row
+│   │   └── routes/               # SvelteKit pages (docs site, fully prerendered)
 │   ├── tests/
 │   │   ├── integration/
 │   │   │   └── codegen.test.ts   # Vitest: codegen pipeline tests
@@ -86,8 +103,9 @@ metaxy/
 ├── docs/                         # Design documents & references
 │   ├── ROADMAP.md                #   Feature roadmap by phase
 │   ├── PROJECT-STRUCTURE.md      #   This file
+│   ├── plans/                    #   Implementation plans & design docs
 │   └── RFC/                      #   Individual RFC design documents
-│       └── RFC-*.md
+│       └── RFC-NNN-*.md
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml                # CI: build, test, lint
