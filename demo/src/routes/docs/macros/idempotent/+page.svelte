@@ -3,7 +3,6 @@
 	import { createMutation } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
-	import Code from '$lib/components/Code.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import SectionHeading from '$lib/components/SectionHeading.svelte';

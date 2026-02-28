@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
-	import CodeBlock from '$lib/components/CodeBlock.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Code from '$lib/components/Code.svelte';
 	import SectionHeading from '$lib/components/SectionHeading.svelte';
@@ -49,9 +48,7 @@
 						<Code>&amp;str</Code>,
 						<Code>char</Code></td
 					>
-					<td class="px-4 py-2"
-						><Code>string</Code></td
-					>
+					<td class="px-4 py-2"><Code>string</Code></td>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
@@ -59,9 +56,7 @@
 						><Code>i8</Code>–<Code>i128</Code>, <Code>u8</Code>–<Code>u128</Code>, <Code>f32</Code>,
 						<Code>f64</Code></td
 					>
-					<td class="px-4 py-2"
-						><Code>number</Code></td
-					>
+					<td class="px-4 py-2"><Code>number</Code></td>
 					<td class="px-4 py-2 text-text-muted"
 						>or <Code>bigint</Code> via
 						<a href="/docs/codegen/bigint" class="text-accent-ts hover:underline"
@@ -70,21 +65,13 @@
 					>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>bool</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>boolean</Code></td
-					>
+					<td class="px-4 py-2"><Code>bool</Code></td>
+					<td class="px-4 py-2"><Code>boolean</Code></td>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>()</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>void</Code></td
-					>
+					<td class="px-4 py-2"><Code>()</Code></td>
+					<td class="px-4 py-2"><Code>void</Code></td>
 					<td class="px-4 py-2 text-text-muted">no-input procedures</td>
 				</tr>
 				<tr class="border-b border-border">
@@ -93,20 +80,14 @@
 						<Code>HashSet&lt;T&gt;</Code>,
 						<Code>BTreeSet&lt;T&gt;</Code></td
 					>
-					<td class="px-4 py-2"
-						><Code>T[]</Code></td
-					>
+					<td class="px-4 py-2"><Code>T[]</Code></td>
 					<td class="px-4 py-2 text-text-muted"
 						>also <Code>Array&lt;T&gt;</Code> in generic positions</td
 					>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>Option&lt;T&gt;</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>T | null</Code></td
-					>
+					<td class="px-4 py-2"><Code>Option&lt;T&gt;</Code></td>
+					<td class="px-4 py-2"><Code>T | null</Code></td>
 					<td class="px-4 py-2 text-text-muted"
 						>with <Code>serde(default)</Code>:
 						<Code>field?: T | null</Code></td
@@ -117,9 +98,7 @@
 						><Code>HashMap&lt;K, V&gt;</Code>,
 						<Code>BTreeMap&lt;K, V&gt;</Code></td
 					>
-					<td class="px-4 py-2"
-						><Code>Record&lt;K, V&gt;</Code></td
-					>
+					<td class="px-4 py-2"><Code>Record&lt;K, V&gt;</Code></td>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
@@ -129,36 +108,22 @@
 						<Code>Rc&lt;T&gt;</Code>,
 						<Code>Cow&lt;T&gt;</Code></td
 					>
-					<td class="px-4 py-2"
-						><Code>T</Code></td
-					>
+					<td class="px-4 py-2"><Code>T</Code></td>
 					<td class="px-4 py-2 text-text-muted">transparent unwrap</td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>(A, B, C)</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>[A, B, C]</Code></td
-					>
+					<td class="px-4 py-2"><Code>(A, B, C)</Code></td>
+					<td class="px-4 py-2"><Code>[A, B, C]</Code></td>
 					<td class="px-4 py-2 text-text-muted">tuples</td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>[T; N]</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>T[]</Code></td
-					>
+					<td class="px-4 py-2"><Code>[T; N]</Code></td>
+					<td class="px-4 py-2"><Code>T[]</Code></td>
 					<td class="px-4 py-2 text-text-muted">fixed-size arrays</td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>Result&lt;T, E&gt;</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>T</Code></td
-					>
+					<td class="px-4 py-2"><Code>Result&lt;T, E&gt;</Code></td>
+					<td class="px-4 py-2"><Code>T</Code></td>
 					<td class="px-4 py-2 text-text-muted"
 						><Code>Ok(T)</Code>
 						unwrapped;
@@ -170,30 +135,18 @@
 					>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>struct</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>interface</Code></td
-					>
+					<td class="px-4 py-2"><Code>struct</Code></td>
+					<td class="px-4 py-2"><Code>interface</Code></td>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>enum</Code> (unit variants)</td
-					>
-					<td class="px-4 py-2"
-						><Code>"A" | "B"</Code></td
-					>
+					<td class="px-4 py-2"><Code>enum</Code> (unit variants)</td>
+					<td class="px-4 py-2"><Code>"A" | "B"</Code></td>
 					<td class="px-4 py-2 text-text-muted">string union</td>
 				</tr>
 				<tr class="border-b border-border">
-					<td class="px-4 py-2"
-						><Code>enum</Code> (data variants)</td
-					>
-					<td class="px-4 py-2"
-						><Code>{'{ A: T }'} | ...</Code></td
-					>
+					<td class="px-4 py-2"><Code>enum</Code> (data variants)</td>
+					<td class="px-4 py-2"><Code>{'{ A: T }'} | ...</Code></td>
 					<td class="px-4 py-2 text-text-muted"
 						>see <a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
 							>Serde Support</a
@@ -201,17 +154,12 @@
 					>
 				</tr>
 				<tr>
-					<td class="px-4 py-2"
-						>Newtype <Code>struct Id(String)</Code></td
-					>
-					<td class="px-4 py-2"
-						><Code>type Id = string</Code></td
-					>
+					<td class="px-4 py-2">Newtype <Code>struct Id(String)</Code></td>
+					<td class="px-4 py-2"><Code>type Id = string</Code></td>
 					<td class="px-4 py-2 text-text-muted"
 						>or branded with <a
 							href="/docs/codegen/branded-newtypes"
-							class="text-accent-ts hover:underline"
-							><Code>branded_newtypes</Code></a
+							class="text-accent-ts hover:underline"><Code>branded_newtypes</Code></a
 						></td
 					>
 				</tr>
