@@ -1,7 +1,7 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'typescript' }> = {
+const codeBlocks: Record<string, { code: string; lang: 'typescript' | 'rust' }> = {
 	staticHeaders: {
 		lang: 'typescript',
 		code: `const rpc = createRpcClient({
@@ -42,6 +42,18 @@ const rpc = createRpcClient({
 await rpc.query('secret', input, {
   headers: { Authorization: 'Bearer override' },
 });`
+	},
+	secretRust: {
+		lang: 'rust',
+		code: `#[rpc_query]
+async fn secret(headers: Headers) -> Result<String, String> {
+    let auth = headers.get("authorization")
+        .and_then(|v| v.to_str().ok());
+    if auth != Some("Bearer secret-token-123") {
+        return Err("Unauthorized: invalid or missing token".into());
+    }
+    Ok("Top secret: the cake is a lie.".to_string())
+}`
 	}
 };
 

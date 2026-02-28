@@ -26,6 +26,18 @@ const rpc = createRpcClient({
 		lang: 'typescript',
 		code: `// Disable for a single call
 const fresh = await rpc.query("get_user", id, { dedupe: false });`
+	},
+	dedupDemoRust: {
+		lang: 'rust',
+		code: `static REQUEST_COUNT: AtomicU64 = AtomicU64::new(0);
+
+/// Slow endpoint (500ms) with a request counter.
+#[rpc_query]
+async fn dedup_demo() -> DedupDemoResponse {
+    let num = REQUEST_COUNT.fetch_add(1, Ordering::Relaxed) + 1;
+    tokio::time::sleep(Duration::from_millis(500)).await;
+    DedupDemoResponse { request_number: num, timestamp: format!("{}ms", now) }
+}`
 	}
 };
 

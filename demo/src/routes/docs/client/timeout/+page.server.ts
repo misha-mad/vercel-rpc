@@ -1,7 +1,7 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'typescript' }> = {
+const codeBlocks: Record<string, { code: string; lang: 'typescript' | 'rust' }> = {
 	clientTimeout: {
 		lang: 'typescript',
 		code: `// Global timeout for all requests (ms)
@@ -68,6 +68,19 @@ const rpc = createRpcClient({
 await rpc.query('data', input, {
   signal: callCtrl.signal, // combined with clientCtrl.signal
 });`
+	},
+	timeoutDemoRust: {
+		lang: 'rust',
+		code: `#[rpc_query(timeout = "3s")]
+async fn timeout_demo(input: TimeoutDemoInput) -> TimeoutDemoResponse {
+    let start = Instant::now();
+    tokio::time::sleep(Duration::from_millis(input.sleep_ms)).await;
+    TimeoutDemoResponse {
+        requested_ms: input.sleep_ms,
+        actual_ms: start.elapsed().as_millis() as u64,
+        timeout_ms: 3000,
+    }
+}`
 	}
 };
 

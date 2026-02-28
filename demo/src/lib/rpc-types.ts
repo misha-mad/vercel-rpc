@@ -31,6 +31,17 @@ export interface CachedTimeStaleResponse {
   generated_at: string;
 }
 
+export interface CookieDemoResponse {
+  authenticated: boolean;
+  message: string;
+  cookie_value: string | null;
+}
+
+export interface DedupDemoResponse {
+  request_number: number;
+  timestamp: string;
+}
+
 /** Input for the echo mutation. */
 export interface EchoInput {
   message: string;
@@ -72,6 +83,17 @@ export interface MathInput {
 export interface MathResult {
   result: number;
   expression: string;
+}
+
+export interface RetryDemoInput {
+  fail_count: number;
+  reset: boolean;
+}
+
+export interface RetryDemoResponse {
+  call_number: number;
+  total_calls: number;
+  message: string;
 }
 
 /** Snapshot of service health and version info. */
@@ -171,6 +193,16 @@ export type Procedures = {
     /** Returns server time, cached 10s + stale for 30s while revalidating. */
     cached_time_stale: { input: void; output: CachedTimeStaleResponse };
     /**
+     * Checks for a `session` cookie in the request headers.
+     * Returns OK if present, error details if missing.
+     */
+    cookie_demo: { input: void; output: CookieDemoResponse };
+    /**
+     * Slow endpoint (500ms) with a request counter.
+     * Used to demonstrate request deduplication.
+     */
+    dedup_demo: { input: void; output: DedupDemoResponse };
+    /**
      * Greet a user by name.
      * Returns a personalized greeting string.
      */
@@ -185,6 +217,11 @@ export type Procedures = {
      * on structs and enums to demonstrate TypeScript codegen fidelity.
      */
     profile: { input: number; output: UserProfile };
+    /**
+     * Returns 500 for the first `fail_count` calls, then 200.
+     * Use `reset: true` to restart the counter.
+     */
+    retry_demo: { input: RetryDemoInput; output: RetryDemoResponse };
     /**
      * Access a protected secret.
      * Requires a valid Bearer token in the Authorization header.

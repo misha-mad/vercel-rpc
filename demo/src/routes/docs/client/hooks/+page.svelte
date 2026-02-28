@@ -1,7 +1,58 @@
 <script lang="ts">
+	import { createRpcClient, RpcError } from '$lib/rpc-client';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
 
 	let { data } = $props();
+
+	type HookEntry = { hook: 'onRequest' | 'onResponse' | 'onError'; detail: string; ts: number };
+	let hookLog: HookEntry[] = $state([]);
+	let loading = $state(false);
+
+	async function runHooksDemo() {
+		loading = true;
+		hookLog = [];
+		const startTs = Date.now();
+		const log: HookEntry[] = [];
+
+		const client = createRpcClient({
+			baseUrl: '/api',
+			retry: { attempts: 2, delay: 300 },
+			onRequest: (ctx) => {
+				log.push({
+					hook: 'onRequest',
+					detail: `procedure="${ctx.procedure}" url="${ctx.url}"`,
+					ts: Date.now() - startTs
+				});
+				hookLog = [...log];
+			},
+			onResponse: (ctx) => {
+				log.push({
+					hook: 'onResponse',
+					detail: `status=200 duration=${ctx.duration}ms data=${JSON.stringify(ctx.data).slice(0, 80)}`,
+					ts: Date.now() - startTs
+				});
+				hookLog = [...log];
+			},
+			onError: (ctx) => {
+				log.push({
+					hook: 'onError',
+					detail: `attempt=${ctx.attempt} willRetry=${ctx.willRetry} error="${ctx.error instanceof RpcError ? ctx.error.message : ctx.error}"`,
+					ts: Date.now() - startTs
+				});
+				hookLog = [...log];
+			}
+		});
+
+		try {
+			await client.query('retry_demo', { fail_count: 1, reset: true });
+		} catch {
+			// error logged via onError
+		} finally {
+			loading = false;
+		}
+	}
+
+	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -46,4 +97,54 @@
 	</p>
 	<CodeBlock html={data.highlighted['onError']} />
 	<CodeBlock html={data.highlighted['errorCtx']} />
+
+	<!-- Try it -->
+	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<p class="text-text-muted text-sm">
+		Calls an endpoint that fails once, then succeeds. All three hooks fire and log their context.
+	</p>
+
+	<div class="rounded-lg border border-border bg-bg-soft p-6">
+		<div class="flex items-center gap-2 mb-4">
+			<button
+				onclick={runHooksDemo}
+				disabled={loading}
+				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+				>Run lifecycle demo</button
+			>
+			{#if loading}
+				<span class="text-sm text-text-muted">Loading...</span>
+			{/if}
+		</div>
+
+		{#if hookLog.length > 0}
+			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
+				{#each hookLog as entry, i (i)}
+					<div class="flex gap-4">
+						<span class="text-text-faint w-12 text-right">{entry.ts}ms</span>
+						{#if entry.hook === 'onRequest'}
+							<span class="text-blue-400">onRequest</span>
+						{:else if entry.hook === 'onResponse'}
+							<span class="text-green-400">onResponse</span>
+						{:else}
+							<span class="text-red-400">onError</span>
+						{/if}
+						<span class="text-text-muted">{entry.detail}</span>
+					</div>
+				{/each}
+			</div>
+		{/if}
+
+		<button
+			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
+			onclick={() => (openCode = !openCode)}
+		>
+			{openCode ? '▾ Hide' : '▸ Show'} Rust
+		</button>
+		{#if openCode}
+			<div class="mt-3">
+				<CodeBlock html={data.highlighted['retryDemoRust']} />
+			</div>
+		{/if}
+	</div>
 </div>

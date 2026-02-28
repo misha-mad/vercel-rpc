@@ -1,7 +1,7 @@
 import { highlightCode } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
-const codeBlocks: Record<string, { code: string; lang: 'typescript' }> = {
+const codeBlocks: Record<string, { code: string; lang: 'typescript' | 'rust' }> = {
 	onRequest: {
 		lang: 'typescript',
 		code: `const rpc = createRpcClient({
@@ -82,6 +82,21 @@ const codeBlocks: Record<string, { code: string; lang: 'typescript' }> = {
 // 2. fetch      — actual HTTP call
 // 3. onResponse — if success
 //    onError    — if failure (may repeat if retry is configured)`
+	},
+	retryDemoRust: {
+		lang: 'rust',
+		code: `static CALL_COUNT: AtomicU32 = AtomicU32::new(0);
+
+/// Returns 500 for the first \`fail_count\` calls, then 200.
+#[rpc_query]
+async fn retry_demo(input: RetryDemoInput) -> Result<RetryDemoResponse, String> {
+    if input.reset { CALL_COUNT.store(0, Ordering::Relaxed); }
+    let call_number = CALL_COUNT.fetch_add(1, Ordering::Relaxed) + 1;
+    if call_number <= input.fail_count {
+        return Err(format!("Simulated failure (call {})", call_number));
+    }
+    Ok(RetryDemoResponse { call_number, total_calls: CALL_COUNT.load(Ordering::Relaxed), message: format!("Success on call {}", call_number) })
+}`
 	}
 };
 
