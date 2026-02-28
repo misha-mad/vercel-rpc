@@ -20,11 +20,16 @@ pub struct RetryDemoResponse {
 }
 
 /// Returns 500 for the first `fail_count` calls, then 200.
-/// Use `reset: true` to restart the counter.
+/// Use `reset: true` to restart the counter (returns immediately).
 #[rpc_query]
 async fn retry_demo(input: RetryDemoInput) -> Result<RetryDemoResponse, String> {
     if input.reset {
         CALL_COUNT.store(0, Ordering::Relaxed);
+        return Ok(RetryDemoResponse {
+            call_number: 0,
+            total_calls: 0,
+            message: "Counter reset".into(),
+        });
     }
     let call_number = CALL_COUNT.fetch_add(1, Ordering::Relaxed) + 1;
 
