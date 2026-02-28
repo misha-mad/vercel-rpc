@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { rpc } from '$lib/client';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
 
 	let { data } = $props();
 
@@ -15,8 +21,6 @@
 			loading = false;
 		}
 	}
-
-	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -24,11 +28,10 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Type Mappings</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="Type Mappings">
 		Every Rust type is automatically mapped to its TypeScript equivalent during code generation.
 		Here's the complete reference.
-	</p>
+	</PageHeader>
 
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm text-left">
@@ -42,177 +45,154 @@
 			<tbody class="text-text-primary">
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">String</code>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&amp;str</code>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">char</code></td
+						><Code>String</Code>,
+						<Code>&amp;str</Code>,
+						<Code>char</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">string</code></td
+						><Code>string</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i8</code>–<code
-							class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i128</code
-						>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u8</code>–<code
-							class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u128</code
-						>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">f32</code>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">f64</code></td
+						><Code>i8</Code>–<Code>i128</Code>, <Code>u8</Code>–<Code>u128</Code>, <Code>f32</Code>,
+						<Code>f64</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code></td
+						><Code>number</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
-						>or <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint</code> via
+						>or <Code>bigint</Code> via
 						<a href="/docs/codegen/bigint" class="text-accent-ts hover:underline"
-							><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types</code
-							></a
+							><Code>bigint_types</Code></a
 						></td
 					>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bool</code></td
+						><Code>bool</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">boolean</code></td
+						><Code>boolean</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">()</code></td
+						><Code>()</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">void</code></td
+						><Code>void</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">no-input procedures</td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Vec&lt;T&gt;</code>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">HashSet&lt;T&gt;</code
-						>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BTreeSet&lt;T&gt;</code
-						></td
+						><Code>Vec&lt;T&gt;</Code>,
+						<Code>HashSet&lt;T&gt;</Code>,
+						<Code>BTreeSet&lt;T&gt;</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T[]</code></td
+						><Code>T[]</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
-						>also <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>Array&lt;T&gt;</code
-						> in generic positions</td
+						>also <Code>Array&lt;T&gt;</Code> in generic positions</td
 					>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Option&lt;T&gt;</code
-						></td
+						><Code>Option&lt;T&gt;</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T | null</code></td
+						><Code>T | null</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
-						>with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>serde(default)</code
-						>:
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">field?: T | null</code
-						></td
+						>with <Code>serde(default)</Code>:
+						<Code>field?: T | null</Code></td
 					>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>HashMap&lt;K, V&gt;</code
-						>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>BTreeMap&lt;K, V&gt;</code
-						></td
+						><Code>HashMap&lt;K, V&gt;</Code>,
+						<Code>BTreeMap&lt;K, V&gt;</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>Record&lt;K, V&gt;</code
-						></td
+						><Code>Record&lt;K, V&gt;</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Box&lt;T&gt;</code>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Arc&lt;T&gt;</code>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Rc&lt;T&gt;</code>,
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cow&lt;T&gt;</code></td
+						><Code>Box&lt;T&gt;</Code>,
+						<Code>Arc&lt;T&gt;</Code>,
+						<Code>Rc&lt;T&gt;</Code>,
+						<Code>Cow&lt;T&gt;</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T</code></td
+						><Code>T</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">transparent unwrap</td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">(A, B, C)</code></td
+						><Code>(A, B, C)</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">[A, B, C]</code></td
+						><Code>[A, B, C]</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">tuples</td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">[T; N]</code></td
+						><Code>[T; N]</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T[]</code></td
+						><Code>T[]</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">fixed-size arrays</td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>Result&lt;T, E&gt;</code
-						></td
+						><Code>Result&lt;T, E&gt;</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">T</code></td
+						><Code>T</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Ok(T)</code>
+						><Code>Ok(T)</Code>
 						unwrapped;
-						<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Err(E)</code>
+						<Code>Err(E)</Code>
 						serialized as JSON and thrown as
 						<a href="/docs/error-handling" class="text-accent-ts hover:underline"
-							><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a
+							><Code>RpcError</Code></a
 						> (status 500)</td
 					>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">struct</code></td
+						><Code>struct</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">interface</code></td
+						><Code>interface</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"></td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">enum</code> (unit variants)</td
+						><Code>enum</Code> (unit variants)</td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">"A" | "B"</code></td
+						><Code>"A" | "B"</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">string union</td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">enum</code> (data variants)</td
+						><Code>enum</Code> (data variants)</td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>{'{ A: T }'} | ...</code
-						></td
+						><Code>{'{ A: T }'} | ...</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
 						>see <a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
@@ -222,21 +202,16 @@
 				</tr>
 				<tr>
 					<td class="px-4 py-2"
-						>Newtype <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-							>struct Id(String)</code
-						></td
+						>Newtype <Code>struct Id(String)</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">type Id = string</code
-						></td
+						><Code>type Id = string</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted"
 						>or branded with <a
 							href="/docs/codegen/branded-newtypes"
 							class="text-accent-ts hover:underline"
-							><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-								>branded_newtypes</code
-							></a
+							><Code>branded_newtypes</Code></a
 						></td
 					>
 				</tr>
@@ -245,19 +220,14 @@
 	</div>
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
 		A single struct with every mapping from the table above. Click Fetch to see live values.
 	</p>
 
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
+	<DemoCard>
 		<div class="flex items-center gap-3 mb-4">
-			<button
-				onclick={fetchTypes}
-				disabled={loading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>Fetch</button
-			>
+			<Button onclick={fetchTypes} disabled={loading}>Fetch</Button>
 			{#if loading}
 				<span class="text-sm text-text-muted">Loading...</span>
 			{/if}
@@ -354,16 +324,6 @@
 			</div>
 		{/if}
 
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => (openCode = !openCode)}
-		>
-			{openCode ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['typesRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['typesRust']} />
+	</DemoCard>
 </div>

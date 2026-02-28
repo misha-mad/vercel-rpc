@@ -2,6 +2,13 @@
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
 
 	let { data } = $props();
 
@@ -33,12 +40,6 @@
 	async function refetchPrivate() {
 		await cachedTimePrivate.refetch();
 	}
-
-	// --- Code toggle ---
-	let openCode: Record<string, boolean> = $state({});
-	function toggleCode(id: string) {
-		openCode[id] = !openCode[id];
-	}
 </script>
 
 <svelte:head>
@@ -46,16 +47,15 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold font-mono">cache</h1>
-	<p class="text-text-muted leading-relaxed">
-		Add <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Cache-Control</code> headers
+	<PageHeader title="cache" mono>
+		Add <Code>Cache-Control</Code> headers
 		to successful responses. Queries only — mutations cannot be cached (compilation error).
-	</p>
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Basic Usage</h2>
+	<SectionHeading>Basic Usage</SectionHeading>
 	<CodeBlock html={data.highlighted['basic']} />
 
-	<h2 class="text-xl font-semibold">Duration Shorthand</h2>
+	<SectionHeading>Duration Shorthand</SectionHeading>
 	<CodeBlock html={data.highlighted['durations']} />
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm">
@@ -91,45 +91,39 @@
 		</table>
 	</div>
 
-	<h2 class="text-xl font-semibold">Public vs Private</h2>
+	<SectionHeading>Public vs Private</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		By default caches are public (shared on CDN). Prefix with
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">private,</code> for user-specific
+		<Code>private,</Code> for user-specific
 		data that should only be cached in the browser.
 	</p>
 	<CodeBlock html={data.highlighted['private']} />
 
-	<h2 class="text-xl font-semibold">Combining Attributes</h2>
+	<SectionHeading>Combining Attributes</SectionHeading>
 	<CodeBlock html={data.highlighted['combined']} />
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
 		Each demo calls a real lambda that returns the server timestamp. When cached, the server time
 		stays the same across refetches while the client time updates.
 	</p>
 
 	<!-- Public cache: 30s -->
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-1">Public — CDN Cache 30s</h3>
+	<DemoCard title="Public — CDN Cache 30s">
 		<p class="text-text-muted text-xs mb-3 font-mono">
 			Cache-Control: public, max-age=0, s-maxage=30
 		</p>
 		<div class="flex items-center gap-3 mb-3">
-			<button
-				onclick={refetchPublic}
-				disabled={cachedTime.isLoading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>Refetch</button
-			>
+			<Button onclick={refetchPublic} disabled={cachedTime.isLoading}>Refetch</Button>
 			{#if cachedTime.isLoading && !cachedTime.data}
 				<span class="text-sm text-text-muted">Loading...</span>
 			{/if}
 		</div>
 		{#if fetchLog['public'].length > 0}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
+			<OutputBox mono={true}>
 				{#each fetchLog['public'] as entry, i (i)}
-					<div class="flex gap-4">
+					<div class="flex gap-4 text-xs">
 						<span class="text-text-faint">#{i + 1}</span>
 						<span class="text-text-muted"
 							>server: <span class="text-accent-rust">{entry.serverTs}</span></span
@@ -142,37 +136,21 @@
 						{/if}
 					</div>
 				{/each}
-			</div>
+			</OutputBox>
 		{/if}
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => toggleCode('cachedTime')}
-		>
-			{openCode['cachedTime'] ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode['cachedTime']}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['cachedTimeRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['cachedTimeRust']} />
+	</DemoCard>
 
 	<!-- Private: browser-only 1m -->
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-1">Private — Browser Cache 1m</h3>
+	<DemoCard title="Private — Browser Cache 1m">
 		<p class="text-text-muted text-xs mb-3 font-mono">Cache-Control: private, max-age=60</p>
 		<div class="flex items-center gap-3 mb-3">
-			<button
-				onclick={refetchPrivate}
-				disabled={cachedTimePrivate.isLoading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>Refetch</button
-			>
+			<Button onclick={refetchPrivate} disabled={cachedTimePrivate.isLoading}>Refetch</Button>
 		</div>
 		{#if fetchLog['private'].length > 0}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
+			<OutputBox mono={true}>
 				{#each fetchLog['private'] as entry, i (i)}
-					<div class="flex gap-4">
+					<div class="flex gap-4 text-xs">
 						<span class="text-text-faint">#{i + 1}</span>
 						<span class="text-text-muted"
 							>server: <span class="text-accent-rust">{entry.serverTs}</span></span
@@ -185,18 +163,8 @@
 						{/if}
 					</div>
 				{/each}
-			</div>
+			</OutputBox>
 		{/if}
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => toggleCode('cachedTimePrivate')}
-		>
-			{openCode['cachedTimePrivate'] ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode['cachedTimePrivate']}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['cachedTimePrivateRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['cachedTimePrivateRust']} />
+	</DemoCard>
 </div>
