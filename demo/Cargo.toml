@@ -72,3 +72,15 @@ path = "api/idempotent_demo.rs"
 [[bin]]
 name = "bigint_demo"
 path = "api/bigint_demo.rs"
+
+[[bin]]
+name = "retry_demo"
+path = "api/retry_demo.rs"
+
+[[bin]]
+name = "dedup_demo"
+path = "api/dedup_demo.rs"
+
+[[bin]]
+name = "cookie_demo"
+path = "api/cookie_demo.rs"
