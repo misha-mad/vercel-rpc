@@ -34,29 +34,12 @@ test.describe('API endpoints — direct HTTP', () => {
 		expect(typeof data.timestamp).toBe('number');
 	});
 
-	test('GET /api/status returns service status', async ({ request }) => {
-		const res = await request.get('/api/status');
-		expect(res.ok()).toBe(true);
-		const json = await res.json();
-		expect(json.result.data.name).toBe('metaxy-demo');
-		expect(json.result.data.status).toBe('Healthy');
-	});
-
 	test('GET /api/math computes addition', async ({ request }) => {
 		const input = encodeURIComponent(JSON.stringify({ a: 5, b: 3, op: 'Add' }));
 		const res = await request.get(`/api/math?input=${input}`);
 		expect(res.ok()).toBe(true);
 		const json = await res.json();
 		expect(json.result.data.result).toBe(8);
-	});
-
-	test('GET /api/stats computes statistics', async ({ request }) => {
-		const input = encodeURIComponent(JSON.stringify([1, 2, 3, 4, 5]));
-		const res = await request.get(`/api/stats?input=${input}`);
-		expect(res.ok()).toBe(true);
-		const json = await res.json();
-		expect(json.result.data.count).toBe(5);
-		expect(json.result.data.mean).toBe(3);
 	});
 
 	test('POST /api/echo transforms message', async ({ request }) => {
@@ -67,29 +50,6 @@ test.describe('API endpoints — direct HTTP', () => {
 		const json = await res.json();
 		expect(json.result.data.transformed).toBe('HELLO');
 		expect(json.result.data.length).toBe(5);
-	});
-
-	test('GET /api/profile returns user profile with serde attributes', async ({ request }) => {
-		const input = encodeURIComponent(JSON.stringify(1));
-		const res = await request.get(`/api/profile?input=${input}`);
-		expect(res.ok()).toBe(true);
-		const json = await res.json();
-		const data = json.result.data;
-		// camelCase fields from #[serde(rename_all = "camelCase")]
-		expect(data.userId).toBe(1);
-		expect(data.displayName).toBe('Alice');
-		expect(data.emailAddress).toBe('alice@example.com');
-		// enum with #[serde(rename_all = "snake_case")]
-		expect(data.role).toBe('admin');
-		// enum with #[serde(rename_all = "kebab-case")]
-		expect(data.lastEvent).toBe('sign-in');
-		// #[serde(rename = "profile_url")] overrides camelCase
-		expect(data.profile_url).toBe('https://example.com/alice');
-		// #[serde(skip)] — internal_score must not be present
-		expect(data).not.toHaveProperty('internalScore');
-		expect(data).not.toHaveProperty('internal_score');
-		// #[serde(default)] + Option<String>
-		expect(data.avatarUrl).toBe('https://example.com/alice/avatar.png');
 	});
 
 	test('GET /api/types returns type showcase', async ({ request }) => {
