@@ -1,5 +1,7 @@
 <script lang="ts">
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,16 +11,15 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold font-mono">metaxy scan</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="metaxy scan" mono>
 		Parse Rust files and print discovered procedures, structs, and enums. Useful for debugging and
 		verifying what the CLI sees before generating code.
-	</p>
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Usage</h2>
+	<SectionHeading>Usage</SectionHeading>
 	<CodeBlock html={data.highlighted['basic']} />
 
-	<h2 class="text-xl font-semibold">Flags</h2>
+	<SectionHeading>Flags</SectionHeading>
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm">
 			<thead>
@@ -48,9 +49,9 @@
 		</table>
 	</div>
 
-	<h2 class="text-xl font-semibold">Examples</h2>
+	<SectionHeading>Examples</SectionHeading>
 	<CodeBlock html={data.highlighted['custom']} />
 
-	<h2 class="text-xl font-semibold">Sample Output</h2>
+	<SectionHeading>Sample Output</SectionHeading>
 	<CodeBlock html={data.highlighted['output']} />
 </div>

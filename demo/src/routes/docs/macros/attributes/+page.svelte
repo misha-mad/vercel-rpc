@@ -1,14 +1,18 @@
+<script lang="ts">
+	import Code from '$lib/components/Code.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+</script>
+
 <svelte:head>
 	<title>Macro Attributes — metaxy</title>
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Macro Attributes</h1>
-	<p class="text-text-muted leading-relaxed">
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_query]</code> and
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code> accept optional
-		attributes that control caching, initialization, timeouts, and retry behavior.
-	</p>
+	<PageHeader title="Macro Attributes">
+		<Code>#[rpc_query]</Code> and
+		<Code>#[rpc_mutation]</Code> accept optional attributes that control caching, initialization, timeouts,
+		and retry behavior.
+	</PageHeader>
 
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm text-left">

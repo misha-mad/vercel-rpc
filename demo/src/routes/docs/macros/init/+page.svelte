@@ -2,6 +2,13 @@
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -32,8 +39,6 @@
 	async function refetch() {
 		await initDemo.refetch();
 	}
-
-	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -41,53 +46,45 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold font-mono">init</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="init" mono>
 		Run a function once at cold start. Can be side-effects only (logger, dotenv) or return shared
 		state (DB pool, HTTP client) injected as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&T</code> parameter. Works with both
-		queries and mutations.
-	</p>
+		<Code>&T</Code> parameter. Works with both queries and mutations.
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Side-Effects Only</h2>
+	<SectionHeading>Side-Effects Only</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		When the init function returns nothing, it runs once for setup (logging, env vars, tracing).
 	</p>
 	<CodeBlock html={data.highlighted['sideEffect']} />
 
-	<h2 class="text-xl font-semibold">Shared State</h2>
+	<SectionHeading>Shared State</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		When the init function returns a value, it's stored and injected as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">&T</code> into the handler. The init
-		function runs once per cold start — the result is reused across requests.
+		<Code>&T</Code> into the handler. The init function runs once per cold start — the result is reused
+		across requests.
 	</p>
 	<CodeBlock html={data.highlighted['sharedState']} />
 
-	<h2 class="text-xl font-semibold">HTTP Client</h2>
+	<SectionHeading>HTTP Client</SectionHeading>
 	<CodeBlock html={data.highlighted['httpClient']} />
 
-	<h2 class="text-xl font-semibold">Combining Attributes</h2>
+	<SectionHeading>Combining Attributes</SectionHeading>
 	<CodeBlock html={data.highlighted['combined']} />
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-1">Cold Start &amp; Shared State</h3>
+	<SectionHeading level="large">Try it</SectionHeading>
+	<DemoCard title="Cold Start &amp; Shared State">
 		<p class="text-text-muted text-sm mb-3">
-			The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">setup()</code> function runs
-			once at cold start, measuring its own duration. Subsequent requests reuse the same state — watch
-			the request count increment while cold start time stays the same.
+			The <Code>setup()</Code> function runs once at cold start, measuring its own duration. Subsequent
+			requests reuse the same state — watch the request count increment while cold start time stays the
+			same.
 		</p>
 		<div class="flex items-center gap-3 mb-3">
-			<button
-				onclick={refetch}
-				disabled={initDemo.isLoading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>Refetch</button
-			>
+			<Button onclick={refetch} disabled={initDemo.isLoading}>Refetch</Button>
 		</div>
 		{#if callLog.length > 0}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
+			<OutputBox mono>
 				{#each callLog as entry, i (i)}
 					<div class="flex gap-4">
 						<span class="text-text-faint">#{i + 1}</span>
@@ -104,18 +101,8 @@
 						{/if}
 					</div>
 				{/each}
-			</div>
+			</OutputBox>
 		{/if}
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => (openCode = !openCode)}
-		>
-			{openCode ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['initDemoRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['initDemoRust']} />
+	</DemoCard>
 </div>

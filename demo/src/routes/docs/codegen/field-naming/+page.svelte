@@ -1,5 +1,8 @@
 <script lang="ts">
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,14 +12,12 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Field Naming</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="Field Naming">
 		By default field names are emitted as-is. Set
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">camelCase</code> to convert
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">snake_case</code> fields to
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">camelCase</code> in the generated
-		TypeScript.
-	</p>
+		<Code>camelCase</Code> to convert
+		<Code>snake_case</Code> fields to
+		<Code>camelCase</Code> in the generated TypeScript.
+	</PageHeader>
 
 	<div class="space-y-3">
 		<CodeBlock html={data.highlighted['configToml']} />
@@ -24,13 +25,13 @@
 		<CodeBlock html={data.highlighted['configCli']} />
 	</div>
 
-	<h2 class="text-xl font-semibold">preserve (default)</h2>
+	<SectionHeading>preserve (default)</SectionHeading>
 	<div class="space-y-3">
 		<CodeBlock html={data.highlighted['exampleRust']} />
 		<CodeBlock html={data.highlighted['preserveTs']} />
 	</div>
 
-	<h2 class="text-xl font-semibold">camelCase</h2>
+	<SectionHeading>camelCase</SectionHeading>
 	<CodeBlock html={data.highlighted['camelTs']} />
 
 	<p class="text-text-muted leading-relaxed text-sm">
@@ -41,14 +42,12 @@
 	<p class="text-text-muted leading-relaxed text-sm">
 		Priority: field-level
 		<a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
-			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">serde(rename)</code></a
+			><Code>serde(rename)</Code></a
 		>
 		&gt; container
-		<a href="/docs/codegen/serde" class="text-accent-ts hover:underline"
-			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">rename_all</code></a
-		>
+		<a href="/docs/codegen/serde" class="text-accent-ts hover:underline"><Code>rename_all</Code></a>
 		&gt;
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">codegen.naming.fields</code>
+		<Code>codegen.naming.fields</Code>
 		&gt; original name.
 	</p>
 </div>

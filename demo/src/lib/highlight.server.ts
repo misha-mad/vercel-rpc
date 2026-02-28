@@ -36,3 +36,15 @@ export async function highlightCode(
 	const label = langLabels[lang] ?? lang;
 	return html.replace('<pre', `<pre data-lang="${label}"`);
 }
+
+export async function highlightBlocks(
+	codeBlocks: Record<string, { code: string; lang: 'rust' | 'typescript' | 'shellscript' | 'toml' }>
+): Promise<{ highlighted: Record<string, string> }> {
+	const entries = Object.entries(codeBlocks);
+	const results = await Promise.all(entries.map(([, { code, lang }]) => highlightCode(code, lang)));
+	const highlighted: Record<string, string> = {};
+	entries.forEach(([key], i) => {
+		highlighted[key] = results[i];
+	});
+	return { highlighted };
+}

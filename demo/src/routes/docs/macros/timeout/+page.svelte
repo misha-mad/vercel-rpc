@@ -2,6 +2,13 @@
 	import { rpc } from '$lib/client';
 	import { RpcError } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -19,7 +26,7 @@
 		try {
 			const result = await rpc.query('timeout_demo', { sleep_ms: ms });
 			callLog = [...callLog.slice(-4), { sleepMs: ms, actualMs: result.actual_ms, status: 'ok' }];
-		} catch (e) {
+		} catch (e: unknown) {
 			if (e instanceof RpcError && e.status === 504) {
 				callLog = [
 					...callLog.slice(-4),
@@ -40,8 +47,6 @@
 			loading = false;
 		}
 	}
-
-	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -49,56 +54,41 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold font-mono">timeout</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="timeout" mono>
 		Server-side timeout via
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">tokio::time::timeout</code>.
-		Returns HTTP 504 if exceeded. Also forwarded to the TypeScript client as the default timeout for
-		that procedure. Works with both queries and mutations.
-	</p>
+		<Code>tokio::time::timeout</Code>. Returns HTTP 504 if exceeded. Also forwarded to the
+		TypeScript client as the default timeout for that procedure. Works with both queries and
+		mutations.
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Basic Usage</h2>
+	<SectionHeading>Basic Usage</SectionHeading>
 	<CodeBlock html={data.highlighted['basic']} />
 
-	<h2 class="text-xl font-semibold">Duration Shorthand</h2>
+	<SectionHeading>Duration Shorthand</SectionHeading>
 	<CodeBlock html={data.highlighted['durations']} />
 
-	<h2 class="text-xl font-semibold">Behavior</h2>
+	<SectionHeading>Behavior</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		When the handler exceeds the timeout, the future is cancelled and the server returns 504. The
 		TypeScript client receives an
-		<a href="/docs/error-handling" class="text-accent-ts hover:underline"
-			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a
-		> with status 504.
+		<a href="/docs/error-handling" class="text-accent-ts hover:underline"><Code>RpcError</Code></a> with
+		status 504.
 	</p>
 	<CodeBlock html={data.highlighted['behavior']} />
 
-	<h2 class="text-xl font-semibold">Combining Attributes</h2>
+	<SectionHeading>Combining Attributes</SectionHeading>
 	<CodeBlock html={data.highlighted['combined']} />
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-1">Server-Side Timeout</h3>
+	<SectionHeading level="large">Try it</SectionHeading>
+	<DemoCard title="Server-Side Timeout">
 		<p class="text-text-muted text-sm mb-3">
-			This handler has a <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-				>timeout = "3s"</code
-			> — it sleeps for the requested duration. Try a short sleep to see a successful response, then try
-			exceeding 3 seconds to trigger a 504.
+			This handler has a <Code>timeout = "3s"</Code> — it sleeps for the requested duration. Try a short
+			sleep to see a successful response, then try exceeding 3 seconds to trigger a 504.
 		</p>
 		<div class="flex items-center gap-2 mb-3 flex-wrap">
-			<button
-				onclick={() => run(500)}
-				disabled={loading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>500ms</button
-			>
-			<button
-				onclick={() => run(2000)}
-				disabled={loading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>2s</button
-			>
+			<Button onclick={() => run(500)} disabled={loading}>500ms</Button>
+			<Button onclick={() => run(2000)} disabled={loading}>2s</Button>
 			<button
 				onclick={() => run(4000)}
 				disabled={loading}
@@ -110,7 +100,7 @@
 			<div class="text-xs text-text-faint mb-2">waiting for response...</div>
 		{/if}
 		{#if callLog.length > 0}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
+			<OutputBox mono>
 				{#each callLog as entry, i (i)}
 					<div class="flex gap-4">
 						<span class="text-text-faint">#{i + 1}</span>
@@ -129,18 +119,8 @@
 						{/if}
 					</div>
 				{/each}
-			</div>
+			</OutputBox>
 		{/if}
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => (openCode = !openCode)}
-		>
-			{openCode ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['timeoutDemoRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['timeoutDemoRust']} />
+	</DemoCard>
 </div>

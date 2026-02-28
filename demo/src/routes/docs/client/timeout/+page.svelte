@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { createRpcClient } from '$lib/rpc-client';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -28,7 +35,7 @@
 					detail: `200 OK — actual ${res.actual_ms}ms`
 				}
 			];
-		} catch (e) {
+		} catch (e: unknown) {
 			const isAbort = e instanceof DOMException && e.name === 'AbortError';
 			callLog = [
 				...callLog.slice(-4),
@@ -63,7 +70,7 @@
 					detail: `200 OK — actual ${res.actual_ms}ms`
 				}
 			];
-		} catch (e) {
+		} catch (e: unknown) {
 			const isAbort = e instanceof DOMException && e.name === 'AbortError';
 			callLog = [
 				...callLog.slice(-4),
@@ -78,8 +85,6 @@
 			abortController = undefined;
 		}
 	}
-
-	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -87,66 +92,56 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Timeout & Abort</h1>
-	<p class="text-text-muted leading-relaxed">
-		Set a global timeout for all requests, pass an <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AbortSignal</code
-		>
+	<PageHeader title="Timeout & Abort">
+		Set a global timeout for all requests, pass an <Code>AbortSignal</Code>
 		for manual cancellation, or combine both. Timeouts and aborts throw a
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">DOMException</code> with
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">name: 'AbortError'</code>, not
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code>.
-	</p>
+		<Code>DOMException</Code> with
+		<Code>name: 'AbortError'</Code>, not
+		<Code>RpcError</Code>.
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Client Timeout</h2>
+	<SectionHeading>Client Timeout</SectionHeading>
 	<CodeBlock html={data.highlighted['clientTimeout']} />
 
-	<h2 class="text-xl font-semibold">Per-Call Timeout</h2>
+	<SectionHeading>Per-Call Timeout</SectionHeading>
 	<CodeBlock html={data.highlighted['perCallTimeout']} />
 
-	<h2 class="text-xl font-semibold">AbortSignal</h2>
+	<SectionHeading>AbortSignal</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		A client-level signal aborts all in-flight requests when fired.
 	</p>
 	<CodeBlock html={data.highlighted['abortSignal']} />
 
-	<h2 class="text-xl font-semibold">Per-Call Signal</h2>
+	<SectionHeading>Per-Call Signal</SectionHeading>
 	<CodeBlock html={data.highlighted['perCallSignal']} />
 
-	<h2 class="text-xl font-semibold">Combined Signals</h2>
+	<SectionHeading>Combined Signals</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		When both client and per-call signals are provided, they are combined — the request aborts when
 		either signal fires.
 	</p>
 	<CodeBlock html={data.highlighted['combinedSignals']} />
 
-	<h2 class="text-xl font-semibold">Error Handling</h2>
+	<SectionHeading>Error Handling</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
-		Timeouts and manual aborts throw a <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">DOMException</code
-		>, not an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code>.
+		Timeouts and manual aborts throw a <Code>DOMException</Code>, not an <Code>RpcError</Code>.
 	</p>
 	<CodeBlock html={data.highlighted['errorHandling']} />
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
 		The server sleeps for the requested duration. Client-side timeout fires an
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AbortError</code> before the server
-		responds.
+		<Code>AbortError</Code> before the server responds.
 	</p>
 
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-1">Client Timeout</h3>
+	<DemoCard title="Client Timeout">
 		<p class="text-text-muted text-xs mb-3">
 			Server delay 1s, client timeout 2s (OK) vs server delay 1s, client timeout 300ms (abort).
 		</p>
 		<div class="flex items-center gap-2 mb-4 flex-wrap">
-			<button
-				onclick={() => runClientTimeout(1000, 2000)}
-				disabled={loading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>1s delay, 2s timeout</button
+			<Button onclick={() => runClientTimeout(1000, 2000)} disabled={loading}
+				>1s delay, 2s timeout</Button
 			>
 			<button
 				onclick={() => runClientTimeout(1000, 300)}
@@ -169,17 +164,12 @@
 				>
 				<span class="text-sm text-text-muted">Request in flight...</span>
 			{:else}
-				<button
-					onclick={runManualAbort}
-					disabled={loading}
-					class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-					>Start 10s request</button
-				>
+				<Button onclick={runManualAbort} disabled={loading}>Start 10s request</Button>
 			{/if}
 		</div>
 
 		{#if callLog.length > 0}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1 overflow-x-auto">
+			<OutputBox mono>
 				{#each callLog as entry, i (i)}
 					<div class="flex gap-4">
 						<span class="text-text-faint">#{i + 1}</span>
@@ -193,19 +183,9 @@
 						{/if}
 					</div>
 				{/each}
-			</div>
+			</OutputBox>
 		{/if}
 
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => (openCode = !openCode)}
-		>
-			{openCode ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['timeoutDemoRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['timeoutDemoRust']} />
+	</DemoCard>
 </div>

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,16 +11,15 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold font-mono">metaxy generate</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="metaxy generate" mono>
 		Generate TypeScript types and a typed client from Rust source files. One-shot execution.
-	</p>
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Usage</h2>
+	<SectionHeading>Usage</SectionHeading>
 	<CodeBlock html={data.highlighted['basic']} />
 
 	<!-- Input flags -->
-	<h2 class="text-xl font-semibold">Input Flags</h2>
+	<SectionHeading>Input Flags</SectionHeading>
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm">
 			<thead>
@@ -50,7 +51,7 @@
 	<CodeBlock html={data.highlighted['inputExamples']} />
 
 	<!-- Output flags -->
-	<h2 class="text-xl font-semibold">Output Flags</h2>
+	<SectionHeading>Output Flags</SectionHeading>
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm">
 			<thead>
@@ -109,7 +110,7 @@
 	<CodeBlock html={data.highlighted['outputExamples']} />
 
 	<!-- Codegen flags -->
-	<h2 class="text-xl font-semibold">Codegen Flags</h2>
+	<SectionHeading>Codegen Flags</SectionHeading>
 	<div class="overflow-x-auto rounded-lg border border-border">
 		<table class="w-full text-sm">
 			<thead>

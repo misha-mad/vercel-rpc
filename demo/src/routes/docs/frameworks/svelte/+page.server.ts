@@ -1,4 +1,4 @@
-import { highlightCode } from '$lib/highlight.server';
+import { highlightBlocks } from '$lib/highlight.server';
 import type { PageServerLoad } from './$types';
 
 const codeBlocks: Record<
@@ -71,12 +71,4 @@ echo.reset()    // clear state`
 	}
 };
 
-export const load: PageServerLoad = async () => {
-	const entries = Object.entries(codeBlocks);
-	const results = await Promise.all(entries.map(([, { code, lang }]) => highlightCode(code, lang)));
-	const highlighted: Record<string, string> = {};
-	entries.forEach(([key], i) => {
-		highlighted[key] = results[i];
-	});
-	return { highlighted };
-};
+export const load: PageServerLoad = () => highlightBlocks(codeBlocks);

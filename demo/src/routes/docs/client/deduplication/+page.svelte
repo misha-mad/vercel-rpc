@@ -2,6 +2,13 @@
 	import { rpc } from '$lib/client';
 	import { createRpcClient } from '$lib/rpc-client';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -29,8 +36,6 @@
 		};
 		loading = false;
 	}
-
-	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -38,13 +43,12 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Request Deduplication</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="Request Deduplication">
 		Identical in-flight queries are automatically deduplicated — only one HTTP request is made and
 		all callers share the same promise.
-	</p>
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">How It Works</h2>
+	<SectionHeading>How It Works</SectionHeading>
 	<p class="text-text-muted leading-relaxed text-sm">
 		When multiple callers issue the same query with the same input concurrently, only one HTTP
 		request is made. Requests are matched by procedure name + serialized input. Subsequent callers
@@ -52,7 +56,7 @@
 	</p>
 	<CodeBlock html={data.highlighted['dedupExample']} />
 
-	<h2 class="text-xl font-semibold">Disabling Deduplication</h2>
+	<SectionHeading>Disabling Deduplication</SectionHeading>
 	<p class="text-text-muted leading-relaxed text-sm">
 		Dedup is controlled at two levels — client config and per-call. Per-call takes precedence.
 	</p>
@@ -61,25 +65,20 @@
 
 	<p class="text-text-muted leading-relaxed text-sm">
 		Mutations are never deduplicated. Each per-caller
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">AbortSignal</code> is wrapped independently
-		— aborting one caller does not affect others sharing the same in-flight promise.
+		<Code>AbortSignal</Code> is wrapped independently — aborting one caller does not affect others sharing
+		the same in-flight promise.
 	</p>
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
 		Fire 5 identical queries concurrently. With dedup enabled, only 1 HTTP request is made. The
 		server sleeps 500ms and increments a counter on each real request.
 	</p>
 
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
+	<DemoCard>
 		<div class="flex items-center gap-2 mb-4 flex-wrap">
-			<button
-				onclick={() => fireCalls(true)}
-				disabled={loading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>5 calls (dedupe on)</button
-			>
+			<Button onclick={() => fireCalls(true)} disabled={loading}>5 calls (dedupe on)</Button>
 			<button
 				onclick={() => fireCalls(false)}
 				disabled={loading}
@@ -92,25 +91,15 @@
 		</div>
 
 		{#if dedupResult}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1">
+			<OutputBox mono>
 				<div class="text-text-faint">{dedupResult.mode}</div>
 				<div class="text-text-muted">{dedupResult.calls} calls → {dedupResult.serverRequests}</div>
 				{#each dedupResult.results as line, i (i)}
 					<div class="text-accent-ts">{line}</div>
 				{/each}
-			</div>
+			</OutputBox>
 		{/if}
 
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => (openCode = !openCode)}
-		>
-			{openCode ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['dedupDemoRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['dedupDemoRust']} />
+	</DemoCard>
 </div>

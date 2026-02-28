@@ -1,4 +1,4 @@
-import { highlightCode } from '$lib/highlight.server';
+import { highlightBlocks } from '$lib/highlight.server';
 import { createRpcClient } from '$lib/rpc-client';
 import type { PageServerLoad } from './$types';
 
@@ -51,12 +51,7 @@ async fn cookie_demo(headers: Headers) -> CookieDemoResponse {
 };
 
 export const load: PageServerLoad = async ({ fetch }) => {
-	const entries = Object.entries(codeBlocks);
-	const results = await Promise.all(entries.map(([, { code, lang }]) => highlightCode(code, lang)));
-	const highlighted: Record<string, string> = {};
-	entries.forEach(([key], i) => {
-		highlighted[key] = results[i];
-	});
+	const { highlighted } = await highlightBlocks(codeBlocks);
 
 	// SSR call with platform fetch (forwards cookies)
 	let ssrResult: unknown = null;

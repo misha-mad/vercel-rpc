@@ -2,6 +2,12 @@
 	import { rpc } from '$lib/client';
 	import { createQuery } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -14,15 +20,13 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Getting Started</h1>
-
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="Getting Started">
 		<strong class="text-text-primary">metaxy</strong> is an end-to-end typesafe RPC toolkit for building
 		serverless APIs with Rust on Vercel. Write plain Rust functions, and get a fully typed TypeScript
 		client — no manual sync required.
-	</p>
+	</PageHeader>
 
-	<h2 class="text-2xl font-semibold">Installation</h2>
+	<SectionHeading level="large">Installation</SectionHeading>
 
 	<p class="text-text-muted text-sm mb-2">Install the CLI</p>
 	<CodeBlock html={data.highlighted['installCli']} />
@@ -30,7 +34,7 @@
 	<p class="text-text-muted text-sm mb-2">Add the macro crate to your Rust project</p>
 	<CodeBlock html={data.highlighted['installCrate']} />
 
-	<h2 class="text-2xl font-semibold">Quick Start</h2>
+	<SectionHeading level="large">Quick Start</SectionHeading>
 
 	<p class="text-text-muted text-sm mb-2">Write a Rust lambda</p>
 	<CodeBlock html={data.highlighted['writeLambda']} />
@@ -50,13 +54,11 @@
 	</ul>
 	<CodeBlock html={data.highlighted['gettingStartedSvelte']} />
 
-	<h3 class="text-xl font-semibold mt-8">Try it live</h3>
+	<SectionHeading>Try it live</SectionHeading>
 
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
+	<DemoCard>
 		<p class="text-text-muted text-sm mb-4">
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-				>createQuery(rpc, "hello", () => name)</code
-			> — auto-refetches as you type.
+			<Code>createQuery(rpc, "hello", () => name)</Code> — auto-refetches as you type.
 		</p>
 		<div class="flex items-center gap-3 mb-3">
 			<input
@@ -65,42 +67,35 @@
 				placeholder="Enter your name"
 				class="rounded-md border border-border bg-bg-code px-3 py-1.5 text-sm text-text-primary outline-none focus:border-accent-ts"
 			/>
-			<button
-				onclick={() => hello.refetch()}
-				disabled={hello.isLoading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>Refetch</button
-			>
+			<Button onclick={() => hello.refetch()} disabled={hello.isLoading}>Refetch</Button>
 		</div>
 		{#if hello.isLoading && !hello.data}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-text-muted">Loading...</div>
+			<OutputBox>Loading...</OutputBox>
 		{:else if hello.data}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-green-400">{hello.data}</div>
+			<OutputBox status="success">{hello.data}</OutputBox>
 		{/if}
 		{#if hello.isError}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-red-400">{hello.error?.message}</div>
+			<OutputBox status="error">{hello.error?.message}</OutputBox>
 		{/if}
-	</div>
+	</DemoCard>
 
-	<h3 class="text-xl font-semibold mt-8">How it works</h3>
+	<SectionHeading>How it works</SectionHeading>
 
 	<ol class="list-decimal list-inside space-y-2 text-text-muted">
 		<li>
 			Annotate Rust functions with <a
 				href="/docs/procedures/queries"
-				class="text-accent-ts hover:underline"
-				><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_query]</code></a
+				class="text-accent-ts hover:underline"><Code>#[rpc_query]</Code></a
 			>
 			or
 			<a href="/docs/procedures/mutations" class="text-accent-ts hover:underline"
-				><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code></a
+				><Code>#[rpc_mutation]</Code></a
 			>
 		</li>
 		<li>
-			The CLI scans your <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">api/</code
-			>
+			The CLI scans your <Code>api/</Code>
 			directory and parses Rust types via
-			<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">syn</code>
+			<Code>syn</Code>
 		</li>
 		<li>TypeScript types and a typed client are generated automatically</li>
 		<li>Each Rust file deploys as a serverless lambda on Vercel</li>

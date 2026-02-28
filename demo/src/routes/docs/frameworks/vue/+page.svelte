@@ -1,5 +1,8 @@
 <script lang="ts">
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
 
 	let { data } = $props();
 </script>
@@ -9,26 +12,23 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Vue 3</h1>
-	<p class="text-text-muted leading-relaxed">
-		Composition API composables using <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ref</code
-		>, <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">watch</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">computed</code>. Input is a
-		getter <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">() => value</code>.
-		Returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Ref&lt;T&gt;</code> properties.
-	</p>
+	<PageHeader title="Vue 3">
+		Composition API composables using <Code>ref</Code>, <Code>watch</Code>,
+		<Code>computed</Code>. Input is a getter <Code>() => value</Code>. Returns <Code
+			>Ref&lt;T&gt;</Code
+		> properties.
+	</PageHeader>
 
-	<h2 class="text-2xl font-semibold">Setup</h2>
+	<SectionHeading level="large">Setup</SectionHeading>
 	<div class="space-y-3">
 		<CodeBlock html={data.highlighted['setupToml']} />
 		<p class="text-text-faint text-xs">or via CLI</p>
 		<CodeBlock html={data.highlighted['setupCli']} />
 	</div>
 
-	<h2 class="text-2xl font-semibold">useQuery</h2>
+	<SectionHeading level="large">useQuery</SectionHeading>
 	<CodeBlock html={data.highlighted['query']} large />
 
-	<h2 class="text-2xl font-semibold">useMutation</h2>
+	<SectionHeading level="large">useMutation</SectionHeading>
 	<CodeBlock html={data.highlighted['mutation']} large />
 </div>
