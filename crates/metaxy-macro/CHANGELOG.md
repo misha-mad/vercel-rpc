@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9](https://github.com/misha-mad/metaxy/compare/metaxy-macro-v0.1.8...metaxy-macro-v0.1.9) - 2026-02-28
+
+### Other
+
+- fix grammar issues in macro doc comments
+- trim crate READMEs, link to documentation site
+
 ## [0.1.8](https://github.com/misha-mad/metaxy/compare/metaxy-macro-v0.1.7...metaxy-macro-v0.1.8) - 2026-02-24
 
 ### Added
