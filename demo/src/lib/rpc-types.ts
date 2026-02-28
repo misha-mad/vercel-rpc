@@ -85,34 +85,6 @@ export interface MathResult {
   expression: string;
 }
 
-export interface RetryDemoInput {
-  fail_count: number;
-}
-
-export interface RetryDemoResponse {
-  call_number: number;
-  total_calls: number;
-  message: string;
-}
-
-/** Snapshot of service health and version info. */
-export interface ServiceStatus {
-  name: string;
-  status: HealthStatus;
-  uptime_secs: number;
-  version: string;
-}
-
-/** Descriptive statistics for a list of numbers. */
-export interface Stats {
-  count: number;
-  sum: number;
-  mean: number;
-  min: number;
-  max: number;
-  frequencies: Record<string, number>;
-}
-
 /** Server timestamp with a human-readable message. */
 export interface TimeResponse {
   timestamp: number;
@@ -148,38 +120,8 @@ export interface TypeShowcase {
   fixed_array: number[];
 }
 
-/**
- * A user profile with camelCase fields in JSON.
- * 
- * Demonstrates `rename_all`, per-field `rename`, `skip`, and `default`.
- */
-export interface UserProfile {
-  userId: number;
-  displayName: string;
-  emailAddress: string;
-  role: UserRole;
-  lastEvent: EventKind;
-  profile_url: string;
-  avatarUrl?: string | null;
-}
-
-/**
- * Account event kind with kebab-case serialization.
- * Produces: `"sign-in"`, `"sign-out"`, `"password-reset"`.
- */
-export type EventKind = "sign-in" | "sign-out" | "password-reset";
-
-/** Overall health of the service. */
-export type HealthStatus = "Healthy" | "Degraded" | "Down";
-
 /** Arithmetic operation to perform. */
 export type Operation = "Add" | "Subtract" | "Multiply" | "Divide";
-
-/**
- * User role with snake_case serialization.
- * Produces: `"admin"`, `"power_user"`, `"guest"`.
- */
-export type UserRole = "admin" | "power_user" | "anonymous";
 
 export type Procedures = {
   queries: {
@@ -210,26 +152,10 @@ export type Procedures = {
     /** Perform a math operation. Returns an error on division by zero. */
     math: { input: MathInput; output: MathResult };
     /**
-     * Look up a user profile by ID.
-     * 
-     * Showcases serde attributes: `rename_all`, `rename`, `skip`, `default`
-     * on structs and enums to demonstrate TypeScript codegen fidelity.
-     */
-    profile: { input: number; output: UserProfile };
-    /**
-     * Returns an error for the first `fail_count` calls, then 200.
-     * Each Vercel cold start resets the counter automatically.
-     */
-    retry_demo: { input: RetryDemoInput; output: RetryDemoResponse };
-    /**
      * Access a protected secret.
      * Requires a valid Bearer token in the Authorization header.
      */
     secret: { input: void; output: string };
-    /** Compute descriptive statistics for a list of numbers. */
-    stats: { input: number[]; output: Stats };
-    /** Returns current service health, uptime, and version. */
-    status: { input: void; output: ServiceStatus };
     /** Returns the current server time as a Unix timestamp. */
     time: { input: void; output: TimeResponse };
     timeout_demo: { input: TimeoutDemoInput; output: TimeoutDemoResponse };
