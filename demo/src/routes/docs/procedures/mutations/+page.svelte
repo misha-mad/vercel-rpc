@@ -2,6 +2,11 @@
 	import { rpc } from '$lib/client';
 	import { createMutation } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -22,13 +27,12 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Mutations</h1>
-	<p class="text-text-muted leading-relaxed">
-		Use <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">#[rpc_mutation]</code> for
+	<PageHeader title="Mutations">
+		Use <Code>#[rpc_mutation]</Code> for
 		write operations (create, update, delete). Unlike queries, mutations are triggered explicitly
-		via <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.mutate()</code> — they don't
+		via <Code>.mutate()</Code> — they don't
 		auto-refetch.
-	</p>
+	</PageHeader>
 
 	<!-- Code examples -->
 	<div class="space-y-3">
@@ -38,41 +42,33 @@
 	</div>
 
 	<!-- Void input & Result -->
-	<h2 class="text-xl font-semibold mt-8">Void Input &amp; Error Handling</h2>
+	<SectionHeading>Void Input &amp; Error Handling</SectionHeading>
 	<p class="text-text-muted text-sm">
-		Mutations can take no input (void) or return <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Result&lt;T, E&gt;</code
-		>
+		Mutations can take no input (void) or return <Code>Result&lt;T, E&gt;</Code>
 		for typed error handling. Errors are propagated as
 		<a href="/docs/error-handling" class="text-accent-ts hover:underline"
-			><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code></a
+			><Code>RpcError</Code></a
 		>
 		on the client side.
 	</p>
 	<CodeBlock html={data.highlighted['voidRust']} />
 
 	<!-- Per-Call Options -->
-	<h2 class="text-xl font-semibold mt-8">Per-Call Options</h2>
+	<SectionHeading>Per-Call Options</SectionHeading>
 	<p class="text-text-muted text-sm">
-		Every <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">mutate()</code> call
+		Every <Code>mutate()</Code> call
 		accepts an optional trailing
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">CallOptions</code> object to override
+		<Code>CallOptions</Code> object to override
 		client-level defaults.
 	</p>
 	<CodeBlock html={data.highlighted['callOptionsType']} />
 	<CodeBlock html={data.highlighted['callOptionsMutation']} />
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<SectionHeading level="large">Try it</SectionHeading>
 
 	<!-- Echo: mutation with struct input/output -->
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-2">Echo — Struct Mutation</h3>
-		<p class="text-text-muted text-sm mb-4">
-			Send a message, optionally uppercase it. Demonstrates <code
-				class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">createMutation</code
-			> with struct input/output.
-		</p>
+	<DemoCard title="Echo — Struct Mutation" subtitle="Send a message, optionally uppercase it. Demonstrates createMutation with struct input/output.">
 		<div class="flex flex-wrap items-center gap-3 mb-3">
 			<input
 				type="text"
@@ -93,7 +89,7 @@
 			</button>
 		</div>
 		{#if echo.data}
-			<div class="rounded-md bg-bg-code p-3 text-sm space-y-1">
+			<OutputBox>
 				<div>
 					<span class="text-text-muted">Original:</span>
 					<span class="text-text-primary">{echo.data.original}</span>
@@ -106,10 +102,10 @@
 					<span class="text-text-muted">Length:</span>
 					<span class="text-text-primary">{echo.data.length}</span>
 				</div>
-			</div>
+			</OutputBox>
 		{/if}
 		{#if echo.isError}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-red-400">{echo.error?.message}</div>
+			<OutputBox status="error">{echo.error?.message}</OutputBox>
 		{/if}
 		<button
 			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
@@ -129,5 +125,5 @@
 				<CodeBlock html={data.highlighted['echoTs']} />
 			</div>
 		{/if}
-	</div>
+	</DemoCard>
 </div>

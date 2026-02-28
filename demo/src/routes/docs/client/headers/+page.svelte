@@ -2,6 +2,13 @@
 	import { rpc } from '$lib/client';
 	import { RpcError } from '$lib/rpc-client';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -26,8 +33,6 @@
 			loading = false;
 		}
 	}
-
-	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -35,43 +40,40 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Headers</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="Headers">
 		Set default headers for all requests, or provide an async function that resolves headers before
 		each call. Per-call headers can override client-level defaults.
-	</p>
+	</PageHeader>
 
-	<h2 class="text-xl font-semibold">Static Headers</h2>
+	<SectionHeading>Static Headers</SectionHeading>
 	<CodeBlock html={data.highlighted['staticHeaders']} />
 
-	<h2 class="text-xl font-semibold">Async Headers</h2>
+	<SectionHeading>Async Headers</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		Pass an async function to resolve headers dynamically — useful for refreshing auth tokens.
 	</p>
 	<CodeBlock html={data.highlighted['asyncHeaders']} />
 
-	<h2 class="text-xl font-semibold">Per-Call Headers</h2>
+	<SectionHeading>Per-Call Headers</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
-		Override headers for a single call via <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">CallOptions</code
-		>.
+		Override headers for a single call via <Code>CallOptions</Code>.
 	</p>
 	<CodeBlock html={data.highlighted['perCallHeaders']} />
 
-	<h2 class="text-xl font-semibold">Merge Order</h2>
+	<SectionHeading>Merge Order</SectionHeading>
 	<p class="text-text-muted text-sm mb-2">
 		Per-call headers are merged on top of client headers. Same-key per-call headers win.
 	</p>
 	<CodeBlock html={data.highlighted['mergeOrder']} />
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
-		The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">secret</code> endpoint requires
+		The <Code>secret</Code> endpoint requires
 		a Bearer token. Try with and without it.
 	</p>
 
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
+	<DemoCard>
 		<div class="flex items-center gap-2 mb-4">
 			<button
 				onclick={() => fetchSecret(false)}
@@ -79,19 +81,14 @@
 				class="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
 				>Without token</button
 			>
-			<button
-				onclick={() => fetchSecret(true)}
-				disabled={loading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>With token</button
-			>
+			<Button onclick={() => fetchSecret(true)} disabled={loading}>With token</Button>
 			{#if loading}
 				<span class="text-sm text-text-muted">Loading...</span>
 			{/if}
 		</div>
 
 		{#if result || error}
-			<div class="rounded-md bg-bg-code p-3 text-xs font-mono space-y-1">
+			<OutputBox mono>
 				<div class="text-text-faint">
 					Headers: {JSON.stringify(usedHeaders)}
 				</div>
@@ -100,19 +97,9 @@
 				{:else if error}
 					<div class="text-red-400">{error}</div>
 				{/if}
-			</div>
+			</OutputBox>
 		{/if}
 
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => (openCode = !openCode)}
-		>
-			{openCode ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['secretRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['secretRust']} />
+	</DemoCard>
 </div>

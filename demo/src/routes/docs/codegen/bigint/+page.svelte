@@ -3,6 +3,12 @@
 	import { type BigIntDemoResponse, type BigIntDemoValue, createRpcClient } from '$lib/rpc-client';
 	import { parse, parseNumberAndBigInt } from 'lossless-json';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import CollapsibleCode from '$lib/components/CollapsibleCode.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
 
 	let { data } = $props();
 
@@ -32,8 +38,6 @@
 	function hasLoss(val: number | bigint, exact: string): boolean {
 		return String(val) !== exact;
 	}
-
-	let openCode = $state(false);
 </script>
 
 <svelte:head>
@@ -41,14 +45,13 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">BigInt Mapping</h1>
-	<p class="text-text-muted leading-relaxed">
+	<PageHeader title="BigInt Mapping">
 		By default all integer types map to
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code>. Use
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint_types</code> to map
+		<Code>number</Code>. Use
+		<Code>bigint_types</Code> to map
 		large integer types to
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint</code> instead.
-	</p>
+		<Code>bigint</Code> instead.
+	</PageHeader>
 
 	<div class="space-y-3">
 		<CodeBlock html={data.highlighted['configToml']} />
@@ -56,68 +59,60 @@
 		<CodeBlock html={data.highlighted['configCli']} />
 	</div>
 
-	<h2 class="text-xl font-semibold">Before / After</h2>
+	<SectionHeading>Before / After</SectionHeading>
 	<div class="space-y-3">
 		<CodeBlock html={data.highlighted['defaultTs']} />
 		<CodeBlock html={data.highlighted['bigintTs']} />
 	</div>
 
-	<h2 class="text-xl font-semibold">Custom deserializer</h2>
+	<SectionHeading>Custom deserializer</SectionHeading>
 	<p class="text-text-muted leading-relaxed text-sm">
 		The generated client accepts a
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">deserialize</code> option. Plug
+		<Code>deserialize</Code> option. Plug
 		in a BigInt-aware JSON parser so large numbers arrive as native
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BigInt</code> at runtime:
+		<Code>BigInt</Code> at runtime:
 	</p>
 	<CodeBlock html={data.highlighted['losslessClient']} />
 
-	<h2 class="text-xl font-semibold">Why BigInt?</h2>
+	<SectionHeading>Why BigInt?</SectionHeading>
 	<p class="text-text-muted leading-relaxed text-sm">
-		JavaScript <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code> is a
+		JavaScript <Code>number</Code> is a
 		64-bit float (IEEE 754), which can only safely represent integers up to
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">2<sup>53</sup> − 1</code>
-		(<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">Number.MAX_SAFE_INTEGER</code>
+		<Code>2<sup>53</sup> − 1</Code>
+		(<Code>Number.MAX_SAFE_INTEGER</Code>
 		= 9,007,199,254,740,991). Rust's
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i64</code>/<code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code
-		>
+		<Code>i64</Code>/<Code>u64</Code>
 		can exceed this range, causing silent precision loss. Using
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">bigint</code> avoids this entirely.
+		<Code>bigint</Code> avoids this entirely.
 	</p>
 
 	<p class="text-text-muted leading-relaxed text-sm">
 		Commonly mapped types:
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i64</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u64</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i128</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u128</code>. Smaller types like
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">i32</code>
+		<Code>i64</Code>,
+		<Code>u64</Code>,
+		<Code>i128</Code>,
+		<Code>u128</Code>. Smaller types like
+		<Code>i32</Code>
 		and
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">u32</code> are safe as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code> and rarely need mapping.
+		<Code>u32</Code> are safe as
+		<Code>number</Code> and rarely need mapping.
 	</p>
 
 	<!-- Try it -->
-	<h2 class="text-2xl font-bold mt-12">Try it</h2>
+	<SectionHeading level="large">Try it</SectionHeading>
 	<p class="text-text-muted text-sm">
 		Both clients call the same endpoint. The default client uses
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">JSON.parse</code> which
+		<Code>JSON.parse</Code> which
 		silently loses precision on large integers. The lossless client plugs
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">lossless-json</code> into the
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">deserialize</code> option —
+		<Code>lossless-json</Code> into the
+		<Code>deserialize</Code> option —
 		large numbers arrive as native
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">BigInt</code>.
+		<Code>BigInt</Code>.
 	</p>
 
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
-		<h3 class="text-lg font-semibold mb-3">JSON.parse vs lossless-json</h3>
+	<DemoCard title="JSON.parse vs lossless-json">
 		<div class="flex items-center gap-3 mb-4">
-			<button
-				onclick={fetchDemo}
-				disabled={loading}
-				class="rounded-md bg-accent-ts px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-				>Fetch u64 values</button
-			>
+			<Button onclick={fetchDemo} disabled={loading}>Fetch u64 values</Button>
 			{#if loading}
 				<span class="text-sm text-text-muted">Loading...</span>
 			{/if}
@@ -188,16 +183,6 @@
 			</div>
 		{/if}
 
-		<button
-			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
-			onclick={() => (openCode = !openCode)}
-		>
-			{openCode ? '▾ Hide' : '▸ Show'} Rust
-		</button>
-		{#if openCode}
-			<div class="mt-3">
-				<CodeBlock html={data.highlighted['bigintDemoRust']} />
-			</div>
-		{/if}
-	</div>
+		<CollapsibleCode html={data.highlighted['bigintDemoRust']} />
+	</DemoCard>
 </div>

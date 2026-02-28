@@ -2,6 +2,12 @@
 	import { createRpcClient } from '$lib/rpc-client';
 	import { RpcError } from '$lib/rpc.svelte';
 	import CodeBlock from '$lib/components/CodeBlock.svelte';
+	import Code from '$lib/components/Code.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SectionHeading from '$lib/components/SectionHeading.svelte';
+	import DemoCard from '$lib/components/DemoCard.svelte';
+	import OutputBox from '$lib/components/OutputBox.svelte';
 
 	let { data } = $props();
 
@@ -45,19 +51,16 @@
 </svelte:head>
 
 <div class="max-w-3xl space-y-8">
-	<h1 class="text-3xl font-bold">Error Handling</h1>
-	<p class="text-text-muted leading-relaxed">
-		When a Rust function returns <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-			>Result&lt;T, E&gt;</code
-		>, errors are propagated as
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> on the client side.
+	<PageHeader title="Error Handling">
+		When a Rust function returns <Code>Result&lt;T, E&gt;</Code>, errors are propagated as
+		<Code>RpcError</Code> on the client side.
 		You can also return custom HTTP status codes for authorization or validation errors.
-	</p>
+	</PageHeader>
 	<p class="text-text-muted leading-relaxed">
-		The <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code> class
-		provides <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.status</code>,
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.message</code>, and
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.data</code> for structured error
+		The <Code>RpcError</Code> class
+		provides <Code>.status</Code>,
+		<Code>.message</Code>, and
+		<Code>.data</Code> for structured error
 		handling.
 	</p>
 
@@ -74,28 +77,28 @@
 			<tbody class="text-text-primary">
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.status</code></td
+						><Code>.status</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">number</code></td
+						><Code>number</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">HTTP status code (e.g. 401, 500)</td>
 				</tr>
 				<tr class="border-b border-border">
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.message</code></td
+						><Code>.message</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">string</code></td
+						><Code>string</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">Human-readable error message</td>
 				</tr>
 				<tr>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">.data</code></td
+						><Code>.data</Code></td
 					>
 					<td class="px-4 py-2"
-						><code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">unknown</code></td
+						><Code>unknown</Code></td
 					>
 					<td class="px-4 py-2 text-text-muted">Parsed JSON error body from server</td>
 				</tr>
@@ -105,59 +108,47 @@
 
 	<h2 class="text-2xl font-semibold">Global onError Hook</h2>
 	<p class="text-text-muted text-sm mb-2">
-		Catch all errors at the client level. The <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onError</code
-		>
+		Catch all errors at the client level. The <Code>onError</Code>
 		callback receives an
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">ErrorContext</code> with the procedure
+		<Code>ErrorContext</Code> with the procedure
 		name, attempt number, and whether the client will retry.
 	</p>
 	<CodeBlock html={data.highlighted['onErrorCallback']} />
 
 	<h2 class="text-2xl font-semibold">Reactive Error Handling</h2>
 	<p class="text-text-muted text-sm mb-2">
-		Framework wrappers expose <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-			>isError</code
-		>
-		and <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">error</code> state for conditional
+		Framework wrappers expose <Code>isError</Code>
+		and <Code>error</Code> state for conditional
 		UI rendering.
 	</p>
 	<CodeBlock html={data.highlighted['frameworkError']} />
 
 	<h2 class="text-2xl font-semibold">Mutation Errors</h2>
 	<p class="text-text-muted text-sm mb-2">
-		Use <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">mutateAsync</code> with
+		Use <Code>mutateAsync</Code> with
 		try/catch for fine-grained control, or
-		<code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">onError</code>
+		<Code>onError</Code>
 		callback for fire-and-forget style.
 	</p>
 	<CodeBlock html={data.highlighted['mutationError']} />
 
 	<h2 class="text-2xl font-semibold">Timeout &amp; Abort</h2>
 	<p class="text-text-muted text-sm mb-2">
-		Timeouts and manual aborts throw a <code
-			class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">DOMException</code
-		>
-		with <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">name: 'AbortError'</code>,
-		not <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono">RpcError</code>.
+		Timeouts and manual aborts throw a <Code>DOMException</Code>
+		with <Code>name: 'AbortError'</Code>,
+		not <Code>RpcError</Code>.
 	</p>
 	<CodeBlock html={data.highlighted['timeoutError']} />
 
 	<h2 class="text-2xl font-semibold">Secret — Protected Endpoint</h2>
 	<p class="text-text-muted text-sm mb-4">
-		This endpoint requires an <code class="bg-bg-code px-1.5 py-0.5 rounded text-xs font-mono"
-			>Authorization</code
-		> header. Try calling it with and without a token to see error handling in action.
+		This endpoint requires an <Code>Authorization</Code> header. Try calling it with and without a token to see error handling in action.
 	</p>
-	<div class="rounded-lg border border-border bg-bg-soft p-6">
+	<DemoCard>
 		<div class="flex flex-wrap gap-3 mb-3">
-			<button
-				onclick={() => callSecret(true)}
-				disabled={secretLoading}
-				class="rounded-md bg-accent-ts px-4 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
-			>
+			<Button onclick={() => callSecret(true)} disabled={secretLoading}>
 				Call with token
-			</button>
+			</Button>
 			<button
 				onclick={() => callSecret(false)}
 				disabled={secretLoading}
@@ -167,13 +158,13 @@
 			</button>
 		</div>
 		{#if secretLoading}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-text-muted">Loading...</div>
+			<OutputBox>Loading...</OutputBox>
 		{/if}
 		{#if secretResult}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-green-400">{secretResult}</div>
+			<OutputBox status="success">{secretResult}</OutputBox>
 		{/if}
 		{#if secretError}
-			<div class="rounded-md bg-bg-code p-3 text-sm text-red-400">{secretError}</div>
+			<OutputBox status="error">{secretError}</OutputBox>
 		{/if}
 		<button
 			class="mt-3 text-xs text-text-faint hover:text-text-muted transition-colors"
@@ -193,5 +184,5 @@
 				<CodeBlock html={data.highlighted['secretTs']} />
 			</div>
 		{/if}
-	</div>
+	</DemoCard>
 </div>
