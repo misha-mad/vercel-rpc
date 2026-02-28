@@ -264,8 +264,8 @@ export interface RpcClient {
   query(key: "profile", input: number): Promise<UserProfile>;
   query(key: "profile", input: number, options: CallOptions): Promise<UserProfile>;
   /**
-   * Returns 500 for the first `fail_count` calls, then 200.
-   * Use `reset: true` to restart the counter.
+   * Returns an error for the first `fail_count` calls, then 200.
+   * Each Vercel cold start resets the counter automatically.
    */
   query(key: "retry_demo", input: RetryDemoInput): Promise<RetryDemoResponse>;
   query(key: "retry_demo", input: RetryDemoInput, options: CallOptions): Promise<RetryDemoResponse>;

@@ -87,7 +87,6 @@ export interface MathResult {
 
 export interface RetryDemoInput {
   fail_count: number;
-  reset: boolean;
 }
 
 export interface RetryDemoResponse {
@@ -218,8 +217,8 @@ export type Procedures = {
      */
     profile: { input: number; output: UserProfile };
     /**
-     * Returns 500 for the first `fail_count` calls, then 200.
-     * Use `reset: true` to restart the counter.
+     * Returns an error for the first `fail_count` calls, then 200.
+     * Each Vercel cold start resets the counter automatically.
      */
     retry_demo: { input: RetryDemoInput; output: RetryDemoResponse };
     /**

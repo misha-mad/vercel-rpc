@@ -44,9 +44,7 @@
 		});
 
 		try {
-			const reset = createRpcClient({ baseUrl: '/api' });
-			await reset.query('retry_demo', { fail_count: 0, reset: true });
-			await client.query('retry_demo', { fail_count: 1, reset: false });
+			await client.query('retry_demo', { fail_count: 1 });
 		} catch {
 			// error logged via onError
 		} finally {

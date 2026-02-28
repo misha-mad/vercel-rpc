@@ -53,10 +53,7 @@
 		});
 
 		try {
-			// Reset counter silently, then run the actual retryable call
-			const reset = createRpcClient({ baseUrl: '/api' });
-			await reset.query('retry_demo', { fail_count: 0, reset: true });
-			await client.query('retry_demo', { fail_count: failCount, reset: false });
+			await client.query('retry_demo', { fail_count: failCount });
 		} catch {
 			// final error already logged via onError
 		} finally {
