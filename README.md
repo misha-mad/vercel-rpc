@@ -20,15 +20,12 @@
 
 ---
 
-## Why?
+metaxy generates a fully typed TypeScript client with matching types, so your frontend never goes out of sync.
 
-Building serverless APIs with Rust on Vercel is fast — but keeping TypeScript types in sync is painful. **metaxy** solves this:
-
-- Write plain Rust functions with `#[rpc_query]` / `#[rpc_mutation]`
-- Auto-generate TypeScript types & a fully typed client
-- Framework integrations for Svelte 5, React, Vue 3, and SolidJS
-- Watch mode — types regenerate on every save
-- Each function deploys as a serverless lambda on Vercel
+- **Macros** — CORS, JSON parsing, error handling, caching, timeouts, and state injection generated at compile time
+- **CLI** — scans your Rust code, generates TypeScript types and a typed client; watch mode re-generates on every save
+- **Client** — retry with backoff, request deduplication, AbortSignal, async headers, lifecycle hooks
+- **Frameworks** — opt-in reactive wrappers for Svelte 5, React, Vue 3, and SolidJS
 
 ## Quick Start
 
