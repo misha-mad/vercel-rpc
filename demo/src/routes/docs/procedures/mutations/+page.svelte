@@ -39,6 +39,14 @@
 		<CodeBlock html={data.highlighted['exampleSvelte']} />
 	</div>
 
+	<!-- Input structs note -->
+	<div class="rounded-lg border border-border bg-bg-code px-4 py-3 text-sm text-text-muted">
+		<strong class="text-text-primary">Note:</strong> Input structs must derive both
+		<Code>Deserialize</Code> (for JSON parsing) and <Code>Serialize</Code> (so the CLI scanner can emit
+		TypeScript interfaces). Without <Code>Serialize</Code>, the struct won't appear in the generated
+		types.
+	</div>
+
 	<!-- Void input & Result -->
 	<SectionHeading>Void Input &amp; Error Handling</SectionHeading>
 	<p class="text-text-muted text-sm">
