@@ -85,7 +85,7 @@
 //!
 //! - `Access-Control-Allow-Origin: *`
 //! - `Access-Control-Allow-Methods: GET, POST, OPTIONS`
-//! - `Access-Control-Allow-Headers: Content-Type`
+//! - `Access-Control-Allow-Headers: Content-Type, Authorization`
 //! - `Access-Control-Max-Age: 86400`
 //!
 //! # Companion Crate
@@ -247,7 +247,8 @@ use codegen::{HandlerKind, build_handler};
 ///
 /// # Compile errors
 ///
-/// The macro rejects functions with more than one parameter:
+/// The macro rejects functions with more than one **input** parameter
+/// (state `&T` and `Headers` do not count):
 ///
 /// ```rust,compile_fail,ignore
 /// #[rpc_query]
@@ -365,7 +366,8 @@ pub fn rpc_query(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// # Compile errors
 ///
-/// The macro rejects functions with more than one parameter:
+/// The macro rejects functions with more than one **input** parameter
+/// (state `&T` and `Headers` do not count):
 ///
 /// ```rust,compile_fail,ignore
 /// #[rpc_mutation]
