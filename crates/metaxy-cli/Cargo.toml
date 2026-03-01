@@ -6,6 +6,7 @@ description = "CLI tool for Metaxy: parses Rust functions and generates TypeScri
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/misha-mad/metaxy"
 homepage = "https://github.com/misha-mad/metaxy"
+documentation = "https://metaxy-demo.vercel.app/docs/getting-started"
 keywords = ["rpc", "metaxy", "cli", "serverless", "typescript"]
 categories = ["web-programming", "command-line-utilities"]
 readme = "README.md"
