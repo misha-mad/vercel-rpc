@@ -63,7 +63,21 @@
 //! | `async fn f() -> Result<T, E>` | none | `Ok` → 200, `Err` → 400 |
 //! | `async fn f(input: I) -> Result<T, E>` | `I` deserialized | `Ok` → 200, `Err` → 400 |
 //!
-//! More than one parameter is a **compilation error**.
+//! ## Optional extra parameters
+//!
+//! In addition to the input parameter, handlers may accept:
+//!
+//! - **`state: &T`** — shared state from an `init` function (requires `init = "fn_name"`).
+//! - **`headers: Headers`** — the incoming HTTP request headers.
+//!
+//! These can be combined freely with an input parameter in any order:
+//!
+//! ```rust,ignore
+//! #[rpc_query(init = "setup")]
+//! async fn get_user(id: u32, state: &AppState, headers: Headers) -> User { /* ... */ }
+//! ```
+//!
+//! More than one of each kind is a **compilation error**.
 //!
 //! # CORS
 //!
