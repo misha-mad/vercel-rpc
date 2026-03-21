@@ -238,6 +238,17 @@ pub(crate) fn build_stream_handler(
         quote! {}
     };
 
+    let create_sender = if timeout_secs.is_some() {
+        quote! {
+            let __timeout_tx = __raw_tx.clone();
+            let __tx = ::metaxy::StreamSender::new(__raw_tx);
+        }
+    } else {
+        quote! {
+            let __tx = ::metaxy::StreamSender::new(__raw_tx);
+        }
+    };
+
     let invoke_user_fn = if timeout_secs.is_some() {
         quote! {
             match ::metaxy::__private::tokio::time::timeout_at(
@@ -246,7 +257,7 @@ pub(crate) fn build_stream_handler(
             ).await {
                 Ok(()) => {}
                 Err(_) => {
-                    let _ = __raw_tx.send(Ok(
+                    let _ = __timeout_tx.send(Ok(
                         ::metaxy::__private::hyper::body::Bytes::from("event: error\ndata: \"Handler timed out\"\n\n")
                     )).await;
                 }
@@ -281,8 +292,8 @@ pub(crate) fn build_stream_handler(
             #extract_state
             #timeout_wrapper
 
-            ::metaxy::__private::vercel_runtime::axum::stream_response(|__raw_tx| async move {
-                let __tx = ::metaxy::StreamSender::new(__raw_tx);
+            ::metaxy::__private::vercel_runtime::axum::stream_response(move |__raw_tx| async move {
+                #create_sender
 
                 async fn #fn_name(#(#inner_fn_params),*)
                 #fn_block

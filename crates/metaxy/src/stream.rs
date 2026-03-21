@@ -32,13 +32,13 @@ impl std::error::Error for SendError {}
 /// }
 /// ```
 pub struct StreamSender {
-    tx: mpsc::Sender<Result<Bytes, std::convert::Infallible>>,
+    tx: mpsc::Sender<Result<Bytes, std::io::Error>>,
 }
 
 impl StreamSender {
     /// Creates a new `StreamSender` wrapping the given channel.
     #[doc(hidden)]
-    pub fn new(tx: mpsc::Sender<Result<Bytes, std::convert::Infallible>>) -> Self {
+    pub fn new(tx: mpsc::Sender<Result<Bytes, std::io::Error>>) -> Self {
         Self { tx }
     }
 
