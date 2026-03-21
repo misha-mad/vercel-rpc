@@ -627,3 +627,110 @@ fn snapshot_solid_mutations_only() {
     let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
     insta::assert_snapshot!(output);
 }
+
+// --- Stream tests ---
+
+#[test]
+fn solid_contains_create_stream() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export function createStream"));
+}
+
+#[test]
+fn solid_stream_options_interface() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export interface StreamOptions<K extends StreamKey>"));
+}
+
+#[test]
+fn solid_stream_result_interface() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export interface StreamResult<K extends StreamKey>"));
+}
+
+#[test]
+fn solid_stream_uses_create_signal() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("createSignal"));
+}
+
+#[test]
+fn solid_stream_uses_on_cleanup() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("onCleanup"));
+}
+
+#[test]
+fn solid_stream_uses_batch() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("batch("));
+}
+
+#[test]
+fn solid_no_stream_when_no_streams() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(!output.contains("createStream"));
+    assert!(!output.contains("StreamKey"));
+}
+
+#[test]
+fn solid_streams_only_no_query_no_mutation() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "events",
+        None,
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("createStream"));
+    assert!(!output.contains("createQuery"));
+    assert!(!output.contains("createMutation"));
+}
+
+#[test]
+fn snapshot_solid_streams_only() {
+    let manifest = common::make_manifest(vec![
+        common::make_stream(
+            "chat",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+        common::make_stream("events", None, Some(RustType::simple("Event"))),
+    ]);
+    let output = generate_solid_file(&manifest, "./rpc-client", "./rpc-types", false);
+    insta::assert_snapshot!(output);
+}

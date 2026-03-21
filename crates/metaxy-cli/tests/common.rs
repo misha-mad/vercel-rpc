@@ -67,6 +67,19 @@ pub fn make_mutation(name: &str, input: Option<RustType>, output: Option<RustTyp
     }
 }
 
+pub fn make_stream(name: &str, input: Option<RustType>, output: Option<RustType>) -> Procedure {
+    Procedure {
+        name: name.to_string(),
+        kind: ProcedureKind::Stream,
+        input,
+        output,
+        source_file: PathBuf::from("api/test.rs"),
+        docs: None,
+        timeout_ms: None,
+        idempotent: false,
+    }
+}
+
 pub fn make_manifest(procedures: Vec<Procedure>) -> Manifest {
     Manifest {
         procedures,

@@ -2602,3 +2602,77 @@ fn snapshot_bigint_types() {
     let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
     insta::assert_snapshot!(output);
 }
+
+#[test]
+fn generates_streams_section() {
+    let manifest = Manifest {
+        procedures: vec![Procedure {
+            name: "chat".to_string(),
+            kind: ProcedureKind::Stream,
+            input: Some(RustType::simple("String")),
+            output: Some(RustType::simple("String")),
+            source_file: PathBuf::from("api/chat.rs"),
+            docs: None,
+            timeout_ms: None,
+            idempotent: false,
+        }],
+        structs: vec![],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("  streams: {"));
+    assert!(output.contains("    chat: { input: string; output: string };"));
+}
+
+#[test]
+fn generates_mixed_procedures_with_streams() {
+    let manifest = Manifest {
+        procedures: vec![
+            Procedure {
+                name: "hello".to_string(),
+                kind: ProcedureKind::Query,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("String")),
+                source_file: PathBuf::from("api/hello.rs"),
+                docs: None,
+                timeout_ms: None,
+                idempotent: false,
+            },
+            Procedure {
+                name: "echo".to_string(),
+                kind: ProcedureKind::Mutation,
+                input: Some(RustType::simple("String")),
+                output: Some(RustType::simple("String")),
+                source_file: PathBuf::from("api/echo.rs"),
+                docs: None,
+                timeout_ms: None,
+                idempotent: false,
+            },
+            Procedure {
+                name: "events".to_string(),
+                kind: ProcedureKind::Stream,
+                input: None,
+                output: Some(RustType::simple("Event")),
+                source_file: PathBuf::from("api/events.rs"),
+                docs: None,
+                timeout_ms: None,
+                idempotent: false,
+            },
+        ],
+        structs: vec![],
+        enums: vec![],
+    };
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("  queries: {"));
+    assert!(output.contains("  mutations: {"));
+    assert!(output.contains("  streams: {"));
+    assert!(output.contains("    events: { input: void; output: Event };"));
+}
+
+#[test]
+fn empty_streams_when_no_stream_procedures() {
+    let manifest = common::make_test_manifest();
+    let output = generate_types_file(&manifest, false, FieldNaming::Preserve, false);
+    assert!(output.contains("  streams: {"));
+    assert!(output.contains("  };"));
+}

@@ -957,3 +957,91 @@ fn retry_guard_checks_idempotent() {
     let output = generate_client_file(&manifest, "./rpc-types", false);
     assert!(output.contains("IDEMPOTENT_MUTATIONS.has(procedure)"));
 }
+
+// --- Stream method tests ---
+
+#[test]
+fn generates_stream_method() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("stream("));
+    assert!(output.contains("rpcStream"));
+}
+
+#[test]
+fn generates_void_stream_overload() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "events",
+        None,
+        Some(RustType::simple("Event")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("stream(key: \"events\""));
+}
+
+#[test]
+fn generates_stream_type_helpers() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("type StreamKey = keyof Procedures[\"streams\"]"));
+    assert!(output.contains("type StreamInput<K extends StreamKey>"));
+    assert!(output.contains("type StreamOutput<K extends StreamKey>"));
+}
+
+#[test]
+fn stream_helper_contains_sse_parsing() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("async function* rpcStream"));
+    assert!(output.contains("\"data: \""));
+}
+
+#[test]
+fn stream_helper_omitted_when_no_streams() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(!output.contains("rpcStream"));
+    assert!(!output.contains("stream(key: StreamKey"));
+}
+
+#[test]
+fn void_streams_set_generated() {
+    let manifest = common::make_manifest(vec![
+        common::make_stream("events", None, Some(RustType::simple("String"))),
+        common::make_stream(
+            "chat",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("VOID_STREAMS"));
+    assert!(output.contains("new Set([\"events\"])"));
+}
+
+#[test]
+fn stream_factory_method_present() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("stream(key: StreamKey"));
+}

@@ -66,3 +66,99 @@ impl StreamSender {
             .map_err(|_| SendError)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn send_formats_as_sse_json_event() {
+        let (tx, mut rx) = mpsc::channel(16);
+        let sender = StreamSender::new(tx);
+
+        sender.send("hello").await.unwrap();
+
+        let received = rx.recv().await.unwrap().unwrap();
+        assert_eq!(received, Bytes::from("data: \"hello\"\n\n"));
+    }
+
+    #[tokio::test]
+    async fn send_formats_struct_as_sse_json_event() {
+        #[derive(Serialize)]
+        struct Token {
+            text: String,
+        }
+
+        let (tx, mut rx) = mpsc::channel(16);
+        let sender = StreamSender::new(tx);
+
+        sender
+            .send(Token {
+                text: "hello".to_string(),
+            })
+            .await
+            .unwrap();
+
+        let received = rx.recv().await.unwrap().unwrap();
+        assert_eq!(received, Bytes::from("data: {\"text\":\"hello\"}\n\n"));
+    }
+
+    #[tokio::test]
+    async fn send_raw_formats_as_sse_event() {
+        let (tx, mut rx) = mpsc::channel(16);
+        let sender = StreamSender::new(tx);
+
+        sender.send_raw("raw text").await.unwrap();
+
+        let received = rx.recv().await.unwrap().unwrap();
+        assert_eq!(received, Bytes::from("data: raw text\n\n"));
+    }
+
+    #[tokio::test]
+    async fn send_returns_error_on_closed_channel() {
+        let (tx, rx) = mpsc::channel(16);
+        let sender = StreamSender::new(tx);
+
+        // Drop the receiver to close the channel
+        drop(rx);
+
+        let result = sender.send("test").await;
+        assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn send_raw_returns_error_on_closed_channel() {
+        let (tx, rx) = mpsc::channel(16);
+        let sender = StreamSender::new(tx);
+
+        // Drop the receiver to close the channel
+        drop(rx);
+
+        let result = sender.send_raw("test").await;
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn send_error_display() {
+        let error = SendError;
+        assert_eq!(error.to_string(), "stream channel closed");
+    }
+
+    #[tokio::test]
+    async fn multiple_sends_produce_separate_events() {
+        let (tx, mut rx) = mpsc::channel(16);
+        let sender = StreamSender::new(tx);
+
+        sender.send("first").await.unwrap();
+        sender.send("second").await.unwrap();
+        sender.send("third").await.unwrap();
+
+        let event1 = rx.recv().await.unwrap().unwrap();
+        let event2 = rx.recv().await.unwrap().unwrap();
+        let event3 = rx.recv().await.unwrap().unwrap();
+
+        assert_eq!(event1, Bytes::from("data: \"first\"\n\n"));
+        assert_eq!(event2, Bytes::from("data: \"second\"\n\n"));
+        assert_eq!(event3, Bytes::from("data: \"third\"\n\n"));
+    }
+}

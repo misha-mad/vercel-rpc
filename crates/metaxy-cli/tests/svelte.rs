@@ -522,3 +522,169 @@ fn snapshot_svelte_mutations_only() {
     let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
     insta::assert_snapshot!(output);
 }
+
+// --- Stream tests ---
+
+#[test]
+fn svelte_contains_create_stream() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export function createStream"));
+}
+
+#[test]
+fn svelte_stream_options_interface() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export interface StreamOptions<K extends StreamKey>"));
+}
+
+#[test]
+fn svelte_stream_result_interface() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export interface StreamResult<K extends StreamKey>"));
+}
+
+#[test]
+fn svelte_stream_type_helpers() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("type StreamKey = keyof Procedures[\"streams\"]"));
+    assert!(output.contains("type StreamInput<K extends StreamKey>"));
+    assert!(output.contains("type StreamOutput<K extends StreamKey>"));
+}
+
+#[test]
+fn svelte_stream_void_overload() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "events",
+        None,
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(
+        "createStream<K extends \"events\">(client: RpcClient, key: K, options?: StreamOptions<K>): StreamResult<K>"
+    ));
+}
+
+#[test]
+fn svelte_stream_non_void_overload() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains(
+        "createStream<K extends \"chat\">(client: RpcClient, key: K, input: () => StreamInput<K>, options?: StreamOptions<K>): StreamResult<K>"
+    ));
+}
+
+#[test]
+fn svelte_stream_uses_state_rune() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("$state"));
+}
+
+#[test]
+fn svelte_stream_result_has_start_stop() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("start:"));
+    assert!(output.contains("stop:"));
+    assert!(output.contains("chunks"));
+    assert!(output.contains("isStreaming"));
+    assert!(output.contains("isDone"));
+}
+
+#[test]
+fn svelte_stream_abort_controller() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("AbortController"));
+    assert!(output.contains("controller.abort()"));
+}
+
+#[test]
+fn svelte_stream_void_keys_set() {
+    let manifest = common::make_manifest(vec![
+        common::make_stream("events", None, Some(RustType::simple("String"))),
+        common::make_stream(
+            "chat",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+    ]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("VOID_STREAM_KEYS"));
+    assert!(output.contains("new Set([\"events\"])"));
+}
+
+#[test]
+fn svelte_no_stream_when_no_streams() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(!output.contains("createStream"));
+    assert!(!output.contains("StreamKey"));
+}
+
+#[test]
+fn svelte_streams_only_no_query_no_mutation() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "events",
+        None,
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("createStream"));
+    assert!(!output.contains("createQuery"));
+    assert!(!output.contains("createMutation"));
+}
+
+#[test]
+fn snapshot_svelte_streams_only() {
+    let manifest = common::make_manifest(vec![
+        common::make_stream(
+            "chat",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+        common::make_stream("events", None, Some(RustType::simple("Event"))),
+    ]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    insta::assert_snapshot!(output);
+}
