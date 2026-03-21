@@ -11,6 +11,7 @@ use thiserror::Error;
 pub enum ProcedureKind {
     Query,
     Mutation,
+    Stream,
 }
 
 /// Serde `rename_all` naming convention.
