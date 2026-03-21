@@ -399,8 +399,9 @@ pub fn rpc_mutation(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// Generates a Vercel-compatible **streaming** lambda handler from an async function.
 ///
 /// The annotated function becomes a **POST** endpoint that returns an SSE
-/// (`text/event-stream`) response. The handler receives a [`StreamSender`]
-/// for emitting typed chunks to the client.
+/// (`text/event-stream`) response. The handler receives a [`StreamSender<T>`]
+/// for emitting typed chunks to the client. The type parameter `T` carries the
+/// chunk type so the CLI can extract it for TypeScript codegen.
 ///
 /// Unlike `#[rpc_query]` and `#[rpc_mutation]`, this macro generates an
 /// Axum-based binary using `VercelLayer` and `stream_response`.
@@ -413,7 +414,7 @@ pub fn rpc_mutation(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// use metaxy::{rpc_stream, StreamSender};
 ///
 /// #[rpc_stream]
-/// async fn chat(input: ChatInput, tx: StreamSender) {
+/// async fn chat(input: ChatInput, tx: StreamSender<Token>) {
 ///     for token in generate_tokens(&input.prompt) {
 ///         tx.send(token).await.ok();
 ///     }
@@ -426,9 +427,9 @@ pub fn rpc_mutation(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// use metaxy::{rpc_stream, StreamSender};
 ///
 /// #[rpc_stream]
-/// async fn heartbeat(tx: StreamSender) {
+/// async fn heartbeat(tx: StreamSender<Ping>) {
 ///     loop {
-///         tx.send("ping").await.ok();
+///         tx.send(Ping { ts: now() }).await.ok();
 ///         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
 ///     }
 /// }
@@ -438,7 +439,7 @@ pub fn rpc_mutation(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ```rust,ignore
 /// #[rpc_stream(timeout = "30s")]
-/// async fn generate(input: Prompt, tx: StreamSender) {
+/// async fn generate(input: Prompt, tx: StreamSender<Token>) {
 ///     // stream will be cut off after 30 seconds
 /// }
 /// ```

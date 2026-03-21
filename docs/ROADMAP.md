@@ -174,7 +174,7 @@ async fn upsert_user(input: UserInput) -> User { ... }
 
 ```rust
 #[rpc_stream(timeout = "60s")]
-async fn chat(input: ChatInput, tx: StreamSender) {
+async fn chat(input: ChatInput, tx: StreamSender<Token>) {
     for token in generate_tokens(&input.prompt) {
         tx.send(token).await.ok();
     }
@@ -182,9 +182,9 @@ async fn chat(input: ChatInput, tx: StreamSender) {
 ```
 
 **What's implemented:**
-- `StreamSender` type (re-exported from `metaxy`) wraps the Axum/hyper `Bytes` channel with `send()` (JSON serialization) and `send_raw()` methods
+- `StreamSender<T>` type (re-exported from `metaxy`) wraps the Axum/hyper `Bytes` channel with `send()` (JSON serialization) and `send_raw()` methods; the generic parameter carries the chunk type for TypeScript codegen
 - `#[rpc_stream]` proc macro generates an Axum-based binary with `VercelLayer`, supporting `timeout` and `init` attributes (`cache` and `idempotent` are rejected at compile time)
-- CLI parser recognizes `#[rpc_stream]`, skips `StreamSender` parameter, emits `ProcedureKind::Stream`
+- CLI parser recognizes `#[rpc_stream]`, extracts chunk type from `StreamSender<T>`, emits `ProcedureKind::Stream`
 - TypeScript types codegen emits `streams` section in the `Procedures` type
 - Client codegen emits `stream()` method with `rpcStream` async generator and SSE parsing
 - Framework wrappers: `createStream` (Svelte 5, SolidJS) and `useStream` (React, Vue 3) with reactive `chunks`, `error`, `isStreaming`, `isDone`, `start()`, `stop()` state management

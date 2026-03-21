@@ -21,7 +21,7 @@ pub struct Token {
 /// This demonstrates the typical pattern for AI/LLM integrations where
 /// the response is generated incrementally.
 #[rpc_stream(timeout = "60s")]
-async fn token_stream(input: TokenStreamInput, tx: StreamSender) {
+async fn token_stream(input: TokenStreamInput, tx: StreamSender<Token>) {
     let words: Vec<&str> = input.prompt.split_whitespace().collect();
 
     for (i, word) in words.iter().enumerate() {

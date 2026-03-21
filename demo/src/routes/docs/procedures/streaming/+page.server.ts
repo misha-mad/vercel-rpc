@@ -20,7 +20,7 @@ pub struct CountdownTick {
 }
 
 #[rpc_stream(timeout = "30s")]
-async fn countdown(input: CountdownInput, tx: StreamSender) {
+async fn countdown(input: CountdownInput, tx: StreamSender<CountdownTick>) {
     let from = input.from.min(10);
     let delay = Duration::from_millis(input.delay_ms.max(100));
 
@@ -51,7 +51,7 @@ pub struct Token {
 }
 
 #[rpc_stream(timeout = "60s")]
-async fn token_stream(input: TokenStreamInput, tx: StreamSender) {
+async fn token_stream(input: TokenStreamInput, tx: StreamSender<Token>) {
     let words: Vec<&str> = input.prompt.split_whitespace().collect();
 
     for (i, word) in words.iter().enumerate() {

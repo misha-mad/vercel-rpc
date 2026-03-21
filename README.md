@@ -70,7 +70,7 @@ use serde::Serialize;
 pub struct Token { pub text: String }
 
 #[rpc_stream(timeout = "60s")]
-async fn chat(prompt: String, tx: StreamSender) {
+async fn chat(prompt: String, tx: StreamSender<Token>) {
     for word in prompt.split_whitespace() {
         tx.send(Token { text: word.to_string() }).await.ok();
     }

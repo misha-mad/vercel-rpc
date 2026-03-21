@@ -37,6 +37,16 @@ export interface CookieDemoResponse {
   cookie_value: string | null;
 }
 
+export interface CountdownInput {
+  from: number;
+  delay_ms: number;
+}
+
+export interface CountdownTick {
+  remaining: number;
+  message: string;
+}
+
 export interface DedupDemoResponse {
   request_number: number;
   timestamp: string;
@@ -99,6 +109,15 @@ export interface TimeoutDemoResponse {
   requested_ms: number;
   actual_ms: number;
   timeout_ms: number;
+}
+
+export interface Token {
+  text: string;
+  index: number;
+}
+
+export interface TokenStreamInput {
+  prompt: string;
 }
 
 /** Showcases every Rust → TypeScript type mapping in a single struct. */
@@ -170,5 +189,20 @@ export type Procedures = {
      * input produce the same result, making it safe to retry on failure.
      */
     idempotent_demo: { input: IdempotentDemoInput; output: IdempotentDemoResponse };
+  };
+  streams: {
+    /**
+     * Counts down from a given number, streaming each tick to the client.
+     * Demonstrates basic streaming with typed input and structured output chunks.
+     */
+    countdown: { input: CountdownInput; output: CountdownTick };
+    /**
+     * Simulates LLM-style token streaming by splitting the prompt into words
+     * and streaming each word back as a token with a small delay.
+     * 
+     * This demonstrates the typical pattern for AI/LLM integrations where
+     * the response is generated incrementally.
+     */
+    token_stream: { input: TokenStreamInput; output: Token };
   };
 };

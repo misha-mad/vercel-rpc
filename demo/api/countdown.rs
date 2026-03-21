@@ -18,9 +18,9 @@ pub struct CountdownTick {
 /// Counts down from a given number, streaming each tick to the client.
 /// Demonstrates basic streaming with typed input and structured output chunks.
 #[rpc_stream(timeout = "30s")]
-async fn countdown(input: CountdownInput, tx: StreamSender) {
+async fn countdown(input: CountdownInput, tx: StreamSender<CountdownTick>) {
     let from = input.from.min(10);
-    let delay = std::time::Duration::from_millis(input.delay_ms.max(100).min(2000));
+    let delay = std::time::Duration::from_millis(input.delay_ms.clamp(100, 2000));
 
     for i in (0..=from).rev() {
         let tick = CountdownTick {

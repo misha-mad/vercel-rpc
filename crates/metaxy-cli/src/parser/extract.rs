@@ -10,7 +10,7 @@ use super::serde as serde_attr;
 use super::types::{extract_rust_type, extract_struct_fields, extract_tuple_fields};
 use crate::config::InputConfig;
 use crate::model::{
-    EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, StructDef, VariantKind,
+    EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, RustType, StructDef, VariantKind,
 };
 
 /// RPC attribute names recognized by the parser.
@@ -197,15 +197,24 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
         Some(extract_rust_type(&pat.ty))
     });
 
-    let output = match &func.sig.output {
-        ReturnType::Default => None,
-        ReturnType::Type(_, ty) => {
-            let rust_type = extract_rust_type(ty);
-            // Unwrap Result<T, _> to just T
-            if rust_type.name == "Result" && !rust_type.generics.is_empty() {
-                rust_type.generics.into_iter().next()
-            } else {
-                Some(rust_type)
+    // For streams, the output type comes from the StreamSender<T> parameter.
+    // For queries/mutations, it comes from the function return type.
+    let output = if kind == ProcedureKind::Stream {
+        func.sig.inputs.iter().find_map(|arg| {
+            let FnArg::Typed(pat) = arg else { return None };
+            extract_stream_chunk_type(&pat.ty)
+        })
+    } else {
+        match &func.sig.output {
+            ReturnType::Default => None,
+            ReturnType::Type(_, ty) => {
+                let rust_type = extract_rust_type(ty);
+                // Unwrap Result<T, _> to just T
+                if rust_type.name == "Result" && !rust_type.generics.is_empty() {
+                    rust_type.generics.into_iter().next()
+                } else {
+                    Some(rust_type)
+                }
             }
         }
     };
@@ -307,6 +316,28 @@ fn is_stream_sender_type(ty: &syn::Type) -> bool {
         return segment.ident == "StreamSender";
     }
     false
+}
+
+/// Extracts the chunk type `T` from `StreamSender<T>`.
+///
+/// Returns `None` for bare `StreamSender` (no type parameter).
+fn extract_stream_chunk_type(ty: &syn::Type) -> Option<RustType> {
+    let syn::Type::Path(type_path) = ty else {
+        return None;
+    };
+    let segment = type_path.path.segments.last()?;
+    if segment.ident != "StreamSender" {
+        return None;
+    }
+    let syn::PathArguments::AngleBracketed(args) = &segment.arguments else {
+        return None;
+    };
+    for arg in &args.args {
+        if let syn::GenericArgument::Type(inner_ty) = arg {
+            return Some(extract_rust_type(inner_ty));
+        }
+    }
+    None
 }
 
 /// Extracts the `timeout` value from `#[rpc_query(timeout = "30s")]` or `#[rpc_mutation(timeout = "30s")]`.

@@ -3,10 +3,10 @@
 
 import { type RpcClient, RpcError, type CallOptions } from "./rpc-client";
 
-import type { Procedures, BigIntDemoResponse, BigIntDemoValue, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, CookieDemoResponse, DedupDemoResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, Operation } from "./rpc-types";
+import type { Procedures, BigIntDemoResponse, BigIntDemoValue, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, CookieDemoResponse, CountdownInput, CountdownTick, DedupDemoResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, Token, TokenStreamInput, TypeShowcase, Operation } from "./rpc-types";
 
 export { RpcError };
-export type { RpcClient, CallOptions, Procedures, BigIntDemoResponse, BigIntDemoValue, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, CookieDemoResponse, DedupDemoResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, TypeShowcase, Operation };
+export type { RpcClient, CallOptions, Procedures, BigIntDemoResponse, BigIntDemoValue, CachedTimePrivateResponse, CachedTimeResponse, CachedTimeStaleResponse, CookieDemoResponse, CountdownInput, CountdownTick, DedupDemoResponse, EchoInput, EchoOutput, IdempotentDemoInput, IdempotentDemoResponse, InitDemoResponse, MathInput, MathResult, TimeResponse, TimeoutDemoInput, TimeoutDemoResponse, Token, TokenStreamInput, TypeShowcase, Operation };
 
 type QueryKey = keyof Procedures["queries"];
 type QueryInput<K extends QueryKey> = Procedures["queries"][K]["input"];
@@ -14,11 +14,15 @@ type QueryOutput<K extends QueryKey> = Procedures["queries"][K]["output"];
 type MutationKey = keyof Procedures["mutations"];
 type MutationInput<K extends MutationKey> = Procedures["mutations"][K]["input"];
 type MutationOutput<K extends MutationKey> = Procedures["mutations"][K]["output"];
+type StreamKey = keyof Procedures["streams"];
+type StreamInput<K extends StreamKey> = Procedures["streams"][K]["input"];
+type StreamOutput<K extends StreamKey> = Procedures["streams"][K]["output"];
 
 type VoidQueryKey = "bigint_demo" | "cached_time" | "cached_time_private" | "cached_time_stale" | "cookie_demo" | "dedup_demo" | "init_demo" | "secret" | "time" | "types";
 type NonVoidQueryKey = "hello" | "math" | "timeout_demo";
 type NonVoidMutationKey = "echo" | "idempotent_demo";
 type MutationArgs<K extends MutationKey> = [input: MutationInput<K>];
+type NonVoidStreamKey = "countdown" | "token_stream";
 
 export interface QueryOptions<K extends QueryKey> {
   /**
@@ -114,6 +118,40 @@ export interface MutationResult<K extends MutationKey> {
 
   /** Reset state back to idle (clear data, error, status). */
   reset: () => void;
+}
+
+export interface StreamOptions<K extends StreamKey> {
+  /** Per-call options forwarded to client.stream(). */
+  callOptions?: CallOptions;
+
+  /** Called for each chunk received from the stream. */
+  onChunk?: (chunk: StreamOutput<K>) => void;
+
+  /** Called when the stream completes successfully. */
+  onDone?: () => void;
+
+  /** Called when the stream encounters an error. */
+  onError?: (error: RpcError) => void;
+}
+
+export interface StreamResult<K extends StreamKey> {
+  /** All chunks received so far. */
+  readonly chunks: StreamOutput<K>[];
+
+  /** The error from the stream, if any. */
+  readonly error: RpcError | undefined;
+
+  /** True while the stream is active. */
+  readonly isStreaming: boolean;
+
+  /** True when the stream has completed without error. */
+  readonly isDone: boolean;
+
+  /** Start (or restart) the stream. */
+  start: () => void;
+
+  /** Abort the active stream. */
+  stop: () => void;
 }
 
 const VOID_QUERY_KEYS: Set<QueryKey> = new Set(["bigint_demo", "cached_time", "cached_time_private", "cached_time_stale", "cookie_demo", "dedup_demo", "init_demo", "secret", "time", "types"]);
@@ -310,5 +348,78 @@ export function createMutation<K extends MutationKey>(
     get isError() { return error !== undefined; },
     reset: () => { data = undefined; error = undefined; loading = false; hasSucceeded = false; },
   } as MutationResult<K>;
+}
+
+const VOID_STREAM_KEYS: Set<StreamKey> = new Set([]);
+
+export function createStream<K extends "countdown">(client: RpcClient, key: K, input: () => StreamInput<K>, options?: StreamOptions<K>): StreamResult<K>;
+export function createStream<K extends "token_stream">(client: RpcClient, key: K, input: () => StreamInput<K>, options?: StreamOptions<K>): StreamResult<K>;
+export function createStream<K extends StreamKey>(
+  client: RpcClient,
+  ...args: unknown[]
+): StreamResult<K> {
+  const key = args[0] as K;
+
+  let inputFn: (() => StreamInput<K>) | undefined;
+  let options: StreamOptions<K> | undefined;
+
+  if (typeof args[1] === "function") {
+    inputFn = args[1] as () => StreamInput<K>;
+    options = args[2] as StreamOptions<K> | undefined;
+  } else if (typeof args[1] === "object" && args[1] !== null && !VOID_STREAM_KEYS.has(key)) {
+    inputFn = () => args[1] as StreamInput<K>;
+    options = args[2] as StreamOptions<K> | undefined;
+  } else {
+    options = args[1] as StreamOptions<K> | undefined;
+  }
+
+  let chunks = $state<StreamOutput<K>[]>([]);
+  let error = $state<RpcError | undefined>();
+  let streaming = $state(false);
+  let done = $state(false);
+  let controller: AbortController | undefined;
+
+  async function run() {
+    if (controller) controller.abort();
+    controller = new AbortController();
+    chunks = [];
+    error = undefined;
+    streaming = true;
+    done = false;
+
+    try {
+      const callArgs: unknown[] = [key];
+      const input = inputFn?.();
+      if (input !== undefined) callArgs.push(input);
+      const mergedCallOptions = { ...options?.callOptions, signal: controller.signal };
+      callArgs.push(mergedCallOptions);
+      const gen = (client.stream as (...a: unknown[]) => AsyncGenerator<unknown>)(...callArgs);
+      for await (const chunk of gen) {
+        if (controller.signal.aborted) break;
+        chunks = [...chunks, chunk as StreamOutput<K>];
+        options?.onChunk?.(chunk as StreamOutput<K>);
+      }
+      if (!controller.signal.aborted) {
+        done = true;
+        options?.onDone?.();
+      }
+    } catch (e) {
+      if (!controller.signal.aborted) {
+        error = e as RpcError;
+        options?.onError?.(error);
+      }
+    } finally {
+      streaming = false;
+    }
+  }
+
+  return {
+    get chunks() { return chunks; },
+    get error() { return error; },
+    get isStreaming() { return streaming; },
+    get isDone() { return done; },
+    start: () => { void run(); },
+    stop: () => { if (controller) { controller.abort(); controller = undefined; } },
+  } as StreamResult<K>;
 }
 
