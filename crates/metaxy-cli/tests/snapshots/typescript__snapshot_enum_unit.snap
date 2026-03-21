@@ -12,4 +12,6 @@ export type Procedures = {
   };
   mutations: {
   };
+  streams: {
+  };
 };

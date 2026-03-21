@@ -30,4 +30,6 @@ export type Procedures = {
   mutations: {
     create_event: { input: EventInput; output: Event };
   };
+  streams: {
+  };
 };

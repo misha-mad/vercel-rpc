@@ -550,9 +550,17 @@ fn format_generic_params(generics: &[String]) -> String {
 /// Generates the `Procedures` type that maps procedure names to their input/output types,
 /// grouped by kind (queries / mutations).
 fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: &mut String) {
-    let (queries, mutations): (Vec<_>, Vec<_>) = procedures
-        .iter()
-        .partition(|p| p.kind == ProcedureKind::Query);
+    let mut queries = Vec::new();
+    let mut mutations = Vec::new();
+    let mut streams = Vec::new();
+
+    for p in procedures {
+        match p.kind {
+            ProcedureKind::Query => queries.push(p),
+            ProcedureKind::Mutation => mutations.push(p),
+            ProcedureKind::Stream => streams.push(p),
+        }
+    }
 
     emit!(out, "export type Procedures = {{");
 
@@ -583,6 +591,30 @@ fn generate_procedures_type(procedures: &[Procedure], preserve_docs: bool, out: 
     // Mutations
     emit!(out, "  mutations: {{");
     for proc in &mutations {
+        if preserve_docs && let Some(doc) = &proc.docs {
+            emit_jsdoc(doc, "    ", out);
+        }
+        let input = proc
+            .input
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
+        let output = proc
+            .output
+            .as_ref()
+            .map(rust_type_to_ts)
+            .unwrap_or_else(|| "void".to_string());
+        emit!(
+            out,
+            "    {}: {{ input: {input}; output: {output} }};",
+            proc.name
+        );
+    }
+    emit!(out, "  }};");
+
+    // Streams
+    emit!(out, "  streams: {{");
+    for proc in &streams {
         if preserve_docs && let Some(doc) = &proc.docs {
             emit_jsdoc(doc, "    ", out);
         }
