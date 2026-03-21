@@ -991,3 +991,98 @@ fn idempotent_with_timeout() {
     assert!(manifest.procedures[0].idempotent);
     assert_eq!(manifest.procedures[0].timeout_ms, Some(30_000));
 }
+
+// --- Stream extraction tests ---
+
+#[test]
+fn extracts_stream_no_input() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_stream]
+            async fn events(tx: StreamSender<Event>) {}
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    let proc = &manifest.procedures[0];
+    assert_eq!(proc.name, "events");
+    assert_eq!(proc.kind, ProcedureKind::Stream);
+    assert!(proc.input.is_none());
+    assert_eq!(proc.output.as_ref().unwrap().name, "Event");
+}
+
+#[test]
+fn extracts_stream_with_input() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_stream]
+            async fn chat(prompt: ChatInput, tx: StreamSender<Token>) {}
+            "#,
+    );
+    assert_eq!(manifest.procedures.len(), 1);
+    let proc = &manifest.procedures[0];
+    assert_eq!(proc.kind, ProcedureKind::Stream);
+    assert_eq!(proc.input.as_ref().unwrap().name, "ChatInput");
+    assert_eq!(proc.output.as_ref().unwrap().name, "Token");
+}
+
+#[test]
+fn extracts_stream_skips_sender_param() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_stream]
+            async fn events(input: String, tx: StreamSender<Chunk>) {}
+            "#,
+    );
+    let proc = &manifest.procedures[0];
+    assert_eq!(proc.input.as_ref().unwrap().name, "String");
+    assert_eq!(proc.output.as_ref().unwrap().name, "Chunk");
+}
+
+#[test]
+fn extracts_stream_bare_sender_has_no_output() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_stream]
+            async fn events(tx: StreamSender) {}
+            "#,
+    );
+    let proc = &manifest.procedures[0];
+    assert!(proc.output.is_none());
+}
+
+#[test]
+fn extracts_stream_with_headers() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_stream]
+            async fn events(headers: Headers, tx: StreamSender<Event>) {}
+            "#,
+    );
+    let proc = &manifest.procedures[0];
+    assert_eq!(proc.kind, ProcedureKind::Stream);
+    assert!(proc.input.is_none());
+    assert_eq!(proc.output.as_ref().unwrap().name, "Event");
+}
+
+#[test]
+fn extracts_stream_timeout() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_stream(timeout = "30s")]
+            async fn slow_stream(tx: StreamSender<Tick>) {}
+            "#,
+    );
+    assert_eq!(manifest.procedures[0].timeout_ms, Some(30_000));
+    assert_eq!(manifest.procedures[0].output.as_ref().unwrap().name, "Tick");
+}
+
+#[test]
+fn stream_is_not_idempotent() {
+    let manifest = common::parse_source(
+        r#"
+            #[rpc_stream]
+            async fn events(tx: StreamSender<Event>) {}
+            "#,
+    );
+    assert!(!manifest.procedures[0].idempotent);
+}

@@ -550,3 +550,116 @@ fn snapshot_react_mutations_only() {
     let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
     insta::assert_snapshot!(output);
 }
+
+// --- Stream tests ---
+
+#[test]
+fn react_contains_use_stream() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export function useStream"));
+}
+
+#[test]
+fn react_stream_options_interface() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export interface StreamOptions<K extends StreamKey>"));
+}
+
+#[test]
+fn react_stream_result_interface() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("export interface StreamResult<K extends StreamKey>"));
+}
+
+#[test]
+fn react_stream_type_helpers() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("type StreamKey = keyof Procedures[\"streams\"]"));
+}
+
+#[test]
+fn react_stream_uses_hooks() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("useState"));
+    assert!(output.contains("useRef"));
+    assert!(output.contains("useCallback"));
+}
+
+#[test]
+fn react_stream_has_start_stop() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("start"));
+    assert!(output.contains("stop"));
+    assert!(output.contains("chunks"));
+    assert!(output.contains("isStreaming"));
+    assert!(output.contains("isDone"));
+}
+
+#[test]
+fn react_no_stream_when_no_streams() {
+    let manifest = common::make_manifest(vec![common::make_query(
+        "hello",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(!output.contains("useStream"));
+    assert!(!output.contains("StreamKey"));
+}
+
+#[test]
+fn react_streams_only_no_query_no_mutation() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "events",
+        None,
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    assert!(output.contains("useStream"));
+    assert!(!output.contains("useQuery"));
+    assert!(!output.contains("useMutation"));
+}
+
+#[test]
+fn snapshot_react_streams_only() {
+    let manifest = common::make_manifest(vec![
+        common::make_stream(
+            "chat",
+            Some(RustType::simple("String")),
+            Some(RustType::simple("String")),
+        ),
+        common::make_stream("events", None, Some(RustType::simple("Event"))),
+    ]);
+    let output = generate_react_file(&manifest, "./rpc-client", "./rpc-types", false);
+    insta::assert_snapshot!(output);
+}

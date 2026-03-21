@@ -35,4 +35,6 @@ export type Procedures = {
     /** Documentation for create_item. */
     create_item: { input: CreateInput; output: Item };
   };
+  streams: {
+  };
 };

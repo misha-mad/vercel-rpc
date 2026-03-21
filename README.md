@@ -22,9 +22,9 @@
 
 metaxy generates a fully typed TypeScript client with matching types, so your frontend never goes out of sync.
 
-- **Macros** — CORS, JSON parsing, error handling, caching, timeouts, and state injection generated at compile time
+- **Macros** — CORS, JSON parsing, error handling, caching, timeouts, streaming, and state injection generated at compile time
 - **CLI** — scans your Rust code, generates TypeScript types and a typed client; watch mode re-generates on every save
-- **Client** — retry with backoff, request deduplication, AbortSignal, async headers, lifecycle hooks
+- **Client** — retry with backoff, request deduplication, AbortSignal, async headers, lifecycle hooks, SSE streaming
 - **Frameworks** — opt-in reactive wrappers for Svelte 5, React, Vue 3, and SolidJS
 
 ## Quick Start
@@ -57,6 +57,36 @@ const greeting = await rpc.query("hello", "World");
 ```
 
 See the [Getting Started guide](https://metaxy-demo.vercel.app/docs/getting-started) for the full walkthrough.
+
+## Streaming
+
+Stream responses via SSE with `#[rpc_stream]`:
+
+```rust
+use metaxy::{rpc_stream, StreamSender};
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct Token { pub text: String }
+
+#[rpc_stream(timeout = "60s")]
+async fn chat(prompt: String, tx: StreamSender<Token>) {
+    for word in prompt.split_whitespace() {
+        tx.send(Token { text: word.to_string() }).await.ok();
+    }
+}
+```
+
+```typescript
+// Async generator
+for await (const chunk of rpc.stream("chat", "Hello world")) {
+  console.log(chunk.text);
+}
+
+// Reactive wrapper (Svelte 5)
+const stream = createStream(rpc, "chat", () => prompt);
+// stream.chunks, stream.isStreaming, stream.start(), stream.stop()
+```
 
 ## Documentation
 

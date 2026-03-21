@@ -166,33 +166,29 @@ async fn upsert_user(input: UserInput) -> User { ... }
 
 ---
 
-## Phase 5 — Streaming & Request Access
+## Phase 5 — Streaming
 
-### Streaming Procedures via `#[rpc_stream]`
+### ~~Streaming Procedures via `#[rpc_stream]`~~ ✅
 
-A new procedure type alongside `#[rpc_query]` and `#[rpc_mutation]` that enables HTTP streaming responses. Built on top of `vercel_runtime::axum::stream_response` and Axum's streaming primitives.
+> Implemented in `feat/vercel-streaming` branch. A new procedure type alongside `#[rpc_query]` and `#[rpc_mutation]` that enables HTTP streaming responses via Server-Sent Events. Built on `vercel_runtime::axum::stream_response` and Axum's streaming primitives.
 
 ```rust
-#[rpc_stream]
-async fn chat(input: ChatInput, tx: StreamSender) {
+#[rpc_stream(timeout = "60s")]
+async fn chat(input: ChatInput, tx: StreamSender<Token>) {
     for token in generate_tokens(&input.prompt) {
-        tx.send(token).await;
+        tx.send(token).await.ok();
     }
 }
 ```
 
-**Key design points:**
-- New `StreamSender` type (re-exported from `metaxy`) wraps the Axum/hyper `Bytes` channel
-- Handler receives typed input (deserialized as usual) plus a `StreamSender` for emitting chunks
-- Generated TypeScript client gets a `stream()` method returning an `AsyncIterable` or `ReadableStream`
-- Framework wrappers get `createStream` / `useStream` primitives with reactive state
-- Requires `vercel_runtime` with `axum` feature and `VercelLayer` for the streaming entry point
-- Streaming routes live in a separate Axum-based binary, coexisting with existing per-file lambdas
-
-**Streaming formats to support:**
-- Raw chunked (`text/plain`) — general purpose
-- SSE (`text/event-stream`) — real-time events, LLM token streaming
-- JSON Lines (`application/x-ndjson`) — structured streaming data
+**What's implemented:**
+- `StreamSender<T>` type (re-exported from `metaxy`) wraps the Axum/hyper `Bytes` channel with `send()` (JSON serialization) and `send_raw()` methods; the generic parameter carries the chunk type for TypeScript codegen
+- `#[rpc_stream]` proc macro generates an Axum-based binary with `VercelLayer`, supporting `timeout` and `init` attributes (`cache` and `idempotent` are rejected at compile time)
+- CLI parser recognizes `#[rpc_stream]`, extracts chunk type from `StreamSender<T>`, emits `ProcedureKind::Stream`
+- TypeScript types codegen emits `streams` section in the `Procedures` type
+- Client codegen emits `stream()` method with `rpcStream` async generator and SSE parsing
+- Framework wrappers: `createStream` (Svelte 5, SolidJS) and `useStream` (React, Vue 3) with reactive `chunks`, `error`, `isStreaming`, `isDone`, `start()`, `stop()` state management
+- Each chunk is serialized as `data: {json}\n\n` SSE event format
 
 ---
 
@@ -204,4 +200,4 @@ async fn chat(input: ChatInput, tx: StreamSender) {
 | **2** | Client     | ~~Client config (v1)~~ ✅, ~~client config (extended)~~ ✅, ~~per-call options~~ ✅, ~~request deduplication~~ ✅, ~~JSDoc generation~~ ✅                                                     |
 | **3** | DX         | ~~Framework wrappers (Svelte 5, React, Vue 3, SolidJS)~~ ✅, ~~reactive options~~ ✅, ~~AbortController~~ ✅, ~~enum representations~~ ✅, ~~generics~~ ✅, ~~branded types~~ ✅, ~~flatten~~ ✅ |
 | **4** | Ecosystem  | ~~External crate mappings~~ ✅, ~~BigInt option~~ ✅, ~~macro metadata~~ ✅, ~~server-side caching~~ ✅, ~~init/state~~ ✅, ~~timeout~~ ✅, ~~idempotent mutations~~ ✅                          |
-| **5** | Streaming  | `#[rpc_stream]` procedure type, SSE/chunked/NDJSON formats, framework stream primitives                                                                                                   |
+| **5** | Streaming  | ~~`#[rpc_stream]` procedure type~~ ✅, ~~SSE streaming~~ ✅, ~~framework stream primitives~~ ✅                                                                                              |

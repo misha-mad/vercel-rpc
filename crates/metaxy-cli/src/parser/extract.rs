@@ -10,12 +10,13 @@ use super::serde as serde_attr;
 use super::types::{extract_rust_type, extract_struct_fields, extract_tuple_fields};
 use crate::config::InputConfig;
 use crate::model::{
-    EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, StructDef, VariantKind,
+    EnumDef, EnumVariant, Manifest, Procedure, ProcedureKind, RustType, StructDef, VariantKind,
 };
 
 /// RPC attribute names recognized by the parser.
 const RPC_QUERY_ATTR: &str = "rpc_query";
 const RPC_MUTATION_ATTR: &str = "rpc_mutation";
+const RPC_STREAM_ATTR: &str = "rpc_stream";
 
 /// Builds a `GlobSet` from a list of glob pattern strings.
 fn build_glob_set(patterns: &[String]) -> Result<GlobSet> {
@@ -189,18 +190,31 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
         if matches!(&*pat.ty, syn::Type::Reference(_)) {
             return None;
         }
+        // Skip the StreamSender parameter — it's an internal streaming channel.
+        if is_stream_sender_type(&pat.ty) {
+            return None;
+        }
         Some(extract_rust_type(&pat.ty))
     });
 
-    let output = match &func.sig.output {
-        ReturnType::Default => None,
-        ReturnType::Type(_, ty) => {
-            let rust_type = extract_rust_type(ty);
-            // Unwrap Result<T, _> to just T
-            if rust_type.name == "Result" && !rust_type.generics.is_empty() {
-                rust_type.generics.into_iter().next()
-            } else {
-                Some(rust_type)
+    // For streams, the output type comes from the StreamSender<T> parameter.
+    // For queries/mutations, it comes from the function return type.
+    let output = if kind == ProcedureKind::Stream {
+        func.sig.inputs.iter().find_map(|arg| {
+            let FnArg::Typed(pat) = arg else { return None };
+            extract_stream_chunk_type(&pat.ty)
+        })
+    } else {
+        match &func.sig.output {
+            ReturnType::Default => None,
+            ReturnType::Type(_, ty) => {
+                let rust_type = extract_rust_type(ty);
+                // Unwrap Result<T, _> to just T
+                if rust_type.name == "Result" && !rust_type.generics.is_empty() {
+                    rust_type.generics.into_iter().next()
+                } else {
+                    Some(rust_type)
+                }
             }
         }
     };
@@ -220,7 +234,7 @@ fn try_extract_procedure(func: &ItemFn, path: &Path) -> Option<Procedure> {
     })
 }
 
-/// Checks function attributes for `#[rpc_query]` or `#[rpc_mutation]`.
+/// Checks function attributes for `#[rpc_query]`, `#[rpc_mutation]`, or `#[rpc_stream]`.
 fn detect_rpc_kind(attrs: &[Attribute]) -> Option<ProcedureKind> {
     for attr in attrs {
         if attr.path().is_ident(RPC_QUERY_ATTR) {
@@ -228,6 +242,9 @@ fn detect_rpc_kind(attrs: &[Attribute]) -> Option<ProcedureKind> {
         }
         if attr.path().is_ident(RPC_MUTATION_ATTR) {
             return Some(ProcedureKind::Mutation);
+        }
+        if attr.path().is_ident(RPC_STREAM_ATTR) {
+            return Some(ProcedureKind::Stream);
         }
     }
     None
@@ -288,13 +305,51 @@ fn is_headers_type(ty: &syn::Type) -> bool {
     false
 }
 
+/// Returns `true` if the type path ends with `StreamSender` (e.g. `StreamSender`, `metaxy::StreamSender`).
+///
+/// Used to skip the `StreamSender` parameter when extracting RPC input types,
+/// since it is an internal streaming channel rather than user-provided input.
+fn is_stream_sender_type(ty: &syn::Type) -> bool {
+    if let syn::Type::Path(type_path) = ty
+        && let Some(segment) = type_path.path.segments.last()
+    {
+        return segment.ident == "StreamSender";
+    }
+    false
+}
+
+/// Extracts the chunk type `T` from `StreamSender<T>`.
+///
+/// Returns `None` for bare `StreamSender` (no type parameter).
+fn extract_stream_chunk_type(ty: &syn::Type) -> Option<RustType> {
+    let syn::Type::Path(type_path) = ty else {
+        return None;
+    };
+    let segment = type_path.path.segments.last()?;
+    if segment.ident != "StreamSender" {
+        return None;
+    }
+    let syn::PathArguments::AngleBracketed(args) = &segment.arguments else {
+        return None;
+    };
+    for arg in &args.args {
+        if let syn::GenericArgument::Type(inner_ty) = arg {
+            return Some(extract_rust_type(inner_ty));
+        }
+    }
+    None
+}
+
 /// Extracts the `timeout` value from `#[rpc_query(timeout = "30s")]` or `#[rpc_mutation(timeout = "30s")]`.
 ///
 /// Returns `Some(milliseconds)` if a valid timeout is found, `None` otherwise.
 /// Uses `Punctuated<Meta>` to handle mixed bare flags (e.g. `idempotent`) alongside key-value pairs.
 fn extract_timeout_ms(attrs: &[Attribute]) -> Option<u64> {
     for attr in attrs {
-        if !attr.path().is_ident(RPC_QUERY_ATTR) && !attr.path().is_ident(RPC_MUTATION_ATTR) {
+        if !attr.path().is_ident(RPC_QUERY_ATTR)
+            && !attr.path().is_ident(RPC_MUTATION_ATTR)
+            && !attr.path().is_ident(RPC_STREAM_ATTR)
+        {
             continue;
         }
         let Ok(parsed) = attr.parse_args_with(

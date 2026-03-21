@@ -29,4 +29,6 @@ export type Procedures = {
   mutations: {
     create_item: { input: CreateInput; output: Item };
   };
+  streams: {
+  };
 };

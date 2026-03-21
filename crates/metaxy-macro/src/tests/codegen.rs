@@ -1,6 +1,7 @@
 use super::helpers::{no_attrs, parse_fn};
 use crate::attrs::{CacheConfig, HandlerAttrs};
 use crate::codegen::{HandlerKind, build_handler};
+use crate::codegen_stream::build_stream_handler;
 use syn::ItemFn;
 
 // --- generate_handler: query ---
@@ -483,4 +484,171 @@ fn mutation_idempotent_no_codegen_diff() {
         .unwrap()
         .to_string();
     assert_eq!(plain_code, idempotent_code);
+}
+
+// --- build_stream_handler: valid streams ---
+
+#[test]
+fn stream_basic_with_sender() {
+    let func = parse_fn("async fn events(tx: StreamSender) {}");
+    let code = build_stream_handler(func, no_attrs()).unwrap().to_string();
+    assert!(code.contains("stream_response"));
+    assert!(code.contains("VercelLayer"));
+    assert!(code.contains("tokio :: main"));
+    assert!(code.contains("Router"));
+    assert!(code.contains("post"));
+    assert!(code.contains("StreamSender :: new"));
+}
+
+#[test]
+fn stream_with_input_and_sender() {
+    let func = parse_fn("async fn chat(input: ChatInput, tx: StreamSender) {}");
+    let code = build_stream_handler(func, no_attrs()).unwrap().to_string();
+    assert!(code.contains("Json"));
+    assert!(code.contains("__input"));
+}
+
+#[test]
+fn stream_with_headers_and_sender() {
+    let func = parse_fn("async fn events(headers: Headers, tx: StreamSender) {}");
+    let code = build_stream_handler(func, no_attrs()).unwrap().to_string();
+    assert!(code.contains("HeaderMap"));
+    assert!(code.contains("__headers"));
+}
+
+#[test]
+fn stream_with_all_params() {
+    let func = parse_fn(
+        "async fn events(input: Msg, state: &AppState, headers: Headers, tx: StreamSender) {}",
+    );
+    let attrs = HandlerAttrs {
+        init_fn: Some("setup".into()),
+        ..HandlerAttrs::default()
+    };
+    let code = build_stream_handler(func, attrs).unwrap().to_string();
+    assert!(code.contains("__input"));
+    assert!(code.contains("__state"));
+    assert!(code.contains("__headers"));
+    assert!(code.contains("OnceLock"));
+    assert!(code.contains("setup"));
+}
+
+#[test]
+fn stream_with_timeout() {
+    let func = parse_fn("async fn slow(tx: StreamSender) {}");
+    let attrs = HandlerAttrs {
+        timeout_secs: Some(30),
+        ..HandlerAttrs::default()
+    };
+    let code = build_stream_handler(func, attrs).unwrap().to_string();
+    assert!(code.contains("timeout_at"));
+    assert!(code.contains("Duration :: from_secs (30u64)"));
+    assert!(code.contains("event: error"));
+}
+
+#[test]
+fn stream_with_init_side_effects() {
+    let func = parse_fn("async fn events(tx: StreamSender) {}");
+    let attrs = HandlerAttrs {
+        init_fn: Some("setup".into()),
+        ..HandlerAttrs::default()
+    };
+    let code = build_stream_handler(func, attrs).unwrap().to_string();
+    assert!(code.contains("setup () . await"));
+    assert!(!code.contains("OnceLock"));
+}
+
+#[test]
+fn stream_with_init_and_state() {
+    let func = parse_fn("async fn events(state: &AppState, tx: StreamSender) {}");
+    let attrs = HandlerAttrs {
+        init_fn: Some("setup".into()),
+        ..HandlerAttrs::default()
+    };
+    let code = build_stream_handler(func, attrs).unwrap().to_string();
+    assert!(code.contains("OnceLock"));
+    assert!(code.contains("__RPC_STATE"));
+}
+
+// --- build_stream_handler: error cases ---
+
+#[test]
+fn stream_rejects_non_async() {
+    let func: ItemFn = syn::parse_str("fn events(tx: StreamSender) {}").unwrap();
+    let err = build_stream_handler(func, no_attrs()).unwrap_err();
+    assert!(err.to_string().contains("must be async"));
+}
+
+#[test]
+fn stream_rejects_return_type() {
+    let func = parse_fn("async fn events(tx: StreamSender) -> String { String::new() }");
+    let err = build_stream_handler(func, no_attrs()).unwrap_err();
+    assert!(err.to_string().contains("must not have a return type"));
+}
+
+#[test]
+fn stream_rejects_missing_sender() {
+    let func = parse_fn("async fn events(input: String) {}");
+    let err = build_stream_handler(func, no_attrs()).unwrap_err();
+    assert!(err.to_string().contains("must accept a StreamSender"));
+}
+
+#[test]
+fn stream_rejects_multiple_senders() {
+    let func = parse_fn("async fn events(tx1: StreamSender, tx2: StreamSender) {}");
+    let err = build_stream_handler(func, no_attrs()).unwrap_err();
+    assert!(err.to_string().contains("at most one StreamSender"));
+}
+
+#[test]
+fn stream_rejects_multiple_inputs() {
+    let func = parse_fn("async fn events(a: String, b: u32, tx: StreamSender) {}");
+    let err = build_stream_handler(func, no_attrs()).unwrap_err();
+    assert!(err.to_string().contains("at most one input"));
+}
+
+#[test]
+fn stream_rejects_state_without_init() {
+    let func = parse_fn("async fn events(state: &AppState, tx: StreamSender) {}");
+    let err = build_stream_handler(func, no_attrs()).unwrap_err();
+    assert!(err.to_string().contains("init"));
+}
+
+#[test]
+fn stream_rejects_mut_state() {
+    let func = parse_fn("async fn events(state: &mut AppState, tx: StreamSender) {}");
+    let attrs = HandlerAttrs {
+        init_fn: Some("setup".into()),
+        ..HandlerAttrs::default()
+    };
+    let err = build_stream_handler(func, attrs).unwrap_err();
+    assert!(err.to_string().contains("shared reference"));
+}
+
+#[test]
+fn stream_rejects_multiple_state() {
+    let func = parse_fn("async fn events(a: &AppState, b: &Other, tx: StreamSender) {}");
+    let attrs = HandlerAttrs {
+        init_fn: Some("setup".into()),
+        ..HandlerAttrs::default()
+    };
+    let err = build_stream_handler(func, attrs).unwrap_err();
+    assert!(err.to_string().contains("at most one state"));
+}
+
+// --- build_stream_handler: incompatible attrs ---
+
+#[test]
+fn stream_no_cors_headers() {
+    let func = parse_fn("async fn events(tx: StreamSender) {}");
+    let code = build_stream_handler(func, no_attrs()).unwrap().to_string();
+    assert!(!code.contains("Access-Control-Allow-Origin"));
+}
+
+#[test]
+fn stream_no_options_handler() {
+    let func = parse_fn("async fn events(tx: StreamSender) {}");
+    let code = build_stream_handler(func, no_attrs()).unwrap().to_string();
+    assert!(!code.contains("\"OPTIONS\""));
+    assert!(!code.contains("405"));
 }
