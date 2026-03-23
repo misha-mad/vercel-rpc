@@ -958,6 +958,50 @@ fn retry_guard_checks_idempotent() {
     assert!(output.contains("IDEMPOTENT_MUTATIONS.has(procedure)"));
 }
 
+// --- Stream timeout / PROCEDURE_TIMEOUTS tests ---
+
+#[test]
+fn stream_procedure_timeout_in_procedure_timeouts() {
+    let mut proc = common::make_stream("timed_stream", None, Some(RustType::simple("String")));
+    proc.timeout_ms = Some(60_000);
+    let manifest = common::make_manifest(vec![proc]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    assert!(output.contains("\"timed_stream\": 60000"));
+}
+
+#[test]
+fn stream_helper_supports_call_options_timeout() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    assert!(
+        stream_body.contains("callOptions?.timeout"),
+        "rpcStream must apply callOptions.timeout as a client-side abort"
+    );
+}
+
+#[test]
+fn stream_helper_does_not_apply_procedure_timeouts() {
+    let mut proc = common::make_stream("slow_stream", None, Some(RustType::simple("String")));
+    proc.timeout_ms = Some(30_000);
+    let manifest = common::make_manifest(vec![proc]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    // PROCEDURE_TIMEOUTS is defined globally (includes stream timeout)
+    assert!(output.contains("PROCEDURE_TIMEOUTS"));
+    // But rpcStream must NOT read from it — server handles stream duration
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    assert!(
+        !stream_body.contains("PROCEDURE_TIMEOUTS"),
+        "rpcStream should not apply PROCEDURE_TIMEOUTS; server manages stream duration"
+    );
+}
+
 // --- Stream method tests ---
 
 #[test]

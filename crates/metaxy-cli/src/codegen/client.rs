@@ -222,6 +222,13 @@ const STREAM_HELPER: &str = r#"async function* rpcStream<T>(
   const signals: AbortSignal[] = [];
   if (config.signal) signals.push(config.signal);
   if (callOptions?.signal) signals.push(callOptions.signal);
+  // callOptions.timeout aborts the connection; per-procedure default timeouts are intentionally
+  // not applied for streams — the server manages stream duration via #[rpc_stream(timeout = "...")].
+  if (callOptions?.timeout) {
+    const timeoutController = new AbortController();
+    setTimeout(() => timeoutController.abort(), callOptions.timeout);
+    signals.push(timeoutController.signal);
+  }
   if (signals.length > 0) {
     init.signal = signals.length === 1 ? signals[0] : AbortSignal.any(signals);
   }
