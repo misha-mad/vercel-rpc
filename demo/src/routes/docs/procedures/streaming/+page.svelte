@@ -122,7 +122,9 @@
 				<tr class="border-b border-border/50">
 					<td class="py-2 pr-4 font-mono text-xs"><Code>callOptions.signal</Code></td>
 					<td class="py-2 pr-4 text-green-400">Yes</td>
-					<td class="py-2 text-text-muted">Merged with internal controller via <Code>AbortSignal.any()</Code></td>
+					<td class="py-2 text-text-muted"
+						>Merged with internal controller via <Code>AbortSignal.any()</Code></td
+					>
 				</tr>
 				<tr class="border-b border-border/50">
 					<td class="py-2 pr-4 font-mono text-xs"><Code>callOptions.timeout</Code></td>
@@ -142,7 +144,9 @@
 				<tr class="border-b border-border/50">
 					<td class="py-2 pr-4 font-mono text-xs"><Code>onResponse</Code></td>
 					<td class="py-2 pr-4 text-red-400">No</td>
-					<td class="py-2 text-text-muted">No single response body — use <Code>onChunk</Code> / <Code>onDone</Code> in framework wrappers</td>
+					<td class="py-2 text-text-muted"
+						>No single response body — use <Code>onChunk</Code> / <Code>onDone</Code> in framework wrappers</td
+					>
 				</tr>
 				<tr class="border-b border-border/50">
 					<td class="py-2 pr-4 font-mono text-xs"><Code>retry</Code></td>
@@ -152,7 +156,9 @@
 				<tr class="border-b border-border/50">
 					<td class="py-2 pr-4 font-mono text-xs"><Code>config.timeout</Code></td>
 					<td class="py-2 pr-4 text-red-400">No</td>
-					<td class="py-2 text-text-muted">Server manages stream duration via <Code>#[rpc_stream(timeout)]</Code></td>
+					<td class="py-2 text-text-muted"
+						>Server manages stream duration via <Code>#[rpc_stream(timeout)]</Code></td
+					>
 				</tr>
 				<tr>
 					<td class="py-2 pr-4 font-mono text-xs"><Code>dedupe</Code></td>

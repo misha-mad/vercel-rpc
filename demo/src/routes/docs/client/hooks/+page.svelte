@@ -99,9 +99,11 @@
 	<!-- Streaming note -->
 	<SectionHeading level="large">Streaming</SectionHeading>
 	<p class="text-text-muted text-sm">
-		For <Code>stream()</Code> calls, <Code>onRequest</Code> and <Code>onError</Code> fire as
-		usual. <Code>onResponse</Code> is <strong>not called</strong> because a stream has no single
-		response body — use <Code>onChunk</Code> / <Code>onDone</Code> in framework wrappers instead.
+		For <Code>stream()</Code> calls, <Code>onRequest</Code> and <Code>onError</Code> fire as usual. <Code
+			>onResponse</Code
+		> is <strong>not called</strong> because a stream has no single response body — use <Code
+			>onChunk</Code
+		> / <Code>onDone</Code> in framework wrappers instead.
 	</p>
 
 	<!-- Try it -->
