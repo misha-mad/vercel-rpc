@@ -570,6 +570,35 @@ fn stream_with_init_and_state() {
     assert!(code.contains("__RPC_STATE"));
 }
 
+#[test]
+fn stream_with_timeout_and_input() {
+    let func = parse_fn("async fn chat(input: ChatInput, tx: StreamSender) {}");
+    let attrs = HandlerAttrs {
+        timeout_secs: Some(60),
+        ..HandlerAttrs::default()
+    };
+    let code = build_stream_handler(func, attrs).unwrap().to_string();
+    assert!(code.contains("__input"));
+    assert!(code.contains("timeout_at"));
+    assert!(code.contains("Duration :: from_secs (60u64)"));
+    assert!(code.contains("event: error"));
+}
+
+#[test]
+fn stream_with_init_and_timeout() {
+    let func = parse_fn("async fn events(tx: StreamSender) {}");
+    let attrs = HandlerAttrs {
+        init_fn: Some("setup".into()),
+        timeout_secs: Some(45),
+        ..HandlerAttrs::default()
+    };
+    let code = build_stream_handler(func, attrs).unwrap().to_string();
+    assert!(code.contains("setup () . await"));
+    assert!(code.contains("timeout_at"));
+    assert!(code.contains("Duration :: from_secs (45u64)"));
+    assert!(code.contains("event: error"));
+}
+
 // --- build_stream_handler: error cases ---
 
 #[test]

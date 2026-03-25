@@ -1036,6 +1036,22 @@ fn stream_helper_calls_on_error() {
     );
 }
 
+#[test]
+fn stream_jsdoc_on_overload() {
+    let mut proc = common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    );
+    proc.docs = Some("Chat stream.".to_string());
+    let manifest = common::make_manifest(vec![proc]);
+    let output = generate_client_file(&manifest, "./rpc-types", true);
+    assert!(
+        output.contains("/** Chat stream. */\n  stream(key: \"chat\", input: string)"),
+        "stream overload should have JsDoc comment"
+    );
+}
+
 // --- Stream method tests ---
 
 #[test]
