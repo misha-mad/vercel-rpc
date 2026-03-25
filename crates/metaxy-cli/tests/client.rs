@@ -1151,7 +1151,10 @@ fn stream_helper_handles_error_event() {
     let stream_start = output.find("async function* rpcStream").unwrap();
     let stream_body = &output[stream_start..];
     // SSE parser must track event type per message block
-    assert!(stream_body.contains("eventType"), "must track SSE event type");
+    assert!(
+        stream_body.contains("eventType"),
+        "must track SSE event type"
+    );
     // Must detect event: error lines
     assert!(
         stream_body.contains("event: "),

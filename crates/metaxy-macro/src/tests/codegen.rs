@@ -613,11 +613,20 @@ fn stream_with_all_attrs_and_params() {
     assert!(code.contains("__input"), "must parse input");
     assert!(code.contains("__state"), "must inject state");
     assert!(code.contains("__headers"), "must pass headers");
-    assert!(code.contains("OnceLock"), "must use OnceLock for state init");
+    assert!(
+        code.contains("OnceLock"),
+        "must use OnceLock for state init"
+    );
     assert!(code.contains("setup"), "must call init function");
     assert!(code.contains("timeout_at"), "must apply timeout");
-    assert!(code.contains("Duration :: from_secs (120u64)"), "must use 120s");
-    assert!(code.contains("event: error"), "timeout must send SSE error event");
+    assert!(
+        code.contains("Duration :: from_secs (120u64)"),
+        "must use 120s"
+    );
+    assert!(
+        code.contains("event: error"),
+        "timeout must send SSE error event"
+    );
 }
 
 // --- build_stream_handler: error cases ---
