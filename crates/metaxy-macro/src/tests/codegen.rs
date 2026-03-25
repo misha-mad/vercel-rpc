@@ -599,6 +599,27 @@ fn stream_with_init_and_timeout() {
     assert!(code.contains("event: error"));
 }
 
+#[test]
+fn stream_with_all_attrs_and_params() {
+    let func = parse_fn(
+        "async fn chat(input: ChatInput, state: &AppState, headers: Headers, tx: StreamSender) {}",
+    );
+    let attrs = HandlerAttrs {
+        init_fn: Some("setup".into()),
+        timeout_secs: Some(120),
+        ..HandlerAttrs::default()
+    };
+    let code = build_stream_handler(func, attrs).unwrap().to_string();
+    assert!(code.contains("__input"), "must parse input");
+    assert!(code.contains("__state"), "must inject state");
+    assert!(code.contains("__headers"), "must pass headers");
+    assert!(code.contains("OnceLock"), "must use OnceLock for state init");
+    assert!(code.contains("setup"), "must call init function");
+    assert!(code.contains("timeout_at"), "must apply timeout");
+    assert!(code.contains("Duration :: from_secs (120u64)"), "must use 120s");
+    assert!(code.contains("event: error"), "timeout must send SSE error event");
+}
+
 // --- build_stream_handler: error cases ---
 
 #[test]

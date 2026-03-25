@@ -1163,3 +1163,156 @@ fn stream_helper_handles_error_event() {
         "must throw RpcError on event: error"
     );
 }
+
+// --- Stream: combined option tests ---
+
+#[test]
+fn stream_helper_merges_config_signal_callopt_signal_and_timeout() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    // config.signal
+    assert!(
+        stream_body.contains("config.signal"),
+        "rpcStream must push config.signal into signals array"
+    );
+    // callOptions.signal
+    assert!(
+        stream_body.contains("callOptions?.signal"),
+        "rpcStream must push callOptions.signal into signals array"
+    );
+    // callOptions.timeout creates its own AbortController
+    assert!(
+        stream_body.contains("callOptions?.timeout"),
+        "rpcStream must handle callOptions.timeout"
+    );
+    // All signals merged with AbortSignal.any()
+    assert!(
+        stream_body.contains("AbortSignal.any(signals)"),
+        "rpcStream must merge signals with AbortSignal.any"
+    );
+}
+
+#[test]
+fn stream_helper_does_not_call_on_response() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    assert!(
+        !stream_body.contains("onResponse"),
+        "rpcStream must NOT call onResponse — streams have no single response body"
+    );
+}
+
+#[test]
+fn stream_helper_does_not_use_retry() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    assert!(
+        !stream_body.contains("retry"),
+        "rpcStream must NOT implement retry logic"
+    );
+    assert!(
+        !stream_body.contains("maxAttempts"),
+        "rpcStream must NOT have maxAttempts loop"
+    );
+}
+
+#[test]
+fn stream_helper_uses_custom_serialize_for_body() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    assert!(
+        stream_body.contains("config.serialize"),
+        "rpcStream must use config.serialize for request body when available"
+    );
+}
+
+#[test]
+fn stream_helper_uses_custom_deserialize_for_chunks() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    assert!(
+        stream_body.contains("config.deserialize"),
+        "rpcStream must use config.deserialize for SSE chunk payloads when available"
+    );
+}
+
+#[test]
+fn stream_helper_merges_config_and_callopt_headers() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    // Must spread both config.headers and callOptions.headers
+    assert!(
+        stream_body.contains("customHeaders") && stream_body.contains("callOptions?.headers"),
+        "rpcStream must merge config.headers (via customHeaders) and callOptions.headers"
+    );
+}
+
+#[test]
+fn stream_helper_does_not_use_config_timeout() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    // rpcFetch uses: callOptions?.timeout ?? PROCEDURE_TIMEOUTS[procedure] ?? config.timeout
+    // rpcStream must NOT fall back to config.timeout or PROCEDURE_TIMEOUTS
+    assert!(
+        !stream_body.contains("config.timeout"),
+        "rpcStream must NOT use config.timeout — server manages stream duration"
+    );
+}
+
+#[test]
+fn stream_helper_releases_reader_in_finally() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "chat",
+        Some(RustType::simple("String")),
+        Some(RustType::simple("String")),
+    )]);
+    let output = generate_client_file(&manifest, "./rpc-types", false);
+    let stream_start = output.find("async function* rpcStream").unwrap();
+    let stream_body = &output[stream_start..];
+    assert!(
+        stream_body.contains("reader.releaseLock()"),
+        "rpcStream must release the reader in a finally block"
+    );
+}
