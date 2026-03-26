@@ -692,6 +692,23 @@ fn svelte_stream_merges_user_signal_with_controller() {
 }
 
 #[test]
+fn svelte_stream_passes_call_options_through() {
+    let manifest = common::make_manifest(vec![common::make_stream(
+        "events",
+        None,
+        Some(RustType::simple("Event")),
+    )]);
+    let output = generate_svelte_file(&manifest, "./rpc-client", "./rpc-types", false);
+    let stream_start = output.find("createStream").unwrap();
+    let stream_body = &output[stream_start..];
+    // callOptions must be spread into mergedCallOptions so timeout, headers etc. pass through
+    assert!(
+        stream_body.contains("...options?.callOptions"),
+        "createStream must spread callOptions so timeout and headers are forwarded to rpcStream"
+    );
+}
+
+#[test]
 fn snapshot_svelte_streams_only() {
     let manifest = common::make_manifest(vec![
         common::make_stream(
